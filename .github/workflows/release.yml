@@ -26,5 +26,4 @@ jobs:
           release-type: simple
           extra-files: |
             Bucketeer.podspec
-          release-as: 2.0.0
           token: ${{ secrets.WORKFLOW_TOKEN }} # We need to set the PAT so the publish workflow can be triggered
