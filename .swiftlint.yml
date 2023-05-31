@@ -1,0 +1,43 @@
+disabled_rules: # rule identifiers turned on by default to exclude from running
+  - colon
+  - comma
+  - control_statement
+  - identifier_name
+  - cyclomatic_complexity
+  - xctfail_message
+  - nesting
+  - discouraged_direct_init
+
+opt_in_rules:
+  - let_var_whitespace
+  - unused_declaration
+  - unused_import
+  - vertical_whitespace_closing_braces
+
+excluded:
+  - Example
+  - ExampleTVOS
+
+allow_zero_lintable_files: false
+
+line_length: 250
+
+type_body_length:
+  warning: 300
+  error: 800
+
+function_body_length: 120
+
+file_length:
+  warning: 500
+  error: 1200
+
+type_name:
+  min_length: 4
+  max_length:
+    warning: 40
+    error: 50
+  excluded: 
+    - iPhone
+    - DB
+  allowed_symbols: ["_"]
