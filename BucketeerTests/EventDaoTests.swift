@@ -1,6 +1,7 @@
 import XCTest
 @testable import Bucketeer
 
+@available(iOS 13, *)
 final class EventDaoTests: XCTestCase {
     let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("event_test.db")
     var path: String { url.path }

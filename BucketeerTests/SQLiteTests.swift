@@ -1,6 +1,7 @@
 import XCTest
 @testable import Bucketeer
 
+@available(iOS 13, *)
 class SQLiteTests: XCTestCase {
 
     let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("test.db")

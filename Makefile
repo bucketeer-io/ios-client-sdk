@@ -39,7 +39,7 @@ ALL_TEST_WITHOUT_BUILDING=$(XCODEBUILD) $(OPTIONS) $(DESTINATION) \
 	test-without-building
 BUILD_EXAMPLE=$(XCODEBUILD) $(EXAMPLE_OPTIONS) $(DESTINATION) \
 	-configuration $(CONFIGURATION) \
-	build
+	build API_ENDPOINT=$(API_ENDPOINT) API_KEY=$(API_KEY)
 
 .PHONY: clean
 clean:
@@ -68,7 +68,7 @@ e2e-without-building:
 .PHONY: all-test-without-building
 all-test-without-building:
 	$(ALL_TEST_WITHOUT_BUILDING)
-	
+
 .PHONY: build-example
 build-example:
 	$(BUILD_EXAMPLE)

@@ -1,6 +1,7 @@
 import XCTest
 @testable import Bucketeer
 
+@available(iOS 13, *)
 class MigrationTests: XCTestCase {
     let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("test.db")
     var path: String { url.path }

@@ -2,6 +2,7 @@ import Foundation
 import XCTest
 import Bucketeer
 
+@available(iOS 13, *)
 final class BucketeerE2ETests: XCTestCase {
 
     private var config: BKTConfig!

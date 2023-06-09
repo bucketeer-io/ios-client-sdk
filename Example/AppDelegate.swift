@@ -43,10 +43,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     private func makeConfig() -> BKTConfig {
         let bundle = Bundle(for: type(of: self))
-        let path = bundle.path(forResource: "Info", ofType: "plist")!
-        let dic = NSDictionary(contentsOfFile: path) as! [String: Any]
-        let apiKey = dic["apiKey"] as! String
-        let apiEndpoint = dic["apiEndpoint"] as! String
+        let apiKey = ProcessInfo.processInfo.environment["API_KEY"]!
+        let apiEndpoint = ProcessInfo.processInfo.environment["API_ENDPOINT"]!
 
         return try! BKTConfig(
             apiKey: apiKey,
