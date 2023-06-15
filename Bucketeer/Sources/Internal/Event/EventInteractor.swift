@@ -195,8 +195,10 @@ final class EventInteractorImpl: EventInteractor {
             return !metricsEventUniqueKeys.contains(item.uniqueKey())
         }
         if (newEvents.count > 0) {
-            try eventDao.add(events: events)
+            try eventDao.add(events: newEvents)
             updateEventsAndNotify()
+        } else {
+            logger?.debug(message: "no events to add")
         }
     }
 

@@ -100,20 +100,6 @@ final class EventDaoTests: XCTestCase {
         XCTAssertEqual(events[3], Event.mockEvaluation2)
     }
 
-    func testAddDuplicatedEvents() throws {
-        let db = try SQLite(path: path, logger: nil)
-        let dao = EventDaoImpl(db: db)
-
-        try dao.add(event: .mockMetrics1)
-        try dao.add(event: .mockMetrics2)
-        try dao.add(event: .mockMetrics3)
-
-        let events = try dao.getEvents()
-        XCTAssertEqual(events.count, 2)
-        XCTAssertEqual(events[0], Event.mockMetrics1)
-        XCTAssertEqual(events[1], Event.mockMetrics2)
-    }
-
     func testDeleteAll() throws {
         let db = try SQLite(path: path, logger: nil)
         let dao = EventDaoImpl(db: db)
