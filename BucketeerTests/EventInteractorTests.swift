@@ -4,7 +4,10 @@ import XCTest
 // swiftlint:disable type_body_length
 final class EventInteractorTests: XCTestCase {
 
-    private func eventInteractor(api: ApiClient = MockApiClient(), dao: EventDao = MockEventDao()) -> EventInteractor {
+    private func eventInteractor(api: ApiClient = MockApiClient(),
+                                 dao: EventDao = MockEventDao(),
+                                 config: BKTConfig = BKTConfig.mock()
+    ) -> EventInteractor {
         let clock = MockClock(timestamp: 1)
         let idGenerator = MockIdGenerator(identifier: "id")
         let logger = MockLogger()
@@ -17,7 +20,8 @@ final class EventInteractorTests: XCTestCase {
             eventDao: dao,
             clock: clock,
             idGenerator: idGenerator,
-            logger: logger
+            logger: logger,
+            featureTag: config.featureTag
         )
     }
 
@@ -316,7 +320,7 @@ final class EventInteractorTests: XCTestCase {
     func testSendEventsFailure() throws {
         let expectation = XCTestExpectation()
         expectation.assertForOverFulfill = true
-        expectation.expectedFulfillmentCount = 2
+        expectation.expectedFulfillmentCount = 3
 
         let addedEvents: [Event] = [.mockEvaluation1, .mockGoal1, .mockGoal2]
         let dao = MockEventDao()
@@ -330,7 +334,33 @@ final class EventInteractorTests: XCTestCase {
         })
 
         let interactor = self.eventInteractor(api: api, dao: dao)
-        let listener = MockEventUpdateListener()
+        let listener = MockEventUpdateListener { events in
+            // Check if error metrics tracked after `register_event` fail
+            // In this case we expected `.badRequestError`
+            let badRequestMetricsEvent = Event(
+                id: "id",
+                event: .metrics(.init(
+                    timestamp: 1,
+                    event: .badRequestError(.init(
+                        apiId: .registerEvents,
+                        labels: ["tag":"featureTag1"]
+                    )),
+                    type: .badRequestError,
+                    sourceId: .ios,
+                    sdk_version: "0.0.2",
+                    metadata: [
+                        "app_version": "1.2.3",
+                        "os_version": "16.0",
+                        "device_model": "iPhone14,7",
+                        "device_type": "mobile"
+                    ]
+                )),
+                type: .metrics
+            )
+            let expectedEvents: [Event] = [.mockEvaluation1, .mockGoal1, .mockGoal2, badRequestMetricsEvent]
+            XCTAssertEqual(events, expectedEvents)
+            expectation.fulfill()
+        }
         interactor.set(eventUpdateListener: listener)
         interactor.sendEvents(completion: { result in
             switch result {
