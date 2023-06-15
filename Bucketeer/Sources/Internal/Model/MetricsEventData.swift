@@ -1,5 +1,17 @@
 import Foundation
 
+protocol MetricsEventDataProps {
+    var apiId: ApiId { get }
+    var labels: [String: String] { get }
+    var protobufType: String? { get }
+}
+
+extension MetricsEventDataProps {
+    func uniqueKey() -> String {
+        return "\(apiId)::\(protobufType!)"
+    }
+}
+
 enum MetricsEventData: Hashable {
     case responseLatency(ResponseLatency)
     case responseSize(ResponseSize)
@@ -15,7 +27,8 @@ enum MetricsEventData: Hashable {
     case internalServerError(InternalServerError)
     case unknownError(UnknownError)
 
-    struct ResponseLatency: Codable, Hashable {
+    
+    struct ResponseLatency: Codable, Hashable, MetricsEventDataProps {
         let apiId: ApiId
         let labels: [String: String]
         let latencySecond: Double
@@ -27,7 +40,7 @@ enum MetricsEventData: Hashable {
         }
     }
 
-    struct ResponseSize: Codable, Hashable {
+    struct ResponseSize: Codable, Hashable, MetricsEventDataProps {
         let apiId: ApiId
         let labels: [String: String]
         let sizeByte: Int64
@@ -39,7 +52,7 @@ enum MetricsEventData: Hashable {
         }
     }
 
-    struct TimeoutError: Codable, Hashable {
+    struct TimeoutError: Codable, Hashable, MetricsEventDataProps {
         let apiId: ApiId
         let labels: [String: String]
         var protobufType: String? = "type.googleapis.com/bucketeer.event.client.TimeoutErrorMetricsEvent"
@@ -49,7 +62,7 @@ enum MetricsEventData: Hashable {
         }
     }
 
-    struct NetworkError: Codable, Hashable {
+    struct NetworkError: Codable, Hashable, MetricsEventDataProps {
         let apiId: ApiId
         let labels: [String: String]
         var protobufType: String? = "type.googleapis.com/bucketeer.event.client.NetworkErrorMetricsEvent"
@@ -59,7 +72,7 @@ enum MetricsEventData: Hashable {
         }
     }
 
-    struct BadRequestError: Codable, Hashable {
+    struct BadRequestError: Codable, Hashable, MetricsEventDataProps {
         let apiId: ApiId
         let labels: [String: String]
         var protobufType: String? = "type.googleapis.com/bucketeer.event.client.BadRequestErrorMetricsEvent"
@@ -69,7 +82,7 @@ enum MetricsEventData: Hashable {
         }
     }
 
-    struct UnauthorizedError: Codable, Hashable {
+    struct UnauthorizedError: Codable, Hashable, MetricsEventDataProps {
         let apiId: ApiId
         let labels: [String: String]
         var protobufType: String? = "type.googleapis.com/bucketeer.event.client.UnauthorizedErrorMetricsEvent"
@@ -79,7 +92,7 @@ enum MetricsEventData: Hashable {
         }
     }
 
-    struct ForbiddenError: Codable, Hashable {
+    struct ForbiddenError: Codable, Hashable, MetricsEventDataProps {
         let apiId: ApiId
         let labels: [String: String]
         var protobufType: String? = "type.googleapis.com/bucketeer.event.client.ForbiddenErrorMetricsEvent"
@@ -89,7 +102,7 @@ enum MetricsEventData: Hashable {
         }
     }
 
-    struct NotFoundError: Codable, Hashable {
+    struct NotFoundError: Codable, Hashable, MetricsEventDataProps {
         let apiId: ApiId
         let labels: [String: String]
         var protobufType: String? = "type.googleapis.com/bucketeer.event.client.NotFoundErrorMetricsEvent"
@@ -99,7 +112,7 @@ enum MetricsEventData: Hashable {
         }
     }
 
-    struct ClientClosedError: Codable, Hashable {
+    struct ClientClosedError: Codable, Hashable, MetricsEventDataProps {
         let apiId: ApiId
         let labels: [String: String]
         var protobufType: String? = "type.googleapis.com/bucketeer.event.client.ClientClosedRequestErrorMetricsEvent"
@@ -109,7 +122,7 @@ enum MetricsEventData: Hashable {
         }
     }
 
-    struct UnavailableError: Codable, Hashable {
+    struct UnavailableError: Codable, Hashable, MetricsEventDataProps {
         let apiId: ApiId
         let labels: [String: String]
         var protobufType: String? = "type.googleapis.com/bucketeer.event.client.ServiceUnavailableErrorMetricsEvent"
@@ -119,7 +132,7 @@ enum MetricsEventData: Hashable {
         }
     }
 
-    struct InternalSdkError: Codable, Hashable {
+    struct InternalSdkError: Codable, Hashable, MetricsEventDataProps {
         let apiId: ApiId
         let labels: [String: String]
         var protobufType: String? = "type.googleapis.com/bucketeer.event.client.InternalSdkErrorMetricsEvent"
@@ -129,7 +142,7 @@ enum MetricsEventData: Hashable {
         }
     }
 
-    struct InternalServerError: Codable, Hashable {
+    struct InternalServerError: Codable, Hashable, MetricsEventDataProps {
         let apiId: ApiId
         let labels: [String: String]
         var protobufType: String? = "type.googleapis.com/bucketeer.event.client.InternalServerErrorMetricsEvent"
@@ -139,7 +152,7 @@ enum MetricsEventData: Hashable {
         }
     }
 
-    struct UnknownError: Codable, Hashable {
+    struct UnknownError: Codable, Hashable, MetricsEventDataProps {
         let apiId: ApiId
         let labels: [String: String]
         var protobufType: String? = "type.googleapis.com/bucketeer.event.client.UnknownErrorMetricsEvent"

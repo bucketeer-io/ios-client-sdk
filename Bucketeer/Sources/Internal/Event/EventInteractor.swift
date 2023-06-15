@@ -159,23 +159,51 @@ final class EventInteractorImpl: EventInteractor {
 
     func trackFetchEvaluationsFailure(featureTag: String, error: BKTError) throws {
         let metrics = metricsEvent(apiId: .getEvaluations, labels: ["tag": featureTag], error: error)
-        try eventDao.add(event: .init(
-            id: idGenerator.id(),
-            event: metrics,
-            type: .metrics
-        ))
-        updateEventsAndNotify()
+        try trackMetricsEvent(events: [
+            .init(
+                id: idGenerator.id(),
+                event: metrics,
+                type: .metrics
+            )
+        ])
     }
 
     func trackRegisterEventsFailure(error: BKTError) throws {
         // note: using the same tag in BKConfig.featureTag
         let metrics = metricsEvent(apiId: .registerEvents, labels: ["tag": featureTag], error: error)
-        try eventDao.add(event: .init(
-            id: idGenerator.id(),
-            event: metrics,
-            type: .metrics
-        ))
-        updateEventsAndNotify()
+        try trackMetricsEvent(events: [
+            .init(
+                id: idGenerator.id(),
+                event: metrics,
+                type: .metrics
+            )
+        ])
+    }
+    
+    private func trackMetricsEvent(events : [Event]) throws {
+        // We will add logic to filter duplicate metrics event here
+        let storedEvents = try eventDao.getEvents()
+        let metricsEventUniqueKeys : [String] = storedEvents.filter { item in
+            if case .metrics = item.event {
+                return true
+            }
+            return false
+        }.map { item in
+            if case .metrics(let metric) = item.event, let m = metric as? MetricsEventDataProps {
+                return m.uniqueKey()
+            }
+            return ""
+        }
+        let newEvents = storedEvents.filter { item in
+            if case .metrics(let metric) = item.event, let m = metric as? MetricsEventDataProps {
+                return !metricsEventUniqueKeys.contains(m.uniqueKey())
+            }
+            return false
+        }
+        if (newEvents.count > 0) {
+            try eventDao.add(events: events)
+            updateEventsAndNotify()
+        }
     }
 
     func sendEvents(force: Bool, completion: ((Result<Bool, BKTError>) -> Void)?) {
