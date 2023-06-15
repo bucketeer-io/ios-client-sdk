@@ -11,10 +11,7 @@ final class EventDaoImpl: EventDao {
     }
 
     func add(events: [Event]) throws {
-        let storedEvents = try getEvents()
-        let storedEventHashSet = Set(storedEvents.map(\.eventHash))
         let entities = try events
-            .filter { !storedEventHashSet.contains($0.eventHash) }
             .map { try EventEntity(model: $0) }
         try db.insert(entities)
     }

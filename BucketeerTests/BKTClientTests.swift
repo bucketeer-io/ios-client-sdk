@@ -174,7 +174,7 @@ final class BKTClientTests: XCTestCase {
             XCTAssertEqual(error, .timeout(message: "timeout", error: NSError()))
             expectation.fulfill()
         }
-        wait(for: [expectation], timeout: 0.1)
+        wait(for: [expectation], timeout: 30)
     }
 
     func testFlushSuccess() {

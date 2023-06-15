@@ -189,16 +189,10 @@ final class EventInteractorImpl: EventInteractor {
             }
             return false
         }.map { item in
-            if case .metrics(let metric) = item.event, let m = metric as? MetricsEventDataProps {
-                return m.uniqueKey()
-            }
-            return ""
+            return item.uniqueKey()
         }
-        let newEvents = storedEvents.filter { item in
-            if case .metrics(let metric) = item.event, let m = metric as? MetricsEventDataProps {
-                return !metricsEventUniqueKeys.contains(m.uniqueKey())
-            }
-            return false
+        let newEvents = events.filter { item in
+            return !metricsEventUniqueKeys.contains(item.uniqueKey())
         }
         if (newEvents.count > 0) {
             try eventDao.add(events: events)
@@ -315,4 +309,42 @@ final class EventInteractorImpl: EventInteractor {
 
 protocol EventUpdateListener {
     func onUpdate(events: [Event])
+}
+
+
+extension Event {
+    func uniqueKey() -> String {
+        switch event {
+        case .metrics(let metric):
+            switch metric.event {
+            case .responseLatency(let mp):
+                return mp.uniqueKey()
+            case .responseSize(let mp):
+                return mp.uniqueKey()
+            case .timeoutError(let mp):
+                return mp.uniqueKey()
+            case .networkError(let mp):
+                return mp.uniqueKey()
+            case .badRequestError(let mp):
+                return mp.uniqueKey()
+            case .unauthorizedError(let mp):
+                return mp.uniqueKey()
+            case .forbiddenError(let mp):
+                return mp.uniqueKey()
+            case .notFoundError(let mp):
+                return mp.uniqueKey()
+            case .clientClosedError(let mp):
+                return mp.uniqueKey()
+            case .unavailableError(let mp):
+                return mp.uniqueKey()
+            case .internalSdkError(let mp):
+                return mp.uniqueKey()
+            case .internalServerError(let mp):
+                return mp.uniqueKey()
+            case .unknownError(let mp):
+                return mp.uniqueKey()
+            }
+            default: return hashValue.description
+        }
+    }
 }
