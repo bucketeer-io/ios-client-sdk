@@ -25,12 +25,13 @@ final class EventInteractorImpl: EventInteractor {
     let clock: Clock
     let idGenerator: IdGenerator
     let logger: Logger?
+    let featureTag: String
 
     private let metadata: [String: String]
 
     private var eventUpdateListener: EventUpdateListener?
 
-    init(sdkVersion: String, appVersion: String, device: Device, eventsMaxBatchQueueCount: Int, apiClient: ApiClient, eventDao: EventDao, clock: Clock, idGenerator: IdGenerator, logger: Logger?) {
+    init(sdkVersion: String, appVersion: String, device: Device, eventsMaxBatchQueueCount: Int, apiClient: ApiClient, eventDao: EventDao, clock: Clock, idGenerator: IdGenerator, logger: Logger?, featureTag: String) {
         self.sdkVersion = sdkVersion
         self.eventsMaxBatchQueueCount = eventsMaxBatchQueueCount
         self.apiClient = apiClient
@@ -38,6 +39,7 @@ final class EventInteractorImpl: EventInteractor {
         self.clock = clock
         self.idGenerator = idGenerator
         self.logger = logger
+        self.featureTag = featureTag
         self.metadata = [
             "app_version": appVersion,
             "os_version": device.osVersion,
@@ -166,7 +168,8 @@ final class EventInteractorImpl: EventInteractor {
     }
 
     func trackRegisterEventsFailure(error: BKTError) throws {
-        let metrics = metricsEvent(apiId: .registerEvents, labels: [:], error: error)
+        // note: using the same tag in BKConfig.featureTag
+        let metrics = metricsEvent(apiId: .registerEvents, labels: ["tag": featureTag], error: error)
         try eventDao.add(event: .init(
             id: idGenerator.id(),
             event: metrics,

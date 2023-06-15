@@ -6,6 +6,7 @@ final class BucketeerE2ETests: XCTestCase {
 
     private var config: BKTConfig!
 
+    @MainActor
     override func setUp() async throws {
         try await super.setUp()
 
