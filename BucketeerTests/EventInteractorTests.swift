@@ -332,8 +332,9 @@ final class EventInteractorTests: XCTestCase {
             completion?(.failure(error))
             expectation.fulfill()
         })
-
-        let interactor = self.eventInteractor(api: api, dao: dao)
+        
+        let config = BKTConfig.mock()
+        let interactor = self.eventInteractor(api: api, dao: dao, config: config)
         let listener = MockEventUpdateListener { events in
             // Check if error metrics tracked after `register_event` fail
             // In this case we expected `.badRequestError`
@@ -343,7 +344,9 @@ final class EventInteractorTests: XCTestCase {
                     timestamp: 1,
                     event: .badRequestError(.init(
                         apiId: .registerEvents,
-                        labels: ["tag":"featureTag1"]
+                        // Error metrics labels["tag"] should the same with the current `BKTConfig.featureTag`
+                        // https://github.com/bucketeer-io/android-client-sdk/pull/64#discussion_r1214443320
+                        labels: ["tag":config.featureTag]
                     )),
                     type: .badRequestError,
                     sourceId: .ios,
