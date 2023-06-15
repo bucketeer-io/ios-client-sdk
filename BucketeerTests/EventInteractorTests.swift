@@ -376,7 +376,7 @@ final class EventInteractorTests: XCTestCase {
         })
         wait(for: [expectation], timeout: 1)
     }
-
+    
     func testSendEventsCurrentIsEmpty() throws {
         let expectation = XCTestExpectation()
         expectation.assertForOverFulfill = true

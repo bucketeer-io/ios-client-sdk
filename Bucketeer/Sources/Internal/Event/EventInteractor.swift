@@ -184,21 +184,18 @@ final class EventInteractorImpl: EventInteractor {
         // We will add logic to filter duplicate metrics event here
         let storedEvents = try eventDao.getEvents()
         let metricsEventUniqueKeys : [String] = storedEvents.filter { item in
-            if case .metrics = item.event {
-                return true
-            }
-            return false
+            return item.isMetricEvent()
         }.map { item in
             return item.uniqueKey()
         }
         let newEvents = events.filter { item in
-            return !metricsEventUniqueKeys.contains(item.uniqueKey())
+            return item.isMetricEvent() && !metricsEventUniqueKeys.contains(item.uniqueKey())
         }
         if (newEvents.count > 0) {
             try eventDao.add(events: newEvents)
             updateEventsAndNotify()
         } else {
-            logger?.debug(message: "no events to add")
+            logger?.debug(message: "no new events to add")
         }
     }
 
@@ -346,7 +343,7 @@ extension Event {
             case .unknownError(let mp):
                 return mp.uniqueKey()
             }
-            default: return hashValue.description
+            default: return id
         }
     }
 }

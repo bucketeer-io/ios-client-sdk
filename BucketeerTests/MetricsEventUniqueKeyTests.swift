@@ -9,9 +9,9 @@
 import XCTest
 @testable import Bucketeer
 
-final class MetricsEventDataTests: XCTestCase {
+final class MetricsEventUniqueKeyTests: XCTestCase {
     
-    func testExample() throws {
+    func testMetricsEventDataPropsUniqueKey() throws {
         let target: [MetricsEventDataProps] = [
             MetricsEventData.ResponseLatency.init(
                 apiId: .getEvaluations,
@@ -41,6 +41,31 @@ final class MetricsEventDataTests: XCTestCase {
             "registerEvents::type.googleapis.com/bucketeer.event.client.InternalSdkErrorMetricsEvent",
             "getEvaluations::type.googleapis.com/bucketeer.event.client.SizeMetricsEvent",
             "registerEvents::type.googleapis.com/bucketeer.event.client.BadRequestErrorMetricsEvent",
+        ]
+        XCTAssertEqual(actual, expected)
+    }
+    
+    func testMetricsEventUniqueKey() throws {
+        let target: [Event] = [
+            .mockMetrics1,
+            .mockMetrics2,
+            .mockMetricsResponseSize1,
+            .mockMetricsBadRequest1,
+            // mockGoal1 is not metric event , but we put here to check if there is some error
+            .mockGoal1
+        ]
+        XCTAssertEqual(
+            target.map { item in item.isMetricEvent() }, [true, true, true, true, false])
+        let actual = target.map { item in
+            item.uniqueKey()
+        }
+        let expected: [String] = [
+            "getEvaluations::type.googleapis.com/bucketeer.event.client.LatencyMetricsEvent",
+            "registerEvents::type.googleapis.com/bucketeer.event.client.InternalServerErrorMetricsEvent",
+            "getEvaluations::type.googleapis.com/bucketeer.event.client.SizeMetricsEvent",
+            "registerEvents::type.googleapis.com/bucketeer.event.client.BadRequestErrorMetricsEvent",
+            // mockGoal1 is not metric event, uniqueKey will be its `id`
+            "goal_event1"
         ]
         XCTAssertEqual(actual, expected)
     }
