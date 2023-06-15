@@ -153,4 +153,47 @@ extension Event {
         )),
         type: .metrics
     )
+    
+    static let mockMetricsResponseSize1 = Event(
+        id: "metrics_event1",
+        event: .metrics(.init(
+            timestamp: 1,
+            event: .responseSize(.init(
+                apiId: .getEvaluations,
+                labels: ["tag": "ios", "state": "full"],
+                sizeByte: 748
+            )),
+            type: .responseSize,
+            sourceId: .ios,
+            sdk_version: "0.0.1",
+            metadata: [
+                "app_version": "1.2.3",
+                "os_version": "16.0",
+                "device_model": "iPhone14,7",
+                "device_type": "mobile"
+            ]
+        )),
+        type: .metrics
+    )
+    
+    static let mockMetricsBadRequest1 = Event(
+        id: "metrics_event1",
+        event: .metrics(.init(
+            timestamp: 1,
+            event: .badRequestError(.init(
+                apiId: .registerEvents,
+                labels: [:]
+            )),
+            type: .badRequestError,
+            sourceId: .ios,
+            sdk_version: "0.0.1",
+            metadata: [
+                "app_version": "1.2.3",
+                "os_version": "16.0",
+                "device_model": "iPhone14,7",
+                "device_type": "mobile"
+            ]
+        )),
+        type: .metrics
+    )
 }
