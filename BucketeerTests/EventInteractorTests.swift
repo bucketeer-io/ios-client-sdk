@@ -436,7 +436,7 @@ final class EventInteractorTests: XCTestCase {
         storedEvents = try dao.getEvents()
         XCTAssertEqual(storedEvents.count, 1)
         XCTAssertEqual(storedEvents, [
-            .idMock4BadRequestErrorEvent,
+            .idMock4BadRequestErrorEvent
         ])
         
         // Simulate track metrics events
