@@ -3,7 +3,6 @@ import XCTest
 
 // swiftlint:disable type_body_length
 final class EventInteractorTests: XCTestCase {
-    
     private func eventInteractor(api: ApiClient = MockApiClient(),
                                  dao: EventDao = MockEventDao(),
                                  config: BKTConfig = BKTConfig.mock(),
@@ -24,7 +23,7 @@ final class EventInteractorTests: XCTestCase {
             featureTag: config.featureTag
         )
     }
-    
+
     func testTrackEvaluationEvent() throws {
         let expectation = XCTestExpectation()
         expectation.assertForOverFulfill = true
@@ -107,7 +106,7 @@ final class EventInteractorTests: XCTestCase {
     func testTrackGoalEvent() throws {
         let expectation = XCTestExpectation()
         expectation.assertForOverFulfill = true
-        
+
         let interactor = self.eventInteractor()
         let listener = MockEventUpdateListener { events in
             XCTAssertEqual(events.count, 1)
@@ -386,7 +385,7 @@ final class EventInteractorTests: XCTestCase {
             .idMock1ReponseLatencyEvent,
             .idMock2ResponseSizeEvent,
             .idMock3InternalServerErrorEvent,
-            .idMock4BadRequestErrorEvent,
+            .idMock4BadRequestErrorEvent
         ]
         
         let api = MockApiClient(registerEventsHandler: { events, completion in
@@ -449,7 +448,7 @@ final class EventInteractorTests: XCTestCase {
         storedEvents = try dao.getEvents()
         expectedEvents = [
             .idMock4BadRequestErrorEvent,
-            .idMock7TimeoutErrorEvent,
+            .idMock7TimeoutErrorEvent
         ]
         XCTAssertEqual(storedEvents, expectedEvents)
     }
@@ -458,7 +457,7 @@ final class EventInteractorTests: XCTestCase {
         let expectation = XCTestExpectation()
         expectation.assertForOverFulfill = true
         expectation.expectedFulfillmentCount = 1
-        
+
         let interactor = self.eventInteractor()
         let listener = MockEventUpdateListener()
         interactor.set(eventUpdateListener: listener)
