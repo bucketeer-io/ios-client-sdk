@@ -6,10 +6,10 @@ final class EventInteractorTests: XCTestCase {
 
     private func eventInteractor(api: ApiClient = MockApiClient(),
                                  dao: EventDao = MockEventDao(),
-                                 config: BKTConfig = BKTConfig.mock()
+                                 config: BKTConfig = BKTConfig.mock(),
+                                 idGenerator: IdGenerator = MockIdGenerator(identifier: "id")
     ) -> EventInteractor {
         let clock = MockClock(timestamp: 1)
-        let idGenerator = MockIdGenerator(identifier: "id")
         let logger = MockLogger()
         return EventInteractorImpl(
             sdkVersion: "0.0.2",
@@ -375,6 +375,218 @@ final class EventInteractorTests: XCTestCase {
             expectation.fulfill()
         })
         wait(for: [expectation], timeout: 1)
+    }
+    
+    func testPreventDuplicateMetricsEvent() throws {
+        var count = 0
+        let expectation = XCTestExpectation()
+        expectation.assertForOverFulfill = false
+        expectation.expectedFulfillmentCount = 2
+        
+        var expectedEvents: [Event] = [
+            Event(
+                id: "mock1",
+                event: .metrics(.init(
+                    timestamp: 1,
+                    event: .responseLatency(.init(
+                        apiId: .getEvaluations,
+                        labels: ["tag": "featureTag1"],
+                        latencySecond: .init(1)
+                    )),
+                    type: .responseLatency,
+                    sourceId: .ios,
+                    sdk_version: "0.0.2",
+                    metadata: [
+                        "app_version": "1.2.3",
+                        "os_version": "16.0",
+                        "device_model": "iPhone14,7",
+                        "device_type": "mobile"
+                    ]
+                )),
+                type: .metrics
+            ),
+            Event(
+                id: "mock2",
+                event: .metrics(.init(
+                    timestamp: 1,
+                    event: .responseSize(.init(
+                        apiId: .getEvaluations,
+                        labels: ["tag": "featureTag1"],
+                        sizeByte: 789
+                    )),
+                    type: .responseSize,
+                    sourceId: .ios,
+                    sdk_version: "0.0.2",
+                    metadata: [
+                        "app_version": "1.2.3",
+                        "os_version": "16.0",
+                        "device_model": "iPhone14,7",
+                        "device_type": "mobile"
+                    ]
+                )),
+                type: .metrics
+            ),
+            Event(
+                id: "mock3",
+                event: .metrics(.init(
+                    timestamp: 1,
+                    event: .internalServerError(.init(
+                        apiId: .getEvaluations,
+                        labels: ["tag": "featureTag1"]
+                    )),
+                    type: .internalServerError,
+                    sourceId: .ios,
+                    sdk_version: "0.0.2",
+                    metadata: [
+                        "app_version": "1.2.3",
+                        "os_version": "16.0",
+                        "device_model": "iPhone14,7",
+                        "device_type": "mobile"
+                    ]
+                )),
+                type: .metrics
+            ),
+            Event(
+                id: "mock4",
+                event: .metrics(.init(
+                    timestamp: 1,
+                    event: .badRequestError(.init(
+                        apiId: .registerEvents,
+                        labels: ["tag": "featureTag1"]
+                    )),
+                    type: .badRequestError,
+                    sourceId: .ios,
+                    sdk_version: "0.0.2",
+                    metadata: [
+                        "app_version": "1.2.3",
+                        "os_version": "16.0",
+                        "device_model": "iPhone14,7",
+                        "device_type": "mobile"
+                    ]
+                )),
+                type: .metrics
+            ),
+        ]
+        
+        let api = MockApiClient(registerEventsHandler: { events, completion in
+            completion?(.success(.init(errors: [:])))
+            expectation.fulfill()
+        })
+        
+        let dao = MockEventDao()
+        let idGenerator = MockIdGenerator(identifier: {
+            count += 1
+            return "mock\(count)"
+        })
+        
+        let interactor = self.eventInteractor(api: api, dao: dao, idGenerator: idGenerator)
+        
+        // Simulate track metrics events
+        // Simulate success send events & tracked 2 events (response_latency & reponse_size)
+        try interactor.trackFetchEvaluationsSuccess(featureTag: "featureTag1", seconds: 1, sizeByte: 789)
+        // Try continue send events but fail. Track 1 metrics error event (InternalServerError)
+        try interactor.trackFetchEvaluationsFailure(featureTag: "featureTag1", error: .apiServer(message: "unknown"))
+        // Try continue send events but fail. Track 1 metrics error event (Bad Request)
+        try interactor.trackRegisterEventsFailure(error: .badRequest(message: "bad request"))
+        
+        var storedEvents = try dao.getEvents()
+        XCTAssertEqual(storedEvents, expectedEvents)
+        
+        // Try continue send events but fail. Duplicate , will not track | id = 5
+        try interactor.trackFetchEvaluationsFailure(featureTag: "featureTag1", error: .apiServer(message: "unknown"))
+        // Try continue send events but fail. Duplicate , will not track | id = 6
+        try interactor.trackRegisterEventsFailure(error: .badRequest(message: "bad request"))
+        
+        storedEvents = try dao.getEvents()
+        XCTAssertEqual(storedEvents, expectedEvents)
+
+        // Simulate send all events success
+        interactor.sendEvents(completion: { result in
+            switch result {
+            case .success(let success):
+                XCTAssertTrue(success)
+            case .failure:
+                XCTFail()
+            }
+            expectation.fulfill()
+        })
+        
+        // Cache events database should not empty, because Current test `eventsMaxBatchQueueCount` = 3
+        // So that we will have one more metrics event in cache
+        storedEvents = try dao.getEvents()
+        XCTAssertEqual(storedEvents.count, 1)
+        XCTAssertEqual(storedEvents, [
+            Event(
+                id: "mock4",
+                event: .metrics(.init(
+                    timestamp: 1,
+                    event: .badRequestError(.init(
+                        apiId: .registerEvents,
+                        labels: ["tag": "featureTag1"]
+                    )),
+                    type: .badRequestError,
+                    sourceId: .ios,
+                    sdk_version: "0.0.2",
+                    metadata: [
+                        "app_version": "1.2.3",
+                        "os_version": "16.0",
+                        "device_model": "iPhone14,7",
+                        "device_type": "mobile"
+                    ]
+                )),
+                type: .metrics
+            ),
+        ])
+        
+        // Simulate track metrics events
+        // Try continue send events but fail. Should tracked | id = 7
+        try interactor.trackFetchEvaluationsFailure(featureTag: "featureTag1", error: .apiServer(message: "unknown"))
+        // Try continue send events but fail. Should not track | id = 8
+        try interactor.trackRegisterEventsFailure(error: .badRequest(message: "bad request"))
+        storedEvents = try dao.getEvents()
+        expectedEvents = [
+            Event(
+                id: "mock4",
+                event: .metrics(.init(
+                    timestamp: 1,
+                    event: .badRequestError(.init(
+                        apiId: .registerEvents,
+                        labels: ["tag": "featureTag1"]
+                    )),
+                    type: .badRequestError,
+                    sourceId: .ios,
+                    sdk_version: "0.0.2",
+                    metadata: [
+                        "app_version": "1.2.3",
+                        "os_version": "16.0",
+                        "device_model": "iPhone14,7",
+                        "device_type": "mobile"
+                    ]
+                )),
+                type: .metrics
+            ),
+            Event(
+                id: "mock7",
+                event: .metrics(.init(
+                    timestamp: 1,
+                    event: .internalServerError(.init(
+                        apiId: .getEvaluations,
+                        labels: ["tag": "featureTag1"]
+                    )),
+                    type: .internalServerError,
+                    sourceId: .ios,
+                    sdk_version: "0.0.2",
+                    metadata: [
+                        "app_version": "1.2.3",
+                        "os_version": "16.0",
+                        "device_model": "iPhone14,7",
+                        "device_type": "mobile"
+                    ]
+                )),
+                type: .metrics
+            ),
+        ]
+        XCTAssertEqual(storedEvents, expectedEvents)
     }
     
     func testSendEventsCurrentIsEmpty() throws {

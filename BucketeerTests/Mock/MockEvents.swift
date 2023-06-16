@@ -90,7 +90,7 @@ extension Event {
         type: .evaluation
     )
 
-    static let mockMetrics1 = Event(
+    static let mockMetricsResponseLatency1 = Event(
         id: "metrics_event1",
         event: .metrics(.init(
             timestamp: 1,
@@ -112,7 +112,7 @@ extension Event {
         type: .metrics
     )
 
-    static let mockMetrics2 = Event(
+    static let mockMetricsInternalServerError1 = Event(
         id: "metrics_event2",
         event: .metrics(.init(
             timestamp: 1,
@@ -133,7 +133,7 @@ extension Event {
         type: .metrics
     )
 
-    static let mockMetrics3 = Event(
+    static let mockMetricsInternalServerError2 = Event(
         id: "metrics_event3",
         event: .metrics(.init(
             timestamp: 2,

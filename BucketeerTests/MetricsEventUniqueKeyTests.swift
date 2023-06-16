@@ -47,8 +47,8 @@ final class MetricsEventUniqueKeyTests: XCTestCase {
     
     func testMetricsEventUniqueKey() throws {
         let target: [Event] = [
-            .mockMetrics1,
-            .mockMetrics2,
+            .mockMetricsResponseLatency1,
+            .mockMetricsInternalServerError1,
             .mockMetricsResponseSize1,
             .mockMetricsBadRequest1,
             // mockGoal1 is not metric event , but we put here to check if there is some error
