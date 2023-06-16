@@ -3,7 +3,7 @@ import XCTest
 
 // swiftlint:disable type_body_length
 final class EventInteractorTests: XCTestCase {
-
+    
     private func eventInteractor(api: ApiClient = MockApiClient(),
                                  dao: EventDao = MockEventDao(),
                                  config: BKTConfig = BKTConfig.mock(),
@@ -24,7 +24,7 @@ final class EventInteractorTests: XCTestCase {
             featureTag: config.featureTag
         )
     }
-
+    
     func testTrackEvaluationEvent() throws {
         let expectation = XCTestExpectation()
         expectation.assertForOverFulfill = true
@@ -64,11 +64,11 @@ final class EventInteractorTests: XCTestCase {
         )
         wait(for: [expectation], timeout: 1)
     }
-
+    
     func testTrackDefaultEvaluationEvent() throws {
         let expectation = XCTestExpectation()
         expectation.assertForOverFulfill = true
-
+        
         let interactor = self.eventInteractor()
         let listener = MockEventUpdateListener { events in
             XCTAssertEqual(events.count, 1)
@@ -103,11 +103,11 @@ final class EventInteractorTests: XCTestCase {
         )
         wait(for: [expectation], timeout: 1)
     }
-
+    
     func testTrackGoalEvent() throws {
         let expectation = XCTestExpectation()
         expectation.assertForOverFulfill = true
-
+        
         let interactor = self.eventInteractor()
         let listener = MockEventUpdateListener { events in
             XCTAssertEqual(events.count, 1)
@@ -143,11 +143,11 @@ final class EventInteractorTests: XCTestCase {
         )
         wait(for: [expectation], timeout: 1)
     }
-
+    
     func testTrackFetchEvaluationsSuccess() throws {
         let expectation = XCTestExpectation()
         expectation.assertForOverFulfill = true
-
+        
         let interactor = self.eventInteractor()
         let listener = MockEventUpdateListener { events in
             XCTAssertEqual(events.count, 2)
@@ -206,15 +206,15 @@ final class EventInteractorTests: XCTestCase {
         )
         wait(for: [expectation], timeout: 1)
     }
-
+    
     enum SomeError: Error {
         case a
     }
-
+    
     func testTrackFetchEvaluationsFailureWithTimeout() throws {
         let expectation = XCTestExpectation()
         expectation.assertForOverFulfill = true
-
+        
         let interactor = self.eventInteractor()
         let listener = MockEventUpdateListener { events in
             XCTAssertEqual(events.count, 1)
@@ -247,11 +247,11 @@ final class EventInteractorTests: XCTestCase {
         )
         wait(for: [expectation], timeout: 1)
     }
-
+    
     func testTrackFetchEvaluationsFailureWithOtherError() throws {
         let expectation = XCTestExpectation()
         expectation.assertForOverFulfill = true
-
+        
         let interactor = self.eventInteractor()
         let listener = MockEventUpdateListener { events in
             XCTAssertEqual(events.count, 1)
@@ -284,12 +284,12 @@ final class EventInteractorTests: XCTestCase {
         )
         wait(for: [expectation], timeout: 1)
     }
-
+    
     func testSendEventsSuccess() throws {
         let expectation = XCTestExpectation()
         expectation.assertForOverFulfill = true
         expectation.expectedFulfillmentCount = 3
-
+        
         let addedEvents: [Event] = [.mockEvaluation1, .mockGoal1]
         let dao = MockEventDao()
         try dao.add(events: addedEvents)
@@ -316,23 +316,22 @@ final class EventInteractorTests: XCTestCase {
         })
         wait(for: [expectation], timeout: 1)
     }
-
+    
     func testSendEventsFailure() throws {
         let expectation = XCTestExpectation()
         expectation.assertForOverFulfill = true
         expectation.expectedFulfillmentCount = 3
-
+        
         let addedEvents: [Event] = [.mockEvaluation1, .mockGoal1, .mockGoal2]
         let dao = MockEventDao()
         try dao.add(events: addedEvents)
-
+        
         let error = BKTError.badRequest(message: "bad request")
         let api = MockApiClient(registerEventsHandler: { events, completion in
             XCTAssertEqual(events, addedEvents)
             completion?(.failure(error))
             expectation.fulfill()
         })
-        
         let config = BKTConfig.mock()
         let interactor = self.eventInteractor(api: api, dao: dao, config: config)
         let listener = MockEventUpdateListener { events in
@@ -499,7 +498,7 @@ final class EventInteractorTests: XCTestCase {
         
         storedEvents = try dao.getEvents()
         XCTAssertEqual(storedEvents, expectedEvents)
-
+        
         // Simulate send all events success
         interactor.sendEvents(completion: { result in
             switch result {
@@ -593,7 +592,7 @@ final class EventInteractorTests: XCTestCase {
         let expectation = XCTestExpectation()
         expectation.assertForOverFulfill = true
         expectation.expectedFulfillmentCount = 1
-
+        
         let interactor = self.eventInteractor()
         let listener = MockEventUpdateListener()
         interactor.set(eventUpdateListener: listener)
@@ -608,16 +607,16 @@ final class EventInteractorTests: XCTestCase {
         })
         wait(for: [expectation], timeout: 1)
     }
-
+    
     func testSendEventsNotEnoughEvents() throws {
         let expectation = XCTestExpectation()
         expectation.assertForOverFulfill = true
         expectation.expectedFulfillmentCount = 1
-
+        
         let addedEvents: [Event] = [.mockEvaluation1, .mockGoal1]
         let dao = MockEventDao()
         try dao.add(events: addedEvents)
-
+        
         let interactor = self.eventInteractor(dao: dao)
         let listener = MockEventUpdateListener()
         interactor.set(eventUpdateListener: listener)
@@ -631,12 +630,12 @@ final class EventInteractorTests: XCTestCase {
             expectation.fulfill()
         })
         wait(for: [expectation], timeout: 1)    }
-
+    
     func testSendEventsForce() throws {
         let expectation = XCTestExpectation()
         expectation.assertForOverFulfill = true
         expectation.expectedFulfillmentCount = 3
-
+        
         let addedEvents: [Event] = [.mockEvaluation1]
         let dao = MockEventDao()
         try dao.add(events: addedEvents)
@@ -646,7 +645,7 @@ final class EventInteractorTests: XCTestCase {
             completion?(.success(.init(errors: [:])))
             expectation.fulfill()
         })
-
+        
         let interactor = self.eventInteractor(api: api, dao: dao)
         let listener = MockEventUpdateListener { events in
             XCTAssertEqual(events.count, 0)
@@ -664,19 +663,19 @@ final class EventInteractorTests: XCTestCase {
         })
         wait(for: [expectation], timeout: 1)
     }
-
+    
     func testSendEventsRetriableError() throws {
         let expectation = XCTestExpectation()
         expectation.assertForOverFulfill = true
         expectation.expectedFulfillmentCount = 3
-
+        
         let addedEvents: [Event] = [.mockEvaluation1, .mockGoal1]
         let dao = MockEventDao()
         try dao.add(events: addedEvents)
-
+        
         XCTAssertEqual(dao.events.count, 2)
         XCTAssertEqual(dao.events, addedEvents)
-
+        
         let api = MockApiClient(registerEventsHandler: { events, completion in
             XCTAssertEqual(events.count, 2)
             XCTAssertEqual(events, addedEvents)
@@ -687,7 +686,7 @@ final class EventInteractorTests: XCTestCase {
             )))
             expectation.fulfill()
         })
-
+        
         let interactor = self.eventInteractor(api: api, dao: dao)
         let listener = MockEventUpdateListener { events in
             XCTAssertEqual(events.count, 1)
