@@ -22,7 +22,7 @@ extension Event {
         )),
         type: .goal
     )
-    
+
     static let mockGoal2 = Event(
         id: "goal_event2",
         event: .goal(.init(
@@ -43,7 +43,7 @@ extension Event {
         )),
         type: .goal
     )
-    
+
     static let mockEvaluation1 = Event(
         id: "evaluation_event1",
         event: .evaluation(.init(
@@ -66,7 +66,7 @@ extension Event {
         )),
         type: .evaluation
     )
-    
+
     static let mockEvaluation2 = Event(
         id: "evaluation_event2",
         event: .evaluation(.init(
@@ -89,7 +89,7 @@ extension Event {
         )),
         type: .evaluation
     )
-    
+
     static let mockMetricsResponseLatency1 = Event(
         id: "metrics_event1",
         event: .metrics(.init(
@@ -111,7 +111,7 @@ extension Event {
         )),
         type: .metrics
     )
-    
+
     static let mockMetricsInternalServerError1 = Event(
         id: "metrics_event2",
         event: .metrics(.init(
@@ -132,7 +132,7 @@ extension Event {
         )),
         type: .metrics
     )
-    
+
     static let mockMetricsInternalServerError2 = Event(
         id: "metrics_event3",
         event: .metrics(.init(
@@ -153,7 +153,7 @@ extension Event {
         )),
         type: .metrics
     )
-    
+
     static let mockMetricsResponseSize1 = Event(
         id: "metrics_event1",
         event: .metrics(.init(
@@ -175,7 +175,7 @@ extension Event {
         )),
         type: .metrics
     )
-    
+
     static let mockMetricsBadRequest1 = Event(
         id: "metrics_event1",
         event: .metrics(.init(
@@ -196,7 +196,7 @@ extension Event {
         )),
         type: .metrics
     )
-    
+
     static let idMock1ReponseLatencyEvent = Event(
         id: "mock1",
         event: .metrics(.init(
@@ -218,7 +218,7 @@ extension Event {
         )),
         type: .metrics
     )
-    
+
     static let idMock2ResponseSizeEvent = Event(
         id: "mock2",
         event: .metrics(.init(
@@ -240,7 +240,7 @@ extension Event {
         )),
         type: .metrics
     )
-    
+
     // MARK: Mock for EventInteractor - PreventDuplicateMetricsEvents testcase
     static let idMock3InternalServerErrorEvent = Event(
         id: "mock3",
@@ -262,7 +262,7 @@ extension Event {
         )),
         type: .metrics
     )
-    
+
     static let idMock4BadRequestErrorEvent = Event(
         id: "mock4",
         event: .metrics(.init(
@@ -283,7 +283,7 @@ extension Event {
         )),
         type: .metrics
     )
-    
+
     static let idMock7TimeoutErrorEvent = Event(
         id: "mock7",
         event: .metrics(.init(
