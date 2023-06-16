@@ -277,9 +277,9 @@ final class BKTClientTests: XCTestCase {
         let dataModule = MockDataModule(
             userHolder: .init(user: .mock1),
             eventDao: MockEventDao(addEventsHandler: { events in
-                
+
                 XCTAssertEqual(events.count, 1)
-                
+
                 XCTAssertEqual(events.first, Event(
                     id: "id",
                     event: .goal(.init(

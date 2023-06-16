@@ -13,11 +13,11 @@ struct Event: Codable, Hashable {
     }
 
     enum CodingKeys: String, CodingKey {
-          case id
-          case event
-          case type
+        case id
+        case event
+        case type
     }
-    
+
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.id = try container.decode(String.self, forKey: .id)
@@ -55,6 +55,6 @@ extension Event {
         if case .metrics = self.event {
             return true
         }
-        return false 
+        return false
     }
 }

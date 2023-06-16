@@ -179,7 +179,7 @@ final class EventInteractorImpl: EventInteractor {
             )
         ])
     }
-    
+
     private func trackMetricsEvent(events : [Event]) throws {
         // We will add logic to filter duplicate metrics event here
         let storedEvents = try eventDao.getEvents()
@@ -227,7 +227,7 @@ final class EventInteractorImpl: EventInteractor {
                             }
                             // if the error is not retriable, delete it
                             return !error.retriable
-                    })
+                        })
                     do {
                         try self?.eventDao.delete(ids: deletedIds)
                         self?.updateEventsAndNotify()
@@ -310,7 +310,6 @@ protocol EventUpdateListener {
     func onUpdate(events: [Event])
 }
 
-
 extension Event {
     func uniqueKey() -> String {
         switch event {
@@ -343,7 +342,7 @@ extension Event {
             case .unknownError(let mp):
                 return mp.uniqueKey()
             }
-            default: return id
+        default: return id
         }
     }
 }

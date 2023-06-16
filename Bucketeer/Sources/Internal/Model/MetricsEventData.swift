@@ -27,7 +27,6 @@ enum MetricsEventData: Hashable {
     case internalServerError(InternalServerError)
     case unknownError(UnknownError)
 
-    
     struct ResponseLatency: Codable, Hashable, MetricsEventDataProps {
         let apiId: ApiId
         let labels: [String: String]

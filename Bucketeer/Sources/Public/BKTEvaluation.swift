@@ -8,7 +8,7 @@ public struct BKTEvaluation: Equatable {
     public let variationId: String
     public let variationValue: String
     public let reason: Reason
-    
+
     public enum Reason: String, Codable, Hashable {
         case target = "TARGET"
         case rule = "RULE"
@@ -17,5 +17,4 @@ public struct BKTEvaluation: Equatable {
         case offVariation = "OFF_VARIATION"
         case prerequisite = "PREREQUISITE"
     }
-    
 }

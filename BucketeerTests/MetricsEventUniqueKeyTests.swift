@@ -10,7 +10,7 @@ import XCTest
 @testable import Bucketeer
 
 final class MetricsEventUniqueKeyTests: XCTestCase {
-    
+
     func testMetricsEventDataPropsUniqueKey() throws {
         let target: [MetricsEventDataProps] = [
             MetricsEventData.ResponseLatency.init(
@@ -32,7 +32,7 @@ final class MetricsEventUniqueKeyTests: XCTestCase {
                 labels: [:]
             )
         ]
-        
+
         let actual = target.map { item in
             item.uniqueKey()
         }
@@ -40,11 +40,11 @@ final class MetricsEventUniqueKeyTests: XCTestCase {
             "getEvaluations::type.googleapis.com/bucketeer.event.client.LatencyMetricsEvent",
             "registerEvents::type.googleapis.com/bucketeer.event.client.InternalSdkErrorMetricsEvent",
             "getEvaluations::type.googleapis.com/bucketeer.event.client.SizeMetricsEvent",
-            "registerEvents::type.googleapis.com/bucketeer.event.client.BadRequestErrorMetricsEvent",
+            "registerEvents::type.googleapis.com/bucketeer.event.client.BadRequestErrorMetricsEvent"
         ]
         XCTAssertEqual(actual, expected)
     }
-    
+
     func testMetricsEventUniqueKey() throws {
         let target: [Event] = [
             .mockMetricsResponseLatency1,
@@ -69,5 +69,4 @@ final class MetricsEventUniqueKeyTests: XCTestCase {
         ]
         XCTAssertEqual(actual, expected)
     }
-    
 }
