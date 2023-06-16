@@ -63,11 +63,11 @@ final class EventInteractorTests: XCTestCase {
         )
         wait(for: [expectation], timeout: 1)
     }
-    
+
     func testTrackDefaultEvaluationEvent() throws {
         let expectation = XCTestExpectation()
         expectation.assertForOverFulfill = true
-        
+
         let interactor = self.eventInteractor()
         let listener = MockEventUpdateListener { events in
             XCTAssertEqual(events.count, 1)
@@ -102,7 +102,7 @@ final class EventInteractorTests: XCTestCase {
         )
         wait(for: [expectation], timeout: 1)
     }
-    
+
     func testTrackGoalEvent() throws {
         let expectation = XCTestExpectation()
         expectation.assertForOverFulfill = true
@@ -142,11 +142,11 @@ final class EventInteractorTests: XCTestCase {
         )
         wait(for: [expectation], timeout: 1)
     }
-    
+
     func testTrackFetchEvaluationsSuccess() throws {
         let expectation = XCTestExpectation()
         expectation.assertForOverFulfill = true
-        
+
         let interactor = self.eventInteractor()
         let listener = MockEventUpdateListener { events in
             XCTAssertEqual(events.count, 2)
@@ -205,15 +205,15 @@ final class EventInteractorTests: XCTestCase {
         )
         wait(for: [expectation], timeout: 1)
     }
-    
+
     enum SomeError: Error {
         case a
     }
-    
+
     func testTrackFetchEvaluationsFailureWithTimeout() throws {
         let expectation = XCTestExpectation()
         expectation.assertForOverFulfill = true
-        
+
         let interactor = self.eventInteractor()
         let listener = MockEventUpdateListener { events in
             XCTAssertEqual(events.count, 1)
@@ -246,7 +246,7 @@ final class EventInteractorTests: XCTestCase {
         )
         wait(for: [expectation], timeout: 1)
     }
-    
+
     func testTrackFetchEvaluationsFailureWithOtherError() throws {
         let expectation = XCTestExpectation()
         expectation.assertForOverFulfill = true
@@ -551,7 +551,7 @@ final class EventInteractorTests: XCTestCase {
             )))
             expectation.fulfill()
         })
-        
+
         let interactor = self.eventInteractor(api: api, dao: dao)
         let listener = MockEventUpdateListener { events in
             XCTAssertEqual(events.count, 1)
