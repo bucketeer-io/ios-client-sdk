@@ -383,88 +383,10 @@ final class EventInteractorTests: XCTestCase {
         expectation.expectedFulfillmentCount = 2
         
         var expectedEvents: [Event] = [
-            Event(
-                id: "mock1",
-                event: .metrics(.init(
-                    timestamp: 1,
-                    event: .responseLatency(.init(
-                        apiId: .getEvaluations,
-                        labels: ["tag": "featureTag1"],
-                        latencySecond: .init(1)
-                    )),
-                    type: .responseLatency,
-                    sourceId: .ios,
-                    sdk_version: "0.0.2",
-                    metadata: [
-                        "app_version": "1.2.3",
-                        "os_version": "16.0",
-                        "device_model": "iPhone14,7",
-                        "device_type": "mobile"
-                    ]
-                )),
-                type: .metrics
-            ),
-            Event(
-                id: "mock2",
-                event: .metrics(.init(
-                    timestamp: 1,
-                    event: .responseSize(.init(
-                        apiId: .getEvaluations,
-                        labels: ["tag": "featureTag1"],
-                        sizeByte: 789
-                    )),
-                    type: .responseSize,
-                    sourceId: .ios,
-                    sdk_version: "0.0.2",
-                    metadata: [
-                        "app_version": "1.2.3",
-                        "os_version": "16.0",
-                        "device_model": "iPhone14,7",
-                        "device_type": "mobile"
-                    ]
-                )),
-                type: .metrics
-            ),
-            Event(
-                id: "mock3",
-                event: .metrics(.init(
-                    timestamp: 1,
-                    event: .internalServerError(.init(
-                        apiId: .getEvaluations,
-                        labels: ["tag": "featureTag1"]
-                    )),
-                    type: .internalServerError,
-                    sourceId: .ios,
-                    sdk_version: "0.0.2",
-                    metadata: [
-                        "app_version": "1.2.3",
-                        "os_version": "16.0",
-                        "device_model": "iPhone14,7",
-                        "device_type": "mobile"
-                    ]
-                )),
-                type: .metrics
-            ),
-            Event(
-                id: "mock4",
-                event: .metrics(.init(
-                    timestamp: 1,
-                    event: .badRequestError(.init(
-                        apiId: .registerEvents,
-                        labels: ["tag": "featureTag1"]
-                    )),
-                    type: .badRequestError,
-                    sourceId: .ios,
-                    sdk_version: "0.0.2",
-                    metadata: [
-                        "app_version": "1.2.3",
-                        "os_version": "16.0",
-                        "device_model": "iPhone14,7",
-                        "device_type": "mobile"
-                    ]
-                )),
-                type: .metrics
-            ),
+            .idMock1ReponseLatencyEvent,
+            .idMock2ResponseSizeEvent,
+            .idMock3InternalServerErrorEvent,
+            .idMock4BadRequestErrorEvent,
         ]
         
         let api = MockApiClient(registerEventsHandler: { events, completion in
@@ -515,75 +437,19 @@ final class EventInteractorTests: XCTestCase {
         storedEvents = try dao.getEvents()
         XCTAssertEqual(storedEvents.count, 1)
         XCTAssertEqual(storedEvents, [
-            Event(
-                id: "mock4",
-                event: .metrics(.init(
-                    timestamp: 1,
-                    event: .badRequestError(.init(
-                        apiId: .registerEvents,
-                        labels: ["tag": "featureTag1"]
-                    )),
-                    type: .badRequestError,
-                    sourceId: .ios,
-                    sdk_version: "0.0.2",
-                    metadata: [
-                        "app_version": "1.2.3",
-                        "os_version": "16.0",
-                        "device_model": "iPhone14,7",
-                        "device_type": "mobile"
-                    ]
-                )),
-                type: .metrics
-            ),
+            .idMock4BadRequestErrorEvent,
         ])
         
         // Simulate track metrics events
         // Try continue send events but fail. Should tracked | id = 7
-        try interactor.trackFetchEvaluationsFailure(featureTag: "featureTag1", error: .apiServer(message: "unknown"))
+        let timeoutError = NSError(domain: NSURLErrorDomain, code: NSURLErrorTimedOut, userInfo: [:])
+        try interactor.trackFetchEvaluationsFailure(featureTag: "featureTag1", error: .timeout(message: "unknown", error: timeoutError))
         // Try continue send events but fail. Should not track | id = 8
         try interactor.trackRegisterEventsFailure(error: .badRequest(message: "bad request"))
         storedEvents = try dao.getEvents()
         expectedEvents = [
-            Event(
-                id: "mock4",
-                event: .metrics(.init(
-                    timestamp: 1,
-                    event: .badRequestError(.init(
-                        apiId: .registerEvents,
-                        labels: ["tag": "featureTag1"]
-                    )),
-                    type: .badRequestError,
-                    sourceId: .ios,
-                    sdk_version: "0.0.2",
-                    metadata: [
-                        "app_version": "1.2.3",
-                        "os_version": "16.0",
-                        "device_model": "iPhone14,7",
-                        "device_type": "mobile"
-                    ]
-                )),
-                type: .metrics
-            ),
-            Event(
-                id: "mock7",
-                event: .metrics(.init(
-                    timestamp: 1,
-                    event: .internalServerError(.init(
-                        apiId: .getEvaluations,
-                        labels: ["tag": "featureTag1"]
-                    )),
-                    type: .internalServerError,
-                    sourceId: .ios,
-                    sdk_version: "0.0.2",
-                    metadata: [
-                        "app_version": "1.2.3",
-                        "os_version": "16.0",
-                        "device_model": "iPhone14,7",
-                        "device_type": "mobile"
-                    ]
-                )),
-                type: .metrics
-            ),
+            .idMock4BadRequestErrorEvent,
+            .idMock7TimeoutErrorEvent,
         ]
         XCTAssertEqual(storedEvents, expectedEvents)
     }
