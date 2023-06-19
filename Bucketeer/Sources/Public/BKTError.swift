@@ -132,15 +132,15 @@ extension BKTError : LocalizedError{
     public var failureReason: String? {
         switch self {
             
-        case .badRequest(_),
-                .unauthorized(_),
-                .forbidden(_),
-                .notFound(_),
-                .clientClosed(_),
-                .unavailable(_),
-                .apiServer(_),
-                .illegalArgument(_),
-                .illegalState(_):
+        case .badRequest(message: _),
+                .unauthorized(message: _),
+                .forbidden(message: _),
+                .notFound(message: _),
+                .clientClosed(message: _),
+                .unavailable(message: _),
+                .apiServer(message: _),
+                .illegalArgument(message: _),
+                .illegalState(message: _):
             return nil
             
         case .timeout(message: _, error: let error):
