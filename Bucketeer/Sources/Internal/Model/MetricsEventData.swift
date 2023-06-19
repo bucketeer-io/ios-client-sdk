@@ -3,12 +3,12 @@ import Foundation
 protocol MetricsEventDataProps {
     var apiId: ApiId { get }
     var labels: [String: String] { get }
-    var protobufType: String? { get }
+    var protobufType: String { get }
 }
 
 extension MetricsEventDataProps {
     func uniqueKey() -> String {
-        return "\(apiId)::\(protobufType!)"
+        return "\(apiId)::\(protobufType)"
     }
 }
 
@@ -31,7 +31,7 @@ enum MetricsEventData: Hashable {
         let apiId: ApiId
         let labels: [String: String]
         let latencySecond: Double
-        var protobufType: String? = "type.googleapis.com/bucketeer.event.client.LatencyMetricsEvent"
+        var protobufType: String = "type.googleapis.com/bucketeer.event.client.LatencyMetricsEvent"
 
         func hash(into hasher: inout Hasher) {
             hasher.combine(apiId)
@@ -43,7 +43,7 @@ enum MetricsEventData: Hashable {
         let apiId: ApiId
         let labels: [String: String]
         let sizeByte: Int64
-        var protobufType: String? = "type.googleapis.com/bucketeer.event.client.SizeMetricsEvent"
+        var protobufType: String = "type.googleapis.com/bucketeer.event.client.SizeMetricsEvent"
 
         func hash(into hasher: inout Hasher) {
             hasher.combine(apiId)
@@ -54,7 +54,7 @@ enum MetricsEventData: Hashable {
     struct TimeoutError: Codable, Hashable, MetricsEventDataProps {
         let apiId: ApiId
         let labels: [String: String]
-        var protobufType: String? = "type.googleapis.com/bucketeer.event.client.TimeoutErrorMetricsEvent"
+        var protobufType: String = "type.googleapis.com/bucketeer.event.client.TimeoutErrorMetricsEvent"
 
         func hash(into hasher: inout Hasher) {
             hasher.combine(apiId)
@@ -64,7 +64,7 @@ enum MetricsEventData: Hashable {
     struct NetworkError: Codable, Hashable, MetricsEventDataProps {
         let apiId: ApiId
         let labels: [String: String]
-        var protobufType: String? = "type.googleapis.com/bucketeer.event.client.NetworkErrorMetricsEvent"
+        var protobufType: String = "type.googleapis.com/bucketeer.event.client.NetworkErrorMetricsEvent"
 
         func hash(into hasher: inout Hasher) {
             hasher.combine(apiId)
@@ -74,7 +74,7 @@ enum MetricsEventData: Hashable {
     struct BadRequestError: Codable, Hashable, MetricsEventDataProps {
         let apiId: ApiId
         let labels: [String: String]
-        var protobufType: String? = "type.googleapis.com/bucketeer.event.client.BadRequestErrorMetricsEvent"
+        var protobufType: String = "type.googleapis.com/bucketeer.event.client.BadRequestErrorMetricsEvent"
 
         func hash(into hasher: inout Hasher) {
             hasher.combine(apiId)
@@ -84,7 +84,7 @@ enum MetricsEventData: Hashable {
     struct UnauthorizedError: Codable, Hashable, MetricsEventDataProps {
         let apiId: ApiId
         let labels: [String: String]
-        var protobufType: String? = "type.googleapis.com/bucketeer.event.client.UnauthorizedErrorMetricsEvent"
+        var protobufType: String = "type.googleapis.com/bucketeer.event.client.UnauthorizedErrorMetricsEvent"
 
         func hash(into hasher: inout Hasher) {
             hasher.combine(apiId)
@@ -94,7 +94,7 @@ enum MetricsEventData: Hashable {
     struct ForbiddenError: Codable, Hashable, MetricsEventDataProps {
         let apiId: ApiId
         let labels: [String: String]
-        var protobufType: String? = "type.googleapis.com/bucketeer.event.client.ForbiddenErrorMetricsEvent"
+        var protobufType: String = "type.googleapis.com/bucketeer.event.client.ForbiddenErrorMetricsEvent"
 
         func hash(into hasher: inout Hasher) {
             hasher.combine(apiId)
@@ -104,7 +104,7 @@ enum MetricsEventData: Hashable {
     struct NotFoundError: Codable, Hashable, MetricsEventDataProps {
         let apiId: ApiId
         let labels: [String: String]
-        var protobufType: String? = "type.googleapis.com/bucketeer.event.client.NotFoundErrorMetricsEvent"
+        var protobufType: String = "type.googleapis.com/bucketeer.event.client.NotFoundErrorMetricsEvent"
 
         func hash(into hasher: inout Hasher) {
             hasher.combine(apiId)
@@ -114,7 +114,7 @@ enum MetricsEventData: Hashable {
     struct ClientClosedError: Codable, Hashable, MetricsEventDataProps {
         let apiId: ApiId
         let labels: [String: String]
-        var protobufType: String? = "type.googleapis.com/bucketeer.event.client.ClientClosedRequestErrorMetricsEvent"
+        var protobufType: String = "type.googleapis.com/bucketeer.event.client.ClientClosedRequestErrorMetricsEvent"
 
         func hash(into hasher: inout Hasher) {
             hasher.combine(apiId)
@@ -124,7 +124,7 @@ enum MetricsEventData: Hashable {
     struct UnavailableError: Codable, Hashable, MetricsEventDataProps {
         let apiId: ApiId
         let labels: [String: String]
-        var protobufType: String? = "type.googleapis.com/bucketeer.event.client.ServiceUnavailableErrorMetricsEvent"
+        var protobufType: String = "type.googleapis.com/bucketeer.event.client.ServiceUnavailableErrorMetricsEvent"
 
         func hash(into hasher: inout Hasher) {
             hasher.combine(apiId)
@@ -134,7 +134,7 @@ enum MetricsEventData: Hashable {
     struct InternalSdkError: Codable, Hashable, MetricsEventDataProps {
         let apiId: ApiId
         let labels: [String: String]
-        var protobufType: String? = "type.googleapis.com/bucketeer.event.client.InternalSdkErrorMetricsEvent"
+        var protobufType: String = "type.googleapis.com/bucketeer.event.client.InternalSdkErrorMetricsEvent"
 
         func hash(into hasher: inout Hasher) {
             hasher.combine(apiId)
@@ -144,7 +144,7 @@ enum MetricsEventData: Hashable {
     struct InternalServerError: Codable, Hashable, MetricsEventDataProps {
         let apiId: ApiId
         let labels: [String: String]
-        var protobufType: String? = "type.googleapis.com/bucketeer.event.client.InternalServerErrorMetricsEvent"
+        var protobufType: String = "type.googleapis.com/bucketeer.event.client.InternalServerErrorMetricsEvent"
 
         func hash(into hasher: inout Hasher) {
             hasher.combine(apiId)
@@ -154,7 +154,7 @@ enum MetricsEventData: Hashable {
     struct UnknownError: Codable, Hashable, MetricsEventDataProps {
         let apiId: ApiId
         let labels: [String: String]
-        var protobufType: String? = "type.googleapis.com/bucketeer.event.client.UnknownErrorMetricsEvent"
+        var protobufType: String = "type.googleapis.com/bucketeer.event.client.UnknownErrorMetricsEvent"
 
         func hash(into hasher: inout Hasher) {
             hasher.combine(apiId)
