@@ -31,7 +31,18 @@ final class EventInteractorImpl: EventInteractor {
 
     private var eventUpdateListener: EventUpdateListener?
 
-    init(sdkVersion: String, appVersion: String, device: Device, eventsMaxBatchQueueCount: Int, apiClient: ApiClient, eventDao: EventDao, clock: Clock, idGenerator: IdGenerator, logger: Logger?, featureTag: String) {
+    init(
+        sdkVersion: String,
+        appVersion: String,
+        device: Device,
+        eventsMaxBatchQueueCount: Int,
+        apiClient: ApiClient,
+        eventDao: EventDao,
+        clock: Clock,
+        idGenerator: IdGenerator,
+        logger: Logger?,
+        featureTag: String
+    ) {
         self.sdkVersion = sdkVersion
         self.eventsMaxBatchQueueCount = eventsMaxBatchQueueCount
         self.apiClient = apiClient
