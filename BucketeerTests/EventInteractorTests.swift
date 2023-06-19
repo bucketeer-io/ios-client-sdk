@@ -572,3 +572,4 @@ final class EventInteractorTests: XCTestCase {
         wait(for: [expectation], timeout: 1)
     }
 }
+// swiftlint:enable type_body_length
