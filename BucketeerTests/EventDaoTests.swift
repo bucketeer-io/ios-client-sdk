@@ -68,7 +68,7 @@ final class EventDaoTests: XCTestCase {
         let db = try SQLite(path: path, logger: nil)
         let dao = EventDaoImpl(db: db)
 
-        try dao.add(event: .mockMetrics1)
+        try dao.add(event: .mockMetricsResponseLatency1)
 
         let sql = "SELECT id, data FROM Events"
         let statement = try db.prepareStatement(sql: sql)
@@ -77,7 +77,7 @@ final class EventDaoTests: XCTestCase {
         // Mock1
         XCTAssertTrue(try statement.step())
         XCTAssertEqual(statement.string(at: 0), "metrics_event1")
-        XCTAssertEqual(try decoder.decode(Event.self, from: statement.data(at: 1)), Event.mockMetrics1)
+        XCTAssertEqual(try decoder.decode(Event.self, from: statement.data(at: 1)), Event.mockMetricsResponseLatency1)
 
         // End
         XCTAssertFalse(try statement.step())
@@ -90,34 +90,20 @@ final class EventDaoTests: XCTestCase {
         let db = try SQLite(path: path, logger: nil)
         let dao = EventDaoImpl(db: db)
 
-        try dao.add(events: [.mockGoal1, .mockEvaluation1, .mockMetrics1, .mockEvaluation2])
+        try dao.add(events: [.mockGoal1, .mockEvaluation1, .mockMetricsResponseLatency1, .mockEvaluation2])
 
         let events = try dao.getEvents()
         XCTAssertEqual(events.count, 4)
         XCTAssertEqual(events[0], Event.mockGoal1)
         XCTAssertEqual(events[1], Event.mockEvaluation1)
-        XCTAssertEqual(events[2], Event.mockMetrics1)
+        XCTAssertEqual(events[2], Event.mockMetricsResponseLatency1)
         XCTAssertEqual(events[3], Event.mockEvaluation2)
-    }
-
-    func testAddDuplicatedEvents() throws {
-        let db = try SQLite(path: path, logger: nil)
-        let dao = EventDaoImpl(db: db)
-
-        try dao.add(event: .mockMetrics1)
-        try dao.add(event: .mockMetrics2)
-        try dao.add(event: .mockMetrics3)
-
-        let events = try dao.getEvents()
-        XCTAssertEqual(events.count, 2)
-        XCTAssertEqual(events[0], Event.mockMetrics1)
-        XCTAssertEqual(events[1], Event.mockMetrics2)
     }
 
     func testDeleteAll() throws {
         let db = try SQLite(path: path, logger: nil)
         let dao = EventDaoImpl(db: db)
-        let target: [Event] = [.mockGoal1, .mockEvaluation1, .mockMetrics1, .mockEvaluation2]
+        let target: [Event] = [.mockGoal1, .mockEvaluation1, .mockMetricsResponseLatency1, .mockEvaluation2]
         try dao.add(events: target)
 
         let ids = target.map(\.id)
@@ -130,10 +116,10 @@ final class EventDaoTests: XCTestCase {
     func testDeleteSomeItems() throws {
         let db = try SQLite(path: path, logger: nil)
         let dao = EventDaoImpl(db: db)
-        let target: [Event] = [.mockGoal1, .mockEvaluation1, .mockMetrics1, .mockEvaluation2]
+        let target: [Event] = [.mockGoal1, .mockEvaluation1, .mockMetricsResponseLatency1, .mockEvaluation2]
         try dao.add(events: target)
 
-        let ids = [Event.mockEvaluation1.id, Event.mockMetrics1.id]
+        let ids = [Event.mockEvaluation1.id, Event.mockMetricsResponseLatency1.id]
         try dao.delete(ids: ids)
 
         let events = try dao.getEvents()

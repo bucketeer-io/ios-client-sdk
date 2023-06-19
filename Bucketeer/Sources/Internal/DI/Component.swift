@@ -30,7 +30,8 @@ final class ComponentImpl: Component {
             eventDao: dataModule.eventDao,
             clock: dataModule.clock,
             idGenerator: dataModule.idGenerator,
-            logger: dataModule.config.logger
+            logger: dataModule.config.logger,
+            featureTag: dataModule.config.featureTag
         )
     }
 

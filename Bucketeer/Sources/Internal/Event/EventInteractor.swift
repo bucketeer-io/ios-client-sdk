@@ -25,12 +25,24 @@ final class EventInteractorImpl: EventInteractor {
     let clock: Clock
     let idGenerator: IdGenerator
     let logger: Logger?
+    let featureTag: String
 
     private let metadata: [String: String]
 
     private var eventUpdateListener: EventUpdateListener?
 
-    init(sdkVersion: String, appVersion: String, device: Device, eventsMaxBatchQueueCount: Int, apiClient: ApiClient, eventDao: EventDao, clock: Clock, idGenerator: IdGenerator, logger: Logger?) {
+    init(
+        sdkVersion: String,
+        appVersion: String,
+        device: Device,
+        eventsMaxBatchQueueCount: Int,
+        apiClient: ApiClient,
+        eventDao: EventDao,
+        clock: Clock,
+        idGenerator: IdGenerator,
+        logger: Logger?,
+        featureTag: String
+    ) {
         self.sdkVersion = sdkVersion
         self.eventsMaxBatchQueueCount = eventsMaxBatchQueueCount
         self.apiClient = apiClient
@@ -38,6 +50,7 @@ final class EventInteractorImpl: EventInteractor {
         self.clock = clock
         self.idGenerator = idGenerator
         self.logger = logger
+        self.featureTag = featureTag
         self.metadata = [
             "app_version": appVersion,
             "os_version": device.osVersion,
@@ -157,22 +170,44 @@ final class EventInteractorImpl: EventInteractor {
 
     func trackFetchEvaluationsFailure(featureTag: String, error: BKTError) throws {
         let metrics = metricsEvent(apiId: .getEvaluations, labels: ["tag": featureTag], error: error)
-        try eventDao.add(event: .init(
-            id: idGenerator.id(),
-            event: metrics,
-            type: .metrics
-        ))
-        updateEventsAndNotify()
+        try trackMetricsEvent(events: [
+            .init(
+                id: idGenerator.id(),
+                event: metrics,
+                type: .metrics
+            )
+        ])
     }
 
     func trackRegisterEventsFailure(error: BKTError) throws {
-        let metrics = metricsEvent(apiId: .registerEvents, labels: [:], error: error)
-        try eventDao.add(event: .init(
-            id: idGenerator.id(),
-            event: metrics,
-            type: .metrics
-        ))
-        updateEventsAndNotify()
+        // note: using the same tag in BKConfig.featureTag
+        let metrics = metricsEvent(apiId: .registerEvents, labels: ["tag": featureTag], error: error)
+        try trackMetricsEvent(events: [
+            .init(
+                id: idGenerator.id(),
+                event: metrics,
+                type: .metrics
+            )
+        ])
+    }
+
+    private func trackMetricsEvent(events : [Event]) throws {
+        // We will add logic to filter duplicate metrics event here
+        let storedEvents = try eventDao.getEvents()
+        let metricsEventUniqueKeys : [String] = storedEvents.filter { item in
+            return item.isMetricEvent()
+        }.map { item in
+            return item.uniqueKey()
+        }
+        let newEvents = events.filter { item in
+            return item.isMetricEvent() && !metricsEventUniqueKeys.contains(item.uniqueKey())
+        }
+        if (newEvents.count > 0) {
+            try eventDao.add(events: newEvents)
+            updateEventsAndNotify()
+        } else {
+            logger?.debug(message: "no new events to add")
+        }
     }
 
     func sendEvents(force: Bool, completion: ((Result<Bool, BKTError>) -> Void)?) {
@@ -203,7 +238,7 @@ final class EventInteractorImpl: EventInteractor {
                             }
                             // if the error is not retriable, delete it
                             return !error.retriable
-                    })
+                        })
                     do {
                         try self?.eventDao.delete(ids: deletedIds)
                         self?.updateEventsAndNotify()
@@ -284,4 +319,41 @@ final class EventInteractorImpl: EventInteractor {
 
 protocol EventUpdateListener {
     func onUpdate(events: [Event])
+}
+
+extension Event {
+    func uniqueKey() -> String {
+        switch event {
+        case .metrics(let metric):
+            switch metric.event {
+            case .responseLatency(let mp):
+                return mp.uniqueKey()
+            case .responseSize(let mp):
+                return mp.uniqueKey()
+            case .timeoutError(let mp):
+                return mp.uniqueKey()
+            case .networkError(let mp):
+                return mp.uniqueKey()
+            case .badRequestError(let mp):
+                return mp.uniqueKey()
+            case .unauthorizedError(let mp):
+                return mp.uniqueKey()
+            case .forbiddenError(let mp):
+                return mp.uniqueKey()
+            case .notFoundError(let mp):
+                return mp.uniqueKey()
+            case .clientClosedError(let mp):
+                return mp.uniqueKey()
+            case .unavailableError(let mp):
+                return mp.uniqueKey()
+            case .internalSdkError(let mp):
+                return mp.uniqueKey()
+            case .internalServerError(let mp):
+                return mp.uniqueKey()
+            case .unknownError(let mp):
+                return mp.uniqueKey()
+            }
+        default: return id
+        }
+    }
 }
