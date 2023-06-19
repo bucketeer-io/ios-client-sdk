@@ -1,11 +1,3 @@
-//
-//  MetricsEventDataTests.swift
-//  BucketeerTests
-//
-//  Created by Ryan Hung Pham on 15/06/2023.
-//  Copyright © 2023 Bucketeer. All rights reserved.
-//
-
 import XCTest
 @testable import Bucketeer
 
