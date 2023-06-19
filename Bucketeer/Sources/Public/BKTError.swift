@@ -8,19 +8,19 @@ public enum BKTError: Error, Equatable {
     case clientClosed(message: String)
     case unavailable(message: String)
     case apiServer(message: String)
-
+    
     // network errors
     case timeout(message: String, error: Error)
     case network(message: String, error: Error)
-
+    
     // sdk errors
     case illegalArgument(message: String)
     case illegalState(message: String)
-
+    
     // unknown errors
     case unknownServer(message: String, error: Error)
     case unknown(message: String, error: Error)
-
+    
     public static func == (lhs: BKTError, rhs: BKTError) -> Bool {
         switch (lhs, rhs) {
         case (.badRequest(let m1), .badRequest(let m2)),
@@ -44,13 +44,13 @@ public enum BKTError: Error, Equatable {
     }
 }
 
-extension BKTError {
+extension BKTError : LocalizedError{
     internal init(error: Error) {
         if let bktError = error as? BKTError {
             self = bktError
             return
         }
-
+        
         if let responseError = error as? ResponseError {
             switch responseError {
             case .unacceptableCode(let code, let errorResponse):
@@ -85,13 +85,77 @@ extension BKTError {
             }
             return
         }
-
+        
         let nsError = error as NSError
         if nsError.domain == NSURLErrorDomain,
            nsError.code == NSURLErrorTimedOut {
             self = .timeout(message: "Request timeout error: \(error)", error: error)
         } else {
             self = .unknown(message: "Unknown error: \(error)", error: error)
+        }
+    }
+    
+    /// A localized message describing what error occurred.
+    public var errorDescription: String? {
+        switch self {
+            
+        case .badRequest(message: let message):
+            return message
+        case .unauthorized(message: let message):
+            return message
+        case .forbidden(message: let message):
+            return message
+        case .notFound(message: let message):
+            return message
+        case .clientClosed(message: let message):
+            return message
+        case .unavailable(message: let message):
+            return message
+        case .apiServer(message: let message):
+            return message
+        case .timeout(message: let message, _):
+            return message
+        case .network(message: let message, _):
+            return message
+        case .illegalArgument(message: let message):
+            return message
+        case .illegalState(message: let message):
+            return message
+        case .unknownServer(message: let message, _):
+            return message
+        case .unknown(message: let message, _):
+            return message
+        }
+    }
+    
+    /// A localized message describing the reason for the failure.
+    public var failureReason: String? {
+        switch self {
+            
+        case .badRequest(_),
+                .unauthorized(_),
+                .forbidden(_),
+                .notFound(_),
+                .clientClosed(_),
+                .unavailable(_),
+                .apiServer(_),
+                .illegalArgument(_),
+                .illegalState(_):
+            return nil
+            
+        case .timeout(message: _, error: let error):
+            // note: create description for unknow error type 
+            return "\(error)"
+            
+        case .network(message: _, error: let error):
+            return "\(error)"
+            
+        case .unknownServer(message: _, error: let error):
+            return "\(error)"
+            
+        case .unknown(message: _, error: let error):
+            return "\(error)"
+            
         }
     }
 }

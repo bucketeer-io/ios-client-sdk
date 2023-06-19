@@ -1,8 +1,8 @@
 import Foundation
 
 public struct BKTUser {
-    let id: String
-    let attr: [String: String]
+    public let id: String
+    public let attr: [String: String]
 }
 
 extension BKTUser {
