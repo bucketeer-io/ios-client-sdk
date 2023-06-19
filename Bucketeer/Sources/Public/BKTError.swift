@@ -144,7 +144,7 @@ extension BKTError : LocalizedError {
             return nil
 
         case .timeout(message: _, error: let error):
-            // note: create description for unknow error type
+            // note: create description for unknown error type
             return "\(error)"
 
         case .network(message: _, error: let error):
