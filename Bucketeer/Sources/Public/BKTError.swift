@@ -8,35 +8,35 @@ public enum BKTError: Error, Equatable {
     case clientClosed(message: String)
     case unavailable(message: String)
     case apiServer(message: String)
-    
+
     // network errors
     case timeout(message: String, error: Error)
     case network(message: String, error: Error)
-    
+
     // sdk errors
     case illegalArgument(message: String)
     case illegalState(message: String)
-    
+
     // unknown errors
     case unknownServer(message: String, error: Error)
     case unknown(message: String, error: Error)
-    
+
     public static func == (lhs: BKTError, rhs: BKTError) -> Bool {
         switch (lhs, rhs) {
         case (.badRequest(let m1), .badRequest(let m2)),
-            (.unauthorized(let m1), .unauthorized(let m2)),
-            (.forbidden(let m1), .forbidden(let m2)),
-            (.notFound(let m1), .notFound(let m2)),
-            (.clientClosed(let m1), .clientClosed(let m2)),
-            (.unavailable(let m1), .unavailable(let m2)),
-            (.apiServer(let m1), .apiServer(let m2)),
-            (.illegalArgument(let m1), .illegalArgument(let m2)),
-            (.illegalState(let m1), .illegalState(let m2)):
+             (.unauthorized(let m1), .unauthorized(let m2)),
+             (.forbidden(let m1), .forbidden(let m2)),
+             (.notFound(let m1), .notFound(let m2)),
+             (.clientClosed(let m1), .clientClosed(let m2)),
+             (.unavailable(let m1), .unavailable(let m2)),
+             (.apiServer(let m1), .apiServer(let m2)),
+             (.illegalArgument(let m1), .illegalArgument(let m2)),
+             (.illegalState(let m1), .illegalState(let m2)):
             return m1 == m2
         case (.timeout(let m1, _), .timeout(let m2, _)),
-            (.network(let m1, _), .network(let m2, _)),
-            (.unknownServer(let m1, _), .unknownServer(let m2, _)),
-            (.unknown(let m1, _), .unknown(let m2, _)):
+             (.network(let m1, _), .network(let m2, _)),
+             (.unknownServer(let m1, _), .unknownServer(let m2, _)),
+             (.unknown(let m1, _), .unknown(let m2, _)):
             return m1 == m2
         default:
             return false
@@ -44,13 +44,13 @@ public enum BKTError: Error, Equatable {
     }
 }
 
-extension BKTError : LocalizedError{
+extension BKTError : LocalizedError {
     internal init(error: Error) {
         if let bktError = error as? BKTError {
             self = bktError
             return
         }
-        
+
         if let responseError = error as? ResponseError {
             switch responseError {
             case .unacceptableCode(let code, let errorResponse):
@@ -85,7 +85,7 @@ extension BKTError : LocalizedError{
             }
             return
         }
-        
+
         let nsError = error as NSError
         if nsError.domain == NSURLErrorDomain,
            nsError.code == NSURLErrorTimedOut {
@@ -94,11 +94,11 @@ extension BKTError : LocalizedError{
             self = .unknown(message: "Unknown error: \(error)", error: error)
         }
     }
-    
+
     /// A localized message describing what error occurred.
     public var errorDescription: String? {
         switch self {
-            
+
         case .badRequest(message: let message):
             return message
         case .unauthorized(message: let message):
@@ -127,35 +127,34 @@ extension BKTError : LocalizedError{
             return message
         }
     }
-    
+
     /// A localized message describing the reason for the failure.
     public var failureReason: String? {
         switch self {
-            
-        case .badRequest(message: _),
-                .unauthorized(message: _),
-                .forbidden(message: _),
-                .notFound(message: _),
-                .clientClosed(message: _),
-                .unavailable(message: _),
-                .apiServer(message: _),
-                .illegalArgument(message: _),
-                .illegalState(message: _):
+
+        case .badRequest,
+             .unauthorized,
+             .forbidden,
+             .notFound,
+             .clientClosed,
+             .unavailable,
+             .apiServer,
+             .illegalArgument,
+             .illegalState:
             return nil
-            
+
         case .timeout(message: _, error: let error):
-            // note: create description for unknow error type 
+            // note: create description for unknow error type
             return "\(error)"
-            
+
         case .network(message: _, error: let error):
             return "\(error)"
-            
+
         case .unknownServer(message: _, error: let error):
             return "\(error)"
-            
+
         case .unknown(message: _, error: let error):
             return "\(error)"
-            
         }
     }
 }
