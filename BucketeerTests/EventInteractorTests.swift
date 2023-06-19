@@ -1,8 +1,7 @@
 import XCTest
 @testable import Bucketeer
 
-// swiftlint:disable file_length
-// swiftlint:disable type_body_length
+// swiftlint:disable [type_body_length file_length]
 final class EventInteractorTests: XCTestCase {
     private func eventInteractor(api: ApiClient = MockApiClient(),
                                  dao: EventDao = MockEventDao(),
@@ -572,4 +571,4 @@ final class EventInteractorTests: XCTestCase {
         wait(for: [expectation], timeout: 1)
     }
 }
-// swiftlint:enable type_body_length
+// swiftlint:enable [type_body_length file_length]
