@@ -148,7 +148,9 @@ enum EventData: Hashable {
             case .unknownError(let eventData):
                 try container.encode(eventData, forKey: .event)
             }
-            try container.encode(protobufType, forKey: .protobufType)
+            if let protobufType {
+                try container.encode(protobufType, forKey: .protobufType)
+            }
         }
 
         func hash(into hasher: inout Hasher) {
