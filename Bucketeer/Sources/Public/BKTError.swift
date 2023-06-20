@@ -24,19 +24,19 @@ public enum BKTError: Error, Equatable {
     public static func == (lhs: BKTError, rhs: BKTError) -> Bool {
         switch (lhs, rhs) {
         case (.badRequest(let m1), .badRequest(let m2)),
-            (.unauthorized(let m1), .unauthorized(let m2)),
-            (.forbidden(let m1), .forbidden(let m2)),
-            (.notFound(let m1), .notFound(let m2)),
-            (.clientClosed(let m1), .clientClosed(let m2)),
-            (.unavailable(let m1), .unavailable(let m2)),
-            (.apiServer(let m1), .apiServer(let m2)),
-            (.illegalArgument(let m1), .illegalArgument(let m2)),
-            (.illegalState(let m1), .illegalState(let m2)):
+             (.unauthorized(let m1), .unauthorized(let m2)),
+             (.forbidden(let m1), .forbidden(let m2)),
+             (.notFound(let m1), .notFound(let m2)),
+             (.clientClosed(let m1), .clientClosed(let m2)),
+             (.unavailable(let m1), .unavailable(let m2)),
+             (.apiServer(let m1), .apiServer(let m2)),
+             (.illegalArgument(let m1), .illegalArgument(let m2)),
+             (.illegalState(let m1), .illegalState(let m2)):
             return m1 == m2
         case (.timeout(let m1, _), .timeout(let m2, _)),
-            (.network(let m1, _), .network(let m2, _)),
-            (.unknownServer(let m1, _), .unknownServer(let m2, _)),
-            (.unknown(let m1, _), .unknown(let m2, _)):
+             (.network(let m1, _), .network(let m2, _)),
+             (.unknownServer(let m1, _), .unknownServer(let m2, _)),
+             (.unknown(let m1, _), .unknown(let m2, _)):
             return m1 == m2
         default:
             return false
@@ -44,7 +44,7 @@ public enum BKTError: Error, Equatable {
     }
 }
 
-extension BKTError {
+extension BKTError : LocalizedError {
     internal init(error: Error) {
         if let bktError = error as? BKTError {
             self = bktError
@@ -92,6 +92,69 @@ extension BKTError {
             self = .timeout(message: "Request timeout error: \(error)", error: error)
         } else {
             self = .unknown(message: "Unknown error: \(error)", error: error)
+        }
+    }
+
+    /// A localized message describing what error occurred.
+    public var errorDescription: String? {
+        switch self {
+
+        case .badRequest(message: let message):
+            return message
+        case .unauthorized(message: let message):
+            return message
+        case .forbidden(message: let message):
+            return message
+        case .notFound(message: let message):
+            return message
+        case .clientClosed(message: let message):
+            return message
+        case .unavailable(message: let message):
+            return message
+        case .apiServer(message: let message):
+            return message
+        case .timeout(message: let message, _):
+            return message
+        case .network(message: let message, _):
+            return message
+        case .illegalArgument(message: let message):
+            return message
+        case .illegalState(message: let message):
+            return message
+        case .unknownServer(message: let message, _):
+            return message
+        case .unknown(message: let message, _):
+            return message
+        }
+    }
+
+    /// A localized message describing the reason for the failure.
+    public var failureReason: String? {
+        switch self {
+
+        case .badRequest,
+             .unauthorized,
+             .forbidden,
+             .notFound,
+             .clientClosed,
+             .unavailable,
+             .apiServer,
+             .illegalArgument,
+             .illegalState:
+            return nil
+
+        case .timeout(message: _, error: let error):
+            // note: create description for unknown error type
+            return "\(error)"
+
+        case .network(message: _, error: let error):
+            return "\(error)"
+
+        case .unknownServer(message: _, error: let error):
+            return "\(error)"
+
+        case .unknown(message: _, error: let error):
+            return "\(error)"
         }
     }
 }

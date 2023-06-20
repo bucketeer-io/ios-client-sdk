@@ -142,7 +142,8 @@ final class BKTClientTests: XCTestCase {
                 handler?(.failure(error: .timeout(message: "timeout", error: NSError()), featureTag: "feature"))
                 expectation.fulfill()
             }),
-            eventDao: MockEventDao(addEventHandler: { event in
+            eventDao: MockEventDao(addEventsHandler: { events in
+                XCTAssertEqual(events.count, 1)
                 let expected = Event(
                     id: "mock1",
                     event: .metrics(.init(
@@ -160,7 +161,7 @@ final class BKTClientTests: XCTestCase {
                     )),
                     type: .metrics
                 )
-                XCTAssertEqual(expected, event)
+                XCTAssertEqual(expected, events.first)
                 expectation.fulfill()
             }),
             idGenerator: MockIdGenerator(identifier: {
@@ -202,7 +203,7 @@ final class BKTClientTests: XCTestCase {
 
     func testFlushFailure() {
         let expectation = self.expectation(description: "")
-        expectation.expectedFulfillmentCount = 3
+        expectation.expectedFulfillmentCount = 4
         let dataModule = MockDataModule(
             userHolder: .init(user: .mock1),
             apiClient: MockApiClient(registerEventsHandler: { events, handler in
@@ -211,7 +212,12 @@ final class BKTClientTests: XCTestCase {
                 expectation.fulfill()
             }),
             eventDao: MockEventDao(getEventsHandler: {
-                defer { expectation.fulfill() }
+                defer {
+                    // It will call 2 times.
+                    // 1 for prepare for flushing
+                    // 2 for checking duplicate
+                    expectation.fulfill()
+                }
                 return [.mockGoal1, .mockEvaluation1]
             })
         )
@@ -270,8 +276,11 @@ final class BKTClientTests: XCTestCase {
         expectation.expectedFulfillmentCount = 1
         let dataModule = MockDataModule(
             userHolder: .init(user: .mock1),
-            eventDao: MockEventDao(addEventHandler: { event in
-                XCTAssertEqual(event, Event(
+            eventDao: MockEventDao(addEventsHandler: { events in
+
+                XCTAssertEqual(events.count, 1)
+
+                XCTAssertEqual(events.first, Event(
                     id: "id",
                     event: .goal(.init(
                         timestamp: 1,

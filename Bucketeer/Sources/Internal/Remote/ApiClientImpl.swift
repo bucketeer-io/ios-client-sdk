@@ -11,7 +11,8 @@ final class ApiClientImpl: ApiClient {
     private let defaultRequestTimeoutMills: Int64
     private let logger: Logger?
 
-    init(apiEndpoint: URL,
+    init(
+        apiEndpoint: URL,
         apiKey: String,
         featureTag: String,
         defaultRequestTimeoutMills: Int64 = ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS,
