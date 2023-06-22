@@ -41,9 +41,5 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>apiEndpoint</key>
-	<string>https://api-dev.bucketeer.jp</string>
-	<key>apiKey</key>
-	<string>68f36f74aed68a63c6a0de5cf2de2f343c3714c0d1be4083f8fa679a39644a7c</string>
 </dict>
 </plist>

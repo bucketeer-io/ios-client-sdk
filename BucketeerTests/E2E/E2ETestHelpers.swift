@@ -14,13 +14,11 @@ let FEATURE_ID_JSON = "feature-ios-e2e-json"
 let GOAL_ID = "goal-ios-e2e-1"
 let GOAL_VALUE = 1.0
 
+@available(iOS 13, *)
 extension BKTConfig {
     static func e2e() throws -> BKTConfig {
-        let bundle = Bundle.init(for: BucketeerE2ETests.self)
-        let path = bundle.path(forResource: "Info", ofType: "plist")!
-        let dict = NSDictionary(contentsOfFile: path) as? [String: Any] ?? [:]
-        let apiKey = dict["apiKey"] as? String ?? ""
-        let apiEndpoint = dict["apiEndpoint"] as? String ?? ""
+        let apiKey = ProcessInfo.processInfo.environment["E2E_API_KEY"]!
+        let apiEndpoint = ProcessInfo.processInfo.environment["E2E_API_ENDPOINT"]!
 
         return try .init(
             apiKey: apiKey,
@@ -32,6 +30,7 @@ extension BKTConfig {
     }
 }
 
+@available(iOS 13, *)
 extension BKTClient {
     static func initialize(config: BKTConfig, user: BKTUser, timeoutMillis: Int64 = 5000) async throws {
         return try await withCheckedThrowingContinuation { continuation in
