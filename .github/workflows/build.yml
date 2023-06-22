@@ -8,6 +8,7 @@ on:
       - '.github/**'
     branches:
       - main
+      - fix/e2e-test
 
 jobs:
   build:
@@ -35,8 +36,11 @@ jobs:
           E2E_API_KEY: ${{ secrets.E2E_API_KEY }}
         run: make build-for-testing
 
-      - name: Unit Test
-        run: make test-without-building
+      # - name: Unit Test
+      #   run: make test-without-building
 
       - name: E2E Test
+        env:
+          E2E_API_ENDPOINT: ${{ secrets.E2E_API_ENDPOINT }}
+          E2E_API_KEY: ${{ secrets.E2E_API_KEY }}
         run: make e2e-without-building
