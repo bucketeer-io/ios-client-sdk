@@ -10,7 +10,7 @@ let package = Package(
         .library(
             name: "Bucketeer",
             targets: ["Bucketeer"]
-        ),
+        )
     ],
     dependencies: [],
     targets: [
