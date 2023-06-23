@@ -25,7 +25,7 @@ BUILD=$(XCODEBUILD) $(OPTIONS) $(DESTINATION) \
 	build
 BUILD_FOR_TESTING=$(XCODEBUILD) $(OPTIONS) $(DESTINATION) \
 	-configuration Test \
-	build-for-testing E2E_API_ENDPOINT=$(E2E_API_ENDPOINT) E2E_API_KEY=$(E2E_API_KEY)
+	build-for-testing
 TEST_WITHOUT_BUILDING=$(XCODEBUILD) $(OPTIONS) $(DESTINATION) \
 	-configuration Test \
 	-skip-testing:BucketeerTests/BucketeerE2ETests \
@@ -33,7 +33,7 @@ TEST_WITHOUT_BUILDING=$(XCODEBUILD) $(OPTIONS) $(DESTINATION) \
 E2E_WITHOUT_BUILDING=$(XCODEBUILD) $(OPTIONS) $(DESTINATION) \
 	-configuration Test \
 	-only-testing:BucketeerTests/BucketeerE2ETests \
-	test-without-building
+	test-without-building E2E_API_ENDPOINT=$(E2E_API_ENDPOINT) E2E_API_KEY=$(E2E_API_KEY)
 ALL_TEST_WITHOUT_BUILDING=$(XCODEBUILD) $(OPTIONS) $(DESTINATION) \
 	-configuration Test \
 	test-without-building
