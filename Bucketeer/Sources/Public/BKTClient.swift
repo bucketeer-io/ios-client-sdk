@@ -2,6 +2,7 @@ import Foundation
 
 public class BKTClient {
     static var `default`: BKTClient!
+    private static let concurrentQueue = DispatchQueue(label: "io.bucketeer.concurrentQueue", attributes: .concurrent)
 
     let component: Component
     let dispatchQueue: DispatchQueue
@@ -74,32 +75,34 @@ public class BKTClient {
 extension BKTClient {
     public static func initialize(config: BKTConfig, user: BKTUser, timeoutMillis: Int64 = 5000, completion: ((BKTError?) -> Void)? = nil) {
         precondition(Thread.isMainThread, "the initialize method must be called on main thread")
-        guard BKTClient.default == nil else {
-            config.logger?.warn(message: "BKTClient is already initialized. Not sure if the initial fetch has finished")
-            completion?(nil)
-            return
-        }
-        do {
-            let dispatchQueue = DispatchQueue(label: "io.bucketeer.taskQueue")
-            let dataModule = try DataModuleImpl(user: user.toUser(), config: config)
-            let client = BKTClient(dataModule: dataModule, dispatchQueue: dispatchQueue)
-            BKTClient.default = client
-            client.scheduleTasks()
-            client.execute {
-                client.refreshCache()
-                client.fetchEvaluations(timeoutMillis: timeoutMillis, completion: completion)
+        concurrentQueue.sync {
+            guard BKTClient.default == nil else {
+                config.logger?.warn(message: "BKTClient is already initialized. Not sure if the initial fetch has finished")
+                completion?(nil)
+                return
             }
-        } catch let error {
-            config.logger?.error(error)
-            completion?(error as? BKTError)
+            do {
+                let dispatchQueue = DispatchQueue(label: "io.bucketeer.taskQueue")
+                let dataModule = try DataModuleImpl(user: user.toUser(), config: config)
+                let client = BKTClient(dataModule: dataModule, dispatchQueue: dispatchQueue)
+                BKTClient.default = client
+                client.scheduleTasks()
+                client.execute {
+                    client.refreshCache()
+                    client.fetchEvaluations(timeoutMillis: timeoutMillis, completion: completion)
+                }
+            } catch let error {
+                config.logger?.error(error)
+                completion?(error as? BKTError)
+            }
         }
     }
 
     public static func destroy() {
         precondition(Thread.isMainThread, "the destroy method must be called on main thread")
-        self.default?.execute {
-            self.default?.resetTasks()
-            self.default = nil
+        concurrentQueue.sync {
+            BKTClient.default?.resetTasks()
+            BKTClient.default = nil
         }
     }
 
