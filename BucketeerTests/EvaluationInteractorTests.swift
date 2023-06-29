@@ -64,10 +64,19 @@ final class EvaluationInteractorTests: XCTestCase {
         expectation.expectedFulfillmentCount = 3
         expectation.assertForOverFulfill = true
 
-        let initialEvaluation = Evaluation.mock1
-        var updatedEvaluation = initialEvaluation
-        updatedEvaluation.variationValue += "_updated"
-
+        let updatedEvaluation = Evaluation(
+            id: "evaluation1_updated",
+            featureId: "feature1",
+            featureVersion: 1,
+            userId: User.mock1.id,
+            variationId: "variation1",
+            variationName: "variation name1",
+            variationValue: "variation_value1_updated",
+            reason: .init(
+                type: .rule,
+                ruleId: "rule1"
+            )
+        )
         let baseUserEvaluationsId = UserEvaluations.mock1.id
         let baseUserEvaluationsId_updated = baseUserEvaluationsId + "_updated"
         let api = MockApiClient(

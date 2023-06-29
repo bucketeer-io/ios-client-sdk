@@ -66,10 +66,20 @@ final class EvaluationDaoTests: XCTestCase {
         try dao.put(userId: "user1", evaluations: mocks)
 
         // Update
-        var updatedMock = Evaluation.mock1
         let updatedValue = "variation - updated"
-        updatedMock.variation.value = updatedValue
-        updatedMock.variationValue = updatedValue
+        var updatedMock = Evaluation(
+            id: "evaluation1",
+            featureId: "feature1",
+            featureVersion: 1,
+            userId: User.mock1.id,
+            variationId: "variation1",
+            variationName: "variation name1",
+            variationValue: updatedValue,
+            reason: .init(
+                type: .rule,
+                ruleId: "rule1"
+            )
+        )
         try dao.put(userId: "user1", evaluations: [updatedMock])
 
         let sql = "SELECT userId, featureId, data FROM Evaluations WHERE userId = 'user1'"
@@ -81,7 +91,6 @@ final class EvaluationDaoTests: XCTestCase {
         XCTAssertEqual(statement.string(at: 0), "user1")
         XCTAssertEqual(statement.string(at: 1), "feature1")
         let evaluation = try decoder.decode(Evaluation.self, from: statement.data(at: 2))
-        XCTAssertEqual(evaluation.variation.value, updatedValue)
         XCTAssertEqual(evaluation.variationValue, updatedValue)
 
         // End

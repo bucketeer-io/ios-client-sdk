@@ -183,6 +183,7 @@ extension BKTClient {
             featureVersion: evaluation.featureVersion,
             userId: evaluation.userId,
             variationId: evaluation.variationId,
+            variationName: evaluation.variationName,
             variationValue: evaluation.variationValue,
             reason: BKTEvaluation.Reason(rawValue: evaluation.reason.type.rawValue) ?? .default
         )

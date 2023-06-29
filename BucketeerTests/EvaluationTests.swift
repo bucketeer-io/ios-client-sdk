@@ -10,14 +10,9 @@ final class EvaluationTests: XCTestCase {
             featureVersion: 1,
             userId: "user",
             variationId: "variation",
-            variation: .init(
-                id: "variation",
-                value: value,
-                name: nil,
-                description: nil
-            ),
-            reason: .init(type: .default),
-            variationValue: value
+            variationName: "variation name",
+            variationValue: value,
+            reason: .init(type: .default)
         )
     }
 
