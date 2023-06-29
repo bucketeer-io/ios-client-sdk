@@ -100,10 +100,8 @@ extension BKTClient {
 
     public static func destroy() {
         precondition(Thread.isMainThread, "the destroy method must be called on main thread")
-        concurrentQueue.sync {
-            BKTClient.default?.resetTasks()
-            BKTClient.default = nil
-        }
+        BKTClient.default?.resetTasks()
+        BKTClient.default = nil
     }
 
     public static var shared: BKTClient {
