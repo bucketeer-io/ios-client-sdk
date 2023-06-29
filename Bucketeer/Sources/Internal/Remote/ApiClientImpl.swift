@@ -17,7 +17,8 @@ final class ApiClientImpl: ApiClient {
         featureTag: String,
         defaultRequestTimeoutMills: Int64 = ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS,
         session: Session = URLSession.shared,
-        logger: Logger?) {
+        logger: Logger?
+    ) {
 
         self.apiEndpoint = apiEndpoint
         self.apiKey = apiKey

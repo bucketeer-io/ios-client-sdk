@@ -1,6 +1,7 @@
 import XCTest
 @testable import Bucketeer
 
+// swiftlint:disable type_body_length
 final class EvaluationInteractorTests: XCTestCase {
 
     func testFetchInitialLoad() {
@@ -369,3 +370,4 @@ final class EvaluationInteractorTests: XCTestCase {
         XCTAssertEqual(interactor.getLatest(userId: User.mock1.id, featureId: "invalid_feature_id"), nil)
     }
 }
+// swiftlint:enable type_body_length
