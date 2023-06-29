@@ -13,7 +13,7 @@ public struct BKTConfig {
     let logger: BKTLogger?
 }
 
-public class BKTConfigBuilder{
+public class BKTConfigBuilder {
     private(set) var apiKey: String?
     private(set) var apiEndpoint: String?
     private(set) var featureTag: String?
@@ -24,57 +24,57 @@ public class BKTConfigBuilder{
     private(set) var sdkVersion: String?
     private(set) var appVersion: String?
     private(set) var logger: BKTLogger?
-    
+
     func with(apiKey: String?) -> BKTConfigBuilder {
         self.apiKey = apiKey
         return self
     }
-    
+
     func with(apiEndpoint: String?) -> BKTConfigBuilder {
         self.apiEndpoint = apiEndpoint
         return self
     }
-    
+
     func with(featureTag: String?) -> BKTConfigBuilder {
         self.featureTag = featureTag
         return self
     }
-    
+
     func with(eventsFlushInterval: Int64?) -> BKTConfigBuilder {
         self.eventsFlushInterval = eventsFlushInterval
         return self
     }
-    
+
     func with(eventsMaxQueueSize: Int?) -> BKTConfigBuilder {
         self.eventsMaxQueueSize = eventsMaxQueueSize
         return self
     }
-    
+
     func with(pollingInterval: Int64?) -> BKTConfigBuilder {
         self.pollingInterval = pollingInterval
         return self
     }
-    
+
     func with(backgroundPollingInterval: Int64?) -> BKTConfigBuilder {
         self.backgroundPollingInterval = backgroundPollingInterval
         return self
     }
-    
+
     func with(sdkVersion: String?) -> BKTConfigBuilder {
         self.sdkVersion = sdkVersion
         return self
     }
-    
+
     func with(appVersion: String?) -> BKTConfigBuilder {
         self.appVersion = appVersion
         return self
     }
-    
+
     func with(logger: BKTLogger?) -> BKTConfigBuilder {
         self.logger = logger
         return self
     }
-    
+
     func build() throws -> BKTConfig {
         guard let apiKeyForSDK = apiKey, apiKeyForSDK.isNotEmpty() else {
             throw BKTError.illegalArgument(message: "apiKey is required")
@@ -88,7 +88,7 @@ public class BKTConfigBuilder{
         guard let version = appVersion, version.isNotEmpty() else {
             throw BKTError.illegalArgument(message: "appVersion is required")
         }
-        
+
         var pollingInterval : Int64 = pollingInterval ?? Constant.MINIMUM_POLLING_INTERVAL_MILLIS
         if pollingInterval < Constant.MINIMUM_POLLING_INTERVAL_MILLIS {
             logger?.warn(message: "pollingInterval: \(pollingInterval) is set but must be above \(Constant.MINIMUM_POLLING_INTERVAL_MILLIS)")
@@ -104,7 +104,7 @@ public class BKTConfigBuilder{
             logger?.warn(message: "eventsFlushInterval: \(eventsFlushInterval) is set but must be above \(Constant.MINIMUM_FLUSH_INTERVAL_MILLIS)")
             eventsFlushInterval = Constant.DEFAULT_FLUSH_INTERVAL_MILLIS
         }
-        
+
         return try BKTConfig.init(
             apiKey: apiKeyForSDK,
             apiEndpoint: apiEndpointURL,
