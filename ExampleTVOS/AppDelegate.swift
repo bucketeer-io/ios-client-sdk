@@ -9,7 +9,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
 
-        let user = try! BKTUser.create(id: "001", attributes: [:])
+        let user = try! BKTUser(id: "001", attributes: [:])
         BKTClient.initialize(
             config: self.makeConfig(),
             user: user
@@ -47,15 +47,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let dic = NSDictionary(contentsOfFile: path) as! [String: Any]
         let apiKey = dic["apiKey"] as! String
         let apiEndpoint = dic["apiEndpoint"] as! String
+        
+        let builder = BKTConfig.Builder(apiKey: apiKey)
+            .with(apiEndpoint: apiEndpoint)
+            .with(featureTag: "ios")
+            .with(pollingInterval: 5_000)
+            .with(sdkVersion: "0.0.2")
+            .with(appVersion: bundle.infoDictionary?["CFBundleShortVersionString"] as! String)
 
-        return try! BKTConfig(
-            apiKey: apiKey,
-            apiEndpoint: apiEndpoint,
-            featureTag: "ios",
-            pollingInterval: 5_000,
-            appVersion: bundle.infoDictionary?["CFBundleShortVersionString"] as! String,
-            logger: nil
-        )
+        return try! builder.build()
     }
 
     private func setSingleViewController() {
