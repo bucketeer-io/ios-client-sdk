@@ -47,7 +47,7 @@ final class EvaluationForegroundTaskTests: XCTestCase {
         )
         task.start()
 
-        wait(for: [expectation], timeout: 70)
+        wait(for: [expectation], timeout: 0.1)
     }
 
     func testStartAndReceiveError() {
@@ -76,23 +76,17 @@ final class EvaluationForegroundTaskTests: XCTestCase {
             }
         )
         
+        let config = BKTConfig.mock(
+            eventsFlushInterval: 50,
+            eventsMaxQueueSize: 3,
+            pollingInterval: 100,
+            backgroundPollingInterval: 1000
+        )
         
-        let builder = BKTConfig.Builder(apiKey: "api_key_value")
-            .with(apiEndpoint: "https://test.bucketeer.io")
-            .with(featureTag: "featureTag1")
-            .with(eventsFlushInterval: 50)
-            .with(eventsMaxQueueSize: 3)
-            .with(pollingInterval: 100)
-            .with(backgroundPollingInterval: 1000)
-            .with(sdkVersion: "0.0.2")
-            .with(appVersion: "1.2.3")
-            .with(logger: MockLogger())
-        
-        let config = try? builder.build()
         XCTAssertNotNil(config, "BKTConfig should not be null")
         
         let component = MockComponent(
-            config: config!,
+            config: config,
             evaluationInteractor: evaluationInteractor,
             eventInteractor: eventInteractor
         )

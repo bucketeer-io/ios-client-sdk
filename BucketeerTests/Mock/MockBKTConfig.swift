@@ -9,16 +9,17 @@ extension BKTConfig {
         eventsMaxQueueSize: Int = Constant.DEFAULT_MAX_QUEUE_SIZE,
         pollingInterval: Int64 = Constant.DEFAULT_POLLING_INTERVAL_MILLIS,
         backgroundPollingInterval: Int64 = Constant.DEFAULT_BACKGROUND_POLLING_INTERVAL_MILLIS) -> BKTConfig {
-            let builder = BKTConfig.Builder(apiKey: "api_key_value")
-                .with(apiEndpoint: "https://test.bucketeer.io")
-                .with(featureTag: "featureTag1")
-                .with(eventsFlushInterval: eventsFlushInterval)
-                .with(eventsMaxQueueSize: eventsMaxQueueSize)
-                .with(pollingInterval: pollingInterval)
-                .with(backgroundPollingInterval: backgroundPollingInterval)
-                .with(appVersion: "1.2.3")
-                .with(logger: MockLogger())
-                .with(sdkVersion: "0.0.2")
-            return try! builder.build()
+            return BKTConfig(
+                            apiKey: "api_key_value",
+                            apiEndpoint: URL(string: "https://test.bucketeer.io")!,
+                            featureTag: "featureTag1",
+                            eventsFlushInterval: eventsFlushInterval,
+                            eventsMaxQueueSize: eventsMaxQueueSize,
+                            pollingInterval: pollingInterval,
+                            backgroundPollingInterval: backgroundPollingInterval,
+                            sdkVersion: "0.0.2",
+                            appVersion: "1.2.3",
+                            logger: MockLogger()
+                        )
         }
 }

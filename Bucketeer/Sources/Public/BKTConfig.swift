@@ -11,8 +11,30 @@ public class BKTConfig {
     let sdkVersion: String
     let appVersion: String
     let logger: BKTLogger?
-    
-    private init(with builder: Builder) throws {
+
+    internal init(apiKey: String,
+                  apiEndpoint: URL,
+                  featureTag: String,
+                  eventsFlushInterval: Int64,
+                  eventsMaxQueueSize: Int,
+                  pollingInterval: Int64,
+                  backgroundPollingInterval: Int64,
+                  sdkVersion: String,
+                  appVersion: String,
+                  logger: BKTLogger? = nil) {
+        self.apiKey = apiKey
+        self.apiEndpoint = apiEndpoint
+        self.featureTag = featureTag
+        self.eventsFlushInterval = eventsFlushInterval
+        self.eventsMaxQueueSize = eventsMaxQueueSize
+        self.pollingInterval = pollingInterval
+        self.backgroundPollingInterval = backgroundPollingInterval
+        self.sdkVersion = sdkVersion
+        self.appVersion = appVersion
+        self.logger = logger
+    }
+
+    private convenience init(with builder: Builder) throws {
         guard let apiKeyForSDK = builder.apiKey, apiKeyForSDK.isNotEmpty() else {
             throw BKTError.illegalArgument(message: "apiKey is required")
         }
@@ -25,7 +47,7 @@ public class BKTConfig {
         guard let appVersion = builder.appVersion, appVersion.isNotEmpty() else {
             throw BKTError.illegalArgument(message: "appVersion is required")
         }
-        
+
         var pollingInterval : Int64 = builder.pollingInterval ?? Constant.MINIMUM_POLLING_INTERVAL_MILLIS
         if pollingInterval < Constant.MINIMUM_POLLING_INTERVAL_MILLIS {
             builder.logger?.warn(message: "pollingInterval: \(pollingInterval) is set but must be above \(Constant.MINIMUM_POLLING_INTERVAL_MILLIS)")
@@ -41,21 +63,21 @@ public class BKTConfig {
             builder.logger?.warn(message: "eventsFlushInterval: \(eventsFlushInterval) is set but must be above \(Constant.MINIMUM_FLUSH_INTERVAL_MILLIS)")
             eventsFlushInterval = Constant.DEFAULT_FLUSH_INTERVAL_MILLIS
         }
-        
+
         let eventsMaxQueueSize = builder.eventsMaxQueueSize ?? Constant.DEFAULT_MAX_QUEUE_SIZE
-        
-        self.apiKey = apiKeyForSDK
-        self.apiEndpoint = apiEndpointURL
-        self.featureTag = featureTag
-        self.eventsFlushInterval = eventsFlushInterval
-        self.eventsMaxQueueSize = eventsMaxQueueSize
-        self.pollingInterval = pollingInterval
-        self.backgroundPollingInterval = backgroundPollingInterval
-        self.appVersion = appVersion
-        self.sdkVersion = builder.sdkVersion ?? "0.0.1"
-        self.logger = builder.logger
+
+        self.init(apiKey: apiKeyForSDK,
+                  apiEndpoint: apiEndpointURL,
+                  featureTag: featureTag,
+                  eventsFlushInterval: eventsFlushInterval,
+                  eventsMaxQueueSize: eventsMaxQueueSize,
+                  pollingInterval: pollingInterval,
+                  backgroundPollingInterval: backgroundPollingInterval,
+                  sdkVersion: builder.sdkVersion ?? "0.0.1",
+                  appVersion: appVersion,
+                  logger: builder.logger)
     }
-    
+
     public class Builder {
         private(set) var apiKey: String?
         private(set) var apiEndpoint: String?
@@ -67,64 +89,64 @@ public class BKTConfig {
         private(set) var sdkVersion: String?
         private(set) var appVersion: String?
         private(set) var logger: BKTLogger?
-        
+
         /**
          * Create a new builder with your API key.
          */
         public init(apiKey: String) {
             self.apiKey = apiKey
         }
-        
+
         public func with(apiKey: String) -> Builder {
             self.apiKey = apiKey
             return self
         }
-        
+
         public func with(apiEndpoint: String) -> Builder {
             self.apiEndpoint = apiEndpoint
             return self
         }
-        
+
         public func with(featureTag: String) -> Builder {
             self.featureTag = featureTag
             return self
         }
-        
+
         public func with(eventsFlushInterval: Int64) -> Builder {
             self.eventsFlushInterval = eventsFlushInterval
             return self
         }
-        
+
         public func with(eventsMaxQueueSize: Int) -> Builder {
             self.eventsMaxQueueSize = eventsMaxQueueSize
             return self
         }
-        
+
         public func with(pollingInterval: Int64) -> Builder {
             self.pollingInterval = pollingInterval
             return self
         }
-        
+
         public func with(backgroundPollingInterval: Int64) -> Builder {
             self.backgroundPollingInterval = backgroundPollingInterval
             return self
         }
-        
+
         public func with(sdkVersion: String) -> Builder {
             self.sdkVersion = sdkVersion
             return self
         }
-        
+
         public func with(appVersion: String) -> Builder {
             self.appVersion = appVersion
             return self
         }
-        
+
         public func with(logger: BKTLogger) -> Builder {
             self.logger = logger
             return self
         }
-        
+
         public func build() throws -> BKTConfig {
             return try BKTConfig.init(with: self)
         }
@@ -137,4 +159,3 @@ fileprivate extension String {
         return count > 0
     }
 }
-
