@@ -24,7 +24,7 @@ extension BKTConfig {
             .with(featureTag: FEATURE_TAG)
             .with(appVersion: "1.2.3")
             .with(logger: E2ELogger())
-        
+
         return try builder.build()
     }
 }
