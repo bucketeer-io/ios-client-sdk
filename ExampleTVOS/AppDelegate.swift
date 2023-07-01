@@ -52,7 +52,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             .with(apiEndpoint: apiEndpoint)
             .with(featureTag: "ios")
             .with(pollingInterval: 5_000)
-            .with(sdkVersion: "0.0.2")
             .with(appVersion: bundle.infoDictionary?["CFBundleShortVersionString"] as! String)
 
         return try! builder.build()

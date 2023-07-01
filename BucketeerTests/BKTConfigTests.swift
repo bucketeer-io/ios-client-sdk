@@ -9,7 +9,6 @@ final class BKTConfigTests: XCTestCase {
         var builder = BKTConfig.Builder(apiKey: "api_key_value")
             .with(apiEndpoint: "https://test.bucketeer.io")
             .with(featureTag: "featureTag1")
-            .with(sdkVersion: "0.0.2")
             .with(appVersion: "1.2.3")
             .with(logger: logger)
 
@@ -89,7 +88,7 @@ final class BKTConfigTests: XCTestCase {
         XCTAssertEqual("featureTag1",
                        config3?.featureTag,
                        "featureTag1 does not match")
-        XCTAssertEqual("0.0.2",
+        XCTAssertEqual(Version.current,
                        config3?.sdkVersion,
                        "sdkVersion does not match")
         XCTAssertEqual("1.2.3",
