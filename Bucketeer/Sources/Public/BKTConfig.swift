@@ -73,7 +73,7 @@ public class BKTConfig {
                   eventsMaxQueueSize: eventsMaxQueueSize,
                   pollingInterval: pollingInterval,
                   backgroundPollingInterval: backgroundPollingInterval,
-                  sdkVersion: Version.current,
+                  sdkVersion: builder.sdkVersion,
                   appVersion: appVersion,
                   logger: builder.logger)
     }
@@ -86,6 +86,7 @@ public class BKTConfig {
         private(set) var eventsMaxQueueSize: Int?
         private(set) var pollingInterval: Int64?
         private(set) var backgroundPollingInterval: Int64?
+        private(set) var sdkVersion: String = Version.current
         private(set) var appVersion: String?
         private(set) var logger: BKTLogger?
 
