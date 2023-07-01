@@ -18,17 +18,17 @@ final class BKTConfigTests: XCTestCase {
         let eventsFlushInterval1 = config1!.eventsFlushInterval
         XCTAssertEqual(eventsFlushInterval1,
                        Constant.MINIMUM_FLUSH_INTERVAL_MILLIS,
-                       "eventsFlushInterval: \(eventsFlushInterval1) is set but must be above \(Constant.MINIMUM_FLUSH_INTERVAL_MILLIS)")
+                       "eventsFlushInterval: \(eventsFlushInterval1) must be equal \(Constant.MINIMUM_FLUSH_INTERVAL_MILLIS)")
 
         let backgroundPollingInterval1 = config1!.backgroundPollingInterval
         XCTAssertEqual(backgroundPollingInterval1,
                        Constant.MINIMUM_BACKGROUND_POLLING_INTERVAL_MILLIS,
-                       "backgroundPollingInterval: \(backgroundPollingInterval1) is set but must be above \(Constant.MINIMUM_BACKGROUND_POLLING_INTERVAL_MILLIS)")
+                       "backgroundPollingInterval: \(backgroundPollingInterval1) must be equal \(Constant.MINIMUM_BACKGROUND_POLLING_INTERVAL_MILLIS)")
 
         let pollingInterval1 = config1!.pollingInterval
         XCTAssertEqual(pollingInterval1,
                        Constant.MINIMUM_POLLING_INTERVAL_MILLIS,
-                       "pollingInterval: \(pollingInterval1) is set but must be above \(Constant.MINIMUM_POLLING_INTERVAL_MILLIS)")
+                       "pollingInterval: \(pollingInterval1) must be equal \(Constant.MINIMUM_POLLING_INTERVAL_MILLIS)")
 
         // Set interval settings but they are too small
         builder = builder.with(eventsFlushInterval: 50)

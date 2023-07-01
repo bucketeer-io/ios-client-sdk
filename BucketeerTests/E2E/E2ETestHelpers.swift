@@ -17,8 +17,8 @@ let GOAL_VALUE = 1.0
 @available(iOS 13, *)
 extension BKTConfig {
     static func e2e() throws -> BKTConfig {
-        let apiKey = "68f36f74aed68a63c6a0de5cf2de2f343c3714c0d1be4083f8fa679a39644a7c"//ProcessInfo.processInfo.environment["E2E_API_KEY"]!
-        let apiEndpoint = "https://api-dev.bucketeer.jp"//ProcessInfo.processInfo.environment["E2E_API_ENDPOINT"]!
+        let apiKey = ProcessInfo.processInfo.environment["E2E_API_KEY"]!
+        let apiEndpoint = ProcessInfo.processInfo.environment["E2E_API_ENDPOINT"]!
         let builder = BKTConfig.Builder(apiKey: apiKey)
             .with(apiEndpoint: apiEndpoint)
             .with(featureTag: FEATURE_TAG)
