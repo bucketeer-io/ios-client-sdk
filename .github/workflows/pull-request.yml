@@ -5,6 +5,8 @@ on:
     paths-ignore:
       - '*.md'
       - '.github/**'
+      - Bucketeer/Sources/Internal/Utils/Version.swift
+      - Bucketeer.podspec
 
 jobs:
   lint:
