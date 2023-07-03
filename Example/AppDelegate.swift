@@ -41,17 +41,33 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return true
     }
 
-    private func makeConfig() -> BKTConfig {
+    private func makeConfigUsingBuilder() -> BKTConfig {
         let bundle = Bundle(for: type(of: self))
         let apiKey = ProcessInfo.processInfo.environment["API_KEY"]!
         let apiEndpoint = ProcessInfo.processInfo.environment["API_ENDPOINT"]!
-        let builder = BKTConfig.Builder(apiKey: apiKey)
+        let builder = BKTConfig.Builder()
+            .with(apiKey: apiKey)
             .with(apiEndpoint: apiEndpoint)
             .with(featureTag: "ios")
             .with(pollingInterval: 5_000)
             .with(appVersion: bundle.infoDictionary?["CFBundleShortVersionString"] as! String)
-        
+
         return try! builder.build()
+    }
+    
+    private func makeConfig() -> BKTConfig {
+        let bundle = Bundle(for: type(of: self))
+        let apiKey = ProcessInfo.processInfo.environment["API_KEY"]!
+        let apiEndpoint = ProcessInfo.processInfo.environment["API_ENDPOINT"]!
+
+        return try! BKTConfig(
+            apiKey: apiKey,
+            apiEndpoint: apiEndpoint,
+            featureTag: "ios",
+            pollingInterval: 5_000,
+            appVersion: bundle.infoDictionary?["CFBundleShortVersionString"] as! String,
+            logger: nil
+        )
     }
 
     private func setSingleViewController() {

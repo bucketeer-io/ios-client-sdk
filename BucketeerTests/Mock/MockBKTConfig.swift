@@ -9,6 +9,8 @@ extension BKTConfig {
         eventsMaxQueueSize: Int = Constant.DEFAULT_MAX_QUEUE_SIZE,
         pollingInterval: Int64 = Constant.DEFAULT_POLLING_INTERVAL_MILLIS,
         backgroundPollingInterval: Int64 = Constant.DEFAULT_BACKGROUND_POLLING_INTERVAL_MILLIS) -> BKTConfig {
+        // Direct init BKTConfig and bypass all validations
+        // It could only happen with internal access
         return BKTConfig(
             apiKey: "api_key_value",
             apiEndpoint: URL(string: "https://test.bucketeer.io")!,

@@ -6,7 +6,8 @@ final class BKTConfigTests: XCTestCase {
     func testCreateConfig() {
         let logger = MockLogger()
         // Not set interval values
-        var builder = BKTConfig.Builder(apiKey: "api_key_value")
+        var builder = BKTConfig.Builder()
+            .with(apiKey: "api_key_value")
             .with(apiEndpoint: "https://test.bucketeer.io")
             .with(featureTag: "featureTag1")
             .with(appVersion: "1.2.3")
