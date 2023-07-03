@@ -11,9 +11,74 @@ public struct BKTConfig {
     let sdkVersion: String
     let appVersion: String
     let logger: BKTLogger?
+
+    public class Builder {
+        private(set) var apiKey: String?
+        private(set) var apiEndpoint: String?
+        private(set) var featureTag: String?
+        private(set) var eventsFlushInterval: Int64?
+        private(set) var eventsMaxQueueSize: Int?
+        private(set) var pollingInterval: Int64?
+        private(set) var backgroundPollingInterval: Int64?
+        private(set) var appVersion: String?
+        private(set) var logger: BKTLogger?
+
+        public init() {}
+
+        public func with(apiKey: String) -> Builder {
+            self.apiKey = apiKey
+            return self
+        }
+
+        public func with(apiEndpoint: String) -> Builder {
+            self.apiEndpoint = apiEndpoint
+            return self
+        }
+
+        public func with(featureTag: String) -> Builder {
+            self.featureTag = featureTag
+            return self
+        }
+
+        public func with(eventsFlushInterval: Int64) -> Builder {
+            self.eventsFlushInterval = eventsFlushInterval
+            return self
+        }
+
+        public func with(eventsMaxQueueSize: Int) -> Builder {
+            self.eventsMaxQueueSize = eventsMaxQueueSize
+            return self
+        }
+
+        public func with(pollingInterval: Int64) -> Builder {
+            self.pollingInterval = pollingInterval
+            return self
+        }
+
+        public func with(backgroundPollingInterval: Int64) -> Builder {
+            self.backgroundPollingInterval = backgroundPollingInterval
+            return self
+        }
+
+        public func with(appVersion: String) -> Builder {
+            self.appVersion = appVersion
+            return self
+        }
+
+        public func with(logger: BKTLogger) -> Builder {
+            self.logger = logger
+            return self
+        }
+
+        public func build() throws -> BKTConfig {
+            return try BKTConfig.init(with: self)
+        }
+    }
 }
 
 extension BKTConfig {
+    // Public init - that will support to init of the BKTConfig like before we add the Builder.
+    // So it will not create breaking changes
     public init(
         apiKey: String,
         apiEndpoint: String,
@@ -53,18 +118,54 @@ extension BKTConfig {
             logger?.warn(message: "eventsFlushInterval: \(eventsFlushInterval) is set but must be above \(Constant.MINIMUM_FLUSH_INTERVAL_MILLIS)")
             eventsFlushInterval = Constant.DEFAULT_FLUSH_INTERVAL_MILLIS
         }
+        self.apiKey = apiKey
+        self.apiEndpoint = apiEndpointURL
+        self.featureTag = featureTag
+        self.eventsFlushInterval = eventsFlushInterval
+        self.eventsMaxQueueSize = eventsMaxQueueSize
+        self.pollingInterval = pollingInterval
+        self.backgroundPollingInterval = backgroundPollingInterval
+        self.sdkVersion = Version.current
+        self.appVersion = appVersion
+        self.logger = logger
+    }
 
-        self = BKTConfig(
-            apiKey: apiKey,
-            apiEndpoint: apiEndpointURL,
-            featureTag: featureTag,
-            eventsFlushInterval: eventsFlushInterval,
-            eventsMaxQueueSize: eventsMaxQueueSize,
-            pollingInterval: pollingInterval,
-            backgroundPollingInterval: backgroundPollingInterval,
-            sdkVersion: Version.current,
-            appVersion: appVersion,
-            logger: logger
-        )
+    private init(with builder: Builder) throws {
+        guard let apiKeyForSDK = builder.apiKey, apiKeyForSDK.isNotEmpty() else {
+            throw BKTError.illegalArgument(message: "apiKey is required")
+        }
+        guard let endpoint = builder.apiEndpoint else {
+            throw BKTError.illegalArgument(message: "endpoint is required")
+        }
+        guard let featureTag = builder.featureTag, featureTag.isNotEmpty() else {
+            throw BKTError.illegalArgument(message: "featureTag is required")
+        }
+        guard let appVersion = builder.appVersion, appVersion.isNotEmpty() else {
+            throw BKTError.illegalArgument(message: "appVersion is required")
+        }
+
+        // Set default intervals if needed
+        let pollingInterval : Int64 = builder.pollingInterval ?? Constant.MINIMUM_POLLING_INTERVAL_MILLIS
+        let backgroundPollingInterval : Int64 = builder.backgroundPollingInterval ?? Constant.MINIMUM_BACKGROUND_POLLING_INTERVAL_MILLIS
+        let eventsFlushInterval: Int64 = builder.eventsFlushInterval ?? Constant.DEFAULT_FLUSH_INTERVAL_MILLIS
+        let eventsMaxQueueSize = builder.eventsMaxQueueSize ?? Constant.DEFAULT_MAX_QUEUE_SIZE
+
+        // Use the current init method
+        try self.init(apiKey: apiKeyForSDK,
+                      apiEndpoint: endpoint,
+                      featureTag: featureTag,
+                      eventsFlushInterval: eventsFlushInterval,
+                      eventsMaxQueueSize: eventsMaxQueueSize,
+                      pollingInterval: pollingInterval,
+                      backgroundPollingInterval: backgroundPollingInterval,
+                      appVersion: appVersion,
+                      logger: builder.logger)
+    }
+}
+
+fileprivate extension String {
+    func isNotEmpty() -> Bool {
+        // We will not check all case
+        return count > 0
     }
 }

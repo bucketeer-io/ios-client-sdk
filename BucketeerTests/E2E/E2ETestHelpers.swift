@@ -19,14 +19,14 @@ extension BKTConfig {
     static func e2e() throws -> BKTConfig {
         let apiKey = ProcessInfo.processInfo.environment["E2E_API_KEY"]!
         let apiEndpoint = ProcessInfo.processInfo.environment["E2E_API_ENDPOINT"]!
+        let builder = BKTConfig.Builder()
+            .with(apiKey: apiKey)
+            .with(apiEndpoint: apiEndpoint)
+            .with(featureTag: FEATURE_TAG)
+            .with(appVersion: "1.2.3")
+            .with(logger: E2ELogger())
 
-        return try .init(
-            apiKey: apiKey,
-            apiEndpoint: apiEndpoint,
-            featureTag: FEATURE_TAG,
-            appVersion: "1.2.3",
-            logger: E2ELogger()
-        )
+        return try builder.build()
     }
 }
 

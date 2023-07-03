@@ -75,18 +75,16 @@ final class EvaluationForegroundTaskTests: XCTestCase {
                 count += 1
             }
         )
-        let config = BKTConfig(
-            apiKey: "api_key_value",
-            apiEndpoint: URL(string: "https://test.bucketeer.io")!,
-            featureTag: "featureTag1",
+
+        let config = BKTConfig.mock(
             eventsFlushInterval: 50,
             eventsMaxQueueSize: 3,
             pollingInterval: 100,
-            backgroundPollingInterval: 1000,
-            sdkVersion: "0.0.2",
-            appVersion: "1.2.3",
-            logger: MockLogger()
+            backgroundPollingInterval: 1000
         )
+
+        XCTAssertNotNil(config, "BKTConfig should not be null")
+
         let component = MockComponent(
             config: config,
             evaluationInteractor: evaluationInteractor,
