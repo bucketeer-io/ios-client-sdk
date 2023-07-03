@@ -6,9 +6,9 @@ struct Evaluation: Hashable, Codable {
     let featureVersion: Int
     let userId: String
     let variationId: String
-    var variation: Variation
+    let variationName: String
+    let variationValue: String
     let reason: Reason
-    var variationValue: String
 }
 
 extension Evaluation {

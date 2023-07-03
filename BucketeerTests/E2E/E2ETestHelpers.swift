@@ -82,6 +82,7 @@ struct BKTEvaluationExpected {
     var featureVersion: Int?
     var userId: String?
     var variationId: String?
+    var variationName: String?
     var variationValue: String?
     var reason: BKTEvaluation.Reason?
 }
@@ -106,6 +107,10 @@ func assertEvaluation(actual: BKTEvaluation?, expected: BKTEvaluationExpected, f
     }
     if let value = expected.variationId {
         XCTAssertEqual(actual?.variationId, value, file: file, line: line)
+        isChecked = true
+    }
+    if let value = expected.variationName {
+        XCTAssertEqual(actual?.variationName, value, file: file, line: line)
         isChecked = true
     }
     if let value = expected.variationValue {

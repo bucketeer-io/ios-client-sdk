@@ -263,6 +263,7 @@ final class BKTClientTests: XCTestCase {
                 featureVersion: 1,
                 userId: User.mock1.id,
                 variationId: "variation1",
+                variationName: "variation name1",
                 variationValue: "variation_value1",
                 reason: .rule
             )

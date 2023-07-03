@@ -10,17 +10,12 @@ extension Evaluation {
         featureVersion: 1,
         userId: User.mock1.id,
         variationId: "variation1",
-        variation: .init(
-            id: "variation1",
-            value: "value1",
-            name: "name1",
-            description: "description1"
-        ),
+        variationName: "variation name1",
+        variationValue: "variation_value1",
         reason: .init(
             type: .rule,
             ruleId: "rule1"
-        ),
-        variationValue: "variation_value1"
+        )
     )
 
     /// id: evaluation2 - user: user1, value: int
@@ -30,17 +25,12 @@ extension Evaluation {
         featureVersion: 1,
         userId: User.mock1.id,
         variationId: "variation2",
-        variation: .init(
-            id: "variation2",
-            value: "2",
-            name: "name2",
-            description: "description2"
-        ),
+        variationName: "variation name2",
+        variationValue: "2",
         reason: .init(
             type: .rule,
             ruleId: "rule2"
-        ),
-        variationValue: "2"
+        )
     )
 
     /// id: evaluation3 - user: user2, value: double
@@ -50,17 +40,12 @@ extension Evaluation {
         featureVersion: 1,
         userId: User.mock2.id,
         variationId: "variation3",
-        variation: .init(
-            id: "variation3",
-            value: "3.0",
-            name: "name3",
-            description: "description3"
-        ),
+        variationName: "variation name3",
+        variationValue: "3.0",
         reason: .init(
             type: .rule,
             ruleId: "rule3"
-        ),
-        variationValue: "3.0"
+        )
     )
 
     /// id: evaluation4 - user: user2, value: bool
@@ -70,17 +55,12 @@ extension Evaluation {
         featureVersion: 1,
         userId: User.mock2.id,
         variationId: "variation4",
-        variation: .init(
-            id: "variation4",
-            value: "true",
-            name: "flag",
-            description: "description4"
-        ),
+        variationName: "variation name4",
+        variationValue: "true",
         reason: .init(
             type: .rule,
             ruleId: "rule4"
-        ),
-        variationValue: "true"
+        )
     )
 
     /// id: evaluation5 - user: user2, value: json
@@ -90,17 +70,12 @@ extension Evaluation {
         featureVersion: 1,
         userId: User.mock2.id,
         variationId: "variation5",
-        variation: .init(
-            id: "variation5",
-            value: "{ \"key\": \"value\" }",
-            name: "flag",
-            description: "description4"
-        ),
+        variationName: "variation name5",
+        variationValue: "{ \"key\": \"value\" }",
         reason: .init(
             type: .rule,
             ruleId: "rule5"
-        ),
-        variationValue: "{ \"key\": \"value\" }"
+        )
     )
 }
 
