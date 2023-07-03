@@ -6,6 +6,7 @@ public struct BKTEvaluation: Equatable {
     public let featureVersion: Int
     public let userId: String
     public let variationId: String
+    public let variationName: String
     public let variationValue: String
     public let reason: Reason
 
