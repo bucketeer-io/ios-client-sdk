@@ -18,7 +18,6 @@
 		0065C3CB28C7BB76002D92A2 /* BucketeerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0065C3CA28C7BB76002D92A2 /* BucketeerTests.swift */; };
 		0065C3CC28C7BB76002D92A2 /* Bucketeer.h in Headers */ = {isa = PBXBuildFile; fileRef = 0065C3C028C7BB76002D92A2 /* Bucketeer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		0065C3DD28C7BCFF002D92A2 /* Evaluation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0065C3DC28C7BCFF002D92A2 /* Evaluation.swift */; };
-		0065C3DF28C7BD32002D92A2 /* Variation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0065C3DE28C7BD32002D92A2 /* Variation.swift */; };
 		0065C3E128C7BD4E002D92A2 /* Reason.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0065C3E028C7BD4E002D92A2 /* Reason.swift */; };
 		0065C3E328C8136D002D92A2 /* Event.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0065C3E228C8136D002D92A2 /* Event.swift */; };
 		0065C3E528C813D6002D92A2 /* EventData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0065C3E428C813D6002D92A2 /* EventData.swift */; };
@@ -181,7 +180,6 @@
 		0065C3C528C7BB76002D92A2 /* BucketeerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BucketeerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0065C3CA28C7BB76002D92A2 /* BucketeerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BucketeerTests.swift; sourceTree = "<group>"; };
 		0065C3DC28C7BCFF002D92A2 /* Evaluation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Evaluation.swift; sourceTree = "<group>"; };
-		0065C3DE28C7BD32002D92A2 /* Variation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Variation.swift; sourceTree = "<group>"; };
 		0065C3E028C7BD4E002D92A2 /* Reason.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Reason.swift; sourceTree = "<group>"; };
 		0065C3E228C8136D002D92A2 /* Event.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Event.swift; sourceTree = "<group>"; };
 		0065C3E428C813D6002D92A2 /* EventData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventData.swift; sourceTree = "<group>"; };
@@ -286,7 +284,6 @@
 		93AC8F7B28E34ADD00A4719B /* Poller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Poller.swift; sourceTree = "<group>"; };
 		93AC8F7D28E34B5C00A4719B /* EvaluationForegroundTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvaluationForegroundTask.swift; sourceTree = "<group>"; };
 		93AC8F7F28E351C500A4719B /* ScheduledTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduledTask.swift; sourceTree = "<group>"; };
-		E23583D22A1CE8FA004C6862 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		949542E32A3AEBC0008D0C60 /* MetricsEventUniqueKeyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricsEventUniqueKeyTests.swift; sourceTree = "<group>"; };
 		EB2310E1209D91640023A98D /* SecondViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecondViewController.swift; sourceTree = "<group>"; };
 		EB2310E3209D92570023A98D /* ThirdViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThirdViewController.swift; sourceTree = "<group>"; };
@@ -425,7 +422,6 @@
 				0065C3E828C815F8002D92A2 /* User.swift */,
 				0065C3F228C818C0002D92A2 /* UserData.swift */,
 				0065C3F428C818EF002D92A2 /* UserEvaluations.swift */,
-				0065C3DE28C7BD32002D92A2 /* Variation.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -963,7 +959,6 @@
 				0065C3F328C818C0002D92A2 /* UserData.swift in Sources */,
 				0065C3F528C818EF002D92A2 /* UserEvaluations.swift in Sources */,
 				9340CA5928E1CD2600E690CC /* UserHolder.swift in Sources */,
-				0065C3DF28C7BD32002D92A2 /* Variation.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

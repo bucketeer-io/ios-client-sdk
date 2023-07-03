@@ -57,6 +57,10 @@ build:
 build-for-testing:
 	$(BUILD_FOR_TESTING)
 
+.PHONY: lint
+lint:
+	swiftlint --strict
+
 .PHONY: test-without-building
 test-without-building:
 	$(TEST_WITHOUT_BUILDING)
