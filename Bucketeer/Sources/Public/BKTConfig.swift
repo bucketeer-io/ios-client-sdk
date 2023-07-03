@@ -90,7 +90,6 @@ extension BKTConfig {
         appVersion: String,
         logger: BKTLogger? = nil
     ) throws {
-        // String empty check
         guard !apiKey.isEmpty else {
             throw BKTError.illegalArgument(message: "apiKey is required")
         }
@@ -132,7 +131,6 @@ extension BKTConfig {
     }
     
     private init(with builder: Builder) throws {
-        // Nil check
         guard let apiKeyForSDK = builder.apiKey, apiKeyForSDK.isNotEmpty() else {
             throw BKTError.illegalArgument(message: "apiKey is required")
         }
