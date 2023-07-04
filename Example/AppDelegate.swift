@@ -9,9 +9,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
 
-        let user = try! BKTUser(id: "001")
+        let user = try! BKTUser.Builder()
+            .with(id: "001")
+            .with(attributes: [:])
+            .build()
+
         BKTClient.initialize(
-            config: self.makeConfig(),
+            config: self.makeConfigUsingBuilder(),
             user: user
         ) { error in
             if let error {
