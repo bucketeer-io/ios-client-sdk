@@ -79,6 +79,7 @@ public struct BKTConfig {
 extension BKTConfig {
     // Public init - that will support to init of the BKTConfig like before we add the Builder.
     // So it will not create breaking changes
+    @available(*, deprecated, message: "Use the Builder class instead. Check the documentation for more information.")
     public init(
         apiKey: String,
         apiEndpoint: String,
@@ -94,7 +95,7 @@ extension BKTConfig {
             throw BKTError.illegalArgument(message: "apiKey is required")
         }
         guard let apiEndpointURL = URL(string: apiEndpoint) else {
-            throw BKTError.illegalArgument(message: "endpoint is required")
+            throw BKTError.illegalArgument(message: "apiEndpoint is required")
         }
         guard !featureTag.isEmpty else {
             throw BKTError.illegalArgument(message: "featureTag is required")
@@ -131,11 +132,11 @@ extension BKTConfig {
     }
 
     private init(with builder: Builder) throws {
-        guard let apiKeyForSDK = builder.apiKey, apiKeyForSDK.isNotEmpty() else {
+        guard let apiKey = builder.apiKey, apiKey.isNotEmpty() else {
             throw BKTError.illegalArgument(message: "apiKey is required")
         }
-        guard let endpoint = builder.apiEndpoint else {
-            throw BKTError.illegalArgument(message: "endpoint is required")
+        guard let apiEndpoint = builder.apiEndpoint, apiEndpoint.isNotEmpty() else {
+            throw BKTError.illegalArgument(message: "apiEndpoint is required")
         }
         guard let featureTag = builder.featureTag, featureTag.isNotEmpty() else {
             throw BKTError.illegalArgument(message: "featureTag is required")
@@ -151,8 +152,8 @@ extension BKTConfig {
         let eventsMaxQueueSize = builder.eventsMaxQueueSize ?? Constant.DEFAULT_MAX_QUEUE_SIZE
 
         // Use the current init method
-        try self.init(apiKey: apiKeyForSDK,
-                      apiEndpoint: endpoint,
+        try self.init(apiKey: apiKey,
+                      apiEndpoint: apiEndpoint,
                       featureTag: featureTag,
                       eventsFlushInterval: eventsFlushInterval,
                       eventsMaxQueueSize: eventsMaxQueueSize,

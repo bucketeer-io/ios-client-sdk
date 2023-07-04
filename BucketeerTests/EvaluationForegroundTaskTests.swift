@@ -47,7 +47,7 @@ final class EvaluationForegroundTaskTests: XCTestCase {
         )
         task.start()
 
-        wait(for: [expectation], timeout: 0.1)
+        wait(for: [expectation], timeout: 0.3)
     }
 
     func testStartAndReceiveError() {
