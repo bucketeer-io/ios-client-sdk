@@ -150,7 +150,7 @@ final class BKTConfigTests: XCTestCase {
             do {
                 _ = try builder.build()
             } catch BKTError.illegalArgument(let message) {
-                XCTAssertEqual("endpoint is required", message)
+                XCTAssertEqual("apiEndpoint is required", message)
                 expectation.fulfill()
             } catch {
                 print("Unexpected error: \(error).")
