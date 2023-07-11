@@ -4,7 +4,7 @@ final class Migration2to3: Migration {
     init(db: SQLite) {
         self.db = db
     }
-    
+
     func migration() throws {
         try db.exec(query: "DROP TABLE IF EXISTS Evaluations")
         let evaluationTable = SQLite.Table(entity: EvaluationEntity())

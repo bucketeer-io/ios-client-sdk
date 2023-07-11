@@ -48,7 +48,7 @@ AND (name NOT LIKE 'sqlite_%' AND name NOT LIKE 'ios_%')
         try statement.finalize()
         XCTAssertEqual(tables.isEmpty, true)
     }
-    
+
     func testMigration2to3() throws {
         let db = try SQLite(path: path, logger: nil)
         try Migration1to2(db: db).migration()
@@ -66,7 +66,7 @@ SELECT id FROM Evaluations
         let statement = try db.prepareStatement(sql: sql)
         var resultCount = 0
         while (try statement.step()) {
-           resultCount+=1
+            resultCount+=1
         }
         try statement.reset()
         try statement.finalize()
