@@ -11,7 +11,7 @@ public struct Constant {
 
     struct DB {
         static let FILE_NAME = "bucketeer.db"
-        static let VERSION: Int32 = 2
+        static let VERSION: Int32 = 3
     }
 
     static let RETRY_POLLING_INTERVAL: Int64 = 60_000 // 60 seconds

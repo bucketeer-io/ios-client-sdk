@@ -120,6 +120,7 @@
 		93AC8F7E28E34B5C00A4719B /* EvaluationForegroundTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93AC8F7D28E34B5C00A4719B /* EvaluationForegroundTask.swift */; };
 		93AC8F8028E351C500A4719B /* ScheduledTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93AC8F7F28E351C500A4719B /* ScheduledTask.swift */; };
 		941E007E2A4FD964002CBFBB /* BKTConfigTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 941E007D2A4FD964002CBFBB /* BKTConfigTests.swift */; };
+		948DD8102A5DA2750087E8E9 /* Migration2to3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 948DD80F2A5DA2750087E8E9 /* Migration2to3.swift */; };
 		949542E42A3AEBC0008D0C60 /* MetricsEventUniqueKeyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 949542E32A3AEBC0008D0C60 /* MetricsEventUniqueKeyTests.swift */; };
 		E2BE019D2A531C120040F40F /* BKTUserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2BE019C2A531C120040F40F /* BKTUserTests.swift */; };
 		EB2310E2209D91640023A98D /* SecondViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB2310E1209D91640023A98D /* SecondViewController.swift */; };
@@ -287,6 +288,7 @@
 		93AC8F7D28E34B5C00A4719B /* EvaluationForegroundTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvaluationForegroundTask.swift; sourceTree = "<group>"; };
 		93AC8F7F28E351C500A4719B /* ScheduledTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduledTask.swift; sourceTree = "<group>"; };
 		941E007D2A4FD964002CBFBB /* BKTConfigTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BKTConfigTests.swift; sourceTree = "<group>"; };
+		948DD80F2A5DA2750087E8E9 /* Migration2to3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Migration2to3.swift; sourceTree = "<group>"; };
 		949542E32A3AEBC0008D0C60 /* MetricsEventUniqueKeyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricsEventUniqueKeyTests.swift; sourceTree = "<group>"; };
 		E2BE019C2A531C120040F40F /* BKTUserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BKTUserTests.swift; sourceTree = "<group>"; };
 		EB2310E1209D91640023A98D /* SecondViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecondViewController.swift; sourceTree = "<group>"; };
@@ -479,6 +481,7 @@
 			isa = PBXGroup;
 			children = (
 				00696D6A28D1D175000068E1 /* Migration.swift */,
+				948DD80F2A5DA2750087E8E9 /* Migration2to3.swift */,
 			);
 			path = Migration;
 			sourceTree = "<group>";
@@ -934,6 +937,7 @@
 				9340CA1B28DA0F6200E690CC /* EventDaoImpl.swift in Sources */,
 				0065C3E528C813D6002D92A2 /* EventData.swift in Sources */,
 				9340CA1A28DA0F6200E690CC /* EventEntity.swift in Sources */,
+				948DD8102A5DA2750087E8E9 /* Migration2to3.swift in Sources */,
 				93AC8F7A28E33EA900A4719B /* EventForegroundTask.swift in Sources */,
 				006E85CE28DEE23100B5D90D /* EventInteractor.swift in Sources */,
 				0065C3EF28C8164E002D92A2 /* EventType.swift in Sources */,

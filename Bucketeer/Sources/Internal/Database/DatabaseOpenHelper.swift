@@ -28,5 +28,8 @@ final class DatabaseOpenHelper {
         if oldVersion < 2 {
             try Migration1to2(db: db).migration()
         }
+        if oldVersion < 3 {
+            try Migration2to3(db: db).migration()
+        }
     }
 }
