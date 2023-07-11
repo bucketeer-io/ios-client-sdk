@@ -51,6 +51,14 @@ AND (name NOT LIKE 'sqlite_%' AND name NOT LIKE 'ios_%')
     
     func testMigration2to3() throws {
         let db = try SQLite(path: path, logger: nil)
+        try Migration1to2(db: db).migration()
+        // Insert some data to database
+        let dao = EvaluationDaoImpl.init(db: db)
+        let mocks: [Evaluation] = [
+            .mock1
+        ]
+        try dao.put(userId: "user1", evaluations: mocks)
+        // Run migrate , it will drop `evaluations` table
         try Migration2to3(db: db).migration()
         let sql = """
 SELECT id FROM Evaluations
@@ -62,6 +70,7 @@ SELECT id FROM Evaluations
         }
         try statement.reset()
         try statement.finalize()
+        // Should empty
         XCTAssertEqual(resultCount, 0)
     }
 }
