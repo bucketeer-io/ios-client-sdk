@@ -1,5 +1,8 @@
 import Foundation
 
+// note: after update `Evaluation`, we should check if we need add an migration code.
+// See `EvaluationEntity.swift`
+// For example See `Mirgation2to3.swift`
 struct Evaluation: Hashable, Codable {
     let id: String
     let featureId: String

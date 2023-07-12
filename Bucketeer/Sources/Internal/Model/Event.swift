@@ -1,5 +1,8 @@
 import Foundation
 
+// note: after update `Event`, we should check if we need add an migration code.
+// See `EventEntity.swift`
+// For example See `Mirgation2to3.swift`
 struct Event: Codable, Hashable {
     let id: String
     let event: EventData
