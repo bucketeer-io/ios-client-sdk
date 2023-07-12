@@ -58,7 +58,7 @@ AND (name NOT LIKE 'sqlite_%' AND name NOT LIKE 'ios_%')
             .mock1
         ]
         try dao.put(userId: "user1", evaluations: mocks)
-        // Run migrate , it will drop `evaluations` table
+        // Run migrate , it will delete all data from `evaluations` table
         try Migration2to3(db: db).migration()
         let sql = """
 SELECT id FROM Evaluations

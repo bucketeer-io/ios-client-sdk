@@ -53,12 +53,12 @@
       <EnvironmentVariables>
          <EnvironmentVariable
             key = "API_KEY"
-            value = "stub"
+            value = "68f36f74aed68a63c6a0de5cf2de2f343c3714c0d1be4083f8fa679a39644a7c"
             isEnabled = "YES">
          </EnvironmentVariable>
          <EnvironmentVariable
             key = "API_ENDPOINT"
-            value = "stub"
+            value = "https://api-dev.bucketeer.jp"
             isEnabled = "YES">
          </EnvironmentVariable>
       </EnvironmentVariables>
