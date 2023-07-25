@@ -105,7 +105,16 @@ extension BKTClient {
     }
 
     public static var shared: BKTClient {
-        return BKTClient.default ?? { fatalError("BKTClient is already initialized. Not sure if the initial fetch has finished") }()
+        get throws {
+            guard BKTClient.default != nil else {
+                throw BKTError.illegalState(message: "BKTClient is not initialized")
+            }
+            return BKTClient.default
+            // We do not want to crash the SDK's consumer app on runtime by using fatalError().
+            // So let the app has a chance to catch this exception
+            // The same behavior with the Android SDK
+            
+        }
     }
 
     public func stringVariation(featureId: String, defaultValue: String) -> String {
