@@ -108,6 +108,7 @@ extension BKTClient {
         BKTClient.default = nil
     }
 
+    // Please make sure the BKTClient is initialize before access it
     public static var shared: BKTClient {
         get throws {
             // We do not want to crash the SDK's consumer app on runtime by using fatalError().

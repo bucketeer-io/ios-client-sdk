@@ -58,11 +58,6 @@
                BlueprintName = "BucketeerTests"
                ReferencedContainer = "container:Bucketeer.xcodeproj">
             </BuildableReference>
-            <SkippedTests>
-               <Test
-                  Identifier = "BucketeerE2ETests">
-               </Test>
-            </SkippedTests>
          </TestableReference>
       </Testables>
    </TestAction>

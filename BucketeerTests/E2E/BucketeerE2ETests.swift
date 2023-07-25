@@ -25,18 +25,18 @@ final class BucketeerE2ETests: XCTestCase {
         try await super.tearDown()
 
         try await BKTClient.shared.flush()
-        BKTClient.destroy()
+        try! BKTClient.destroy()
         UserDefaults.standard.removeObject(forKey: "bucketeer_user_evaluations_id")
         try FileManager.default.removeItem(at: .database)
     }
 
     func testStringVariation() {
-        let client = BKTClient.shared
+        let client = try! BKTClient.shared
         XCTAssertEqual(client.stringVariation(featureId: FEATURE_ID_STRING, defaultValue: ""), "value-1")
     }
 
     func testStringVariationDetail() {
-        let client = BKTClient.shared
+        let client = try! BKTClient.shared
         let actual = client.evaluationDetails(featureId: FEATURE_ID_STRING)
 
         assertEvaluation(actual: actual, expected: .init(
@@ -51,12 +51,12 @@ final class BucketeerE2ETests: XCTestCase {
     }
 
     func testIntVariation() {
-        let client = BKTClient.shared
+        let client = try! BKTClient.shared
         XCTAssertEqual(client.intVariation(featureId: FEATURE_ID_INT, defaultValue: 0), 10)
     }
 
     func testIntVariationDetail() {
-        let client = BKTClient.shared
+        let client = try! BKTClient.shared
         let actual = client.evaluationDetails(featureId: FEATURE_ID_INT)
 
         assertEvaluation(actual: actual, expected: .init(
@@ -71,12 +71,12 @@ final class BucketeerE2ETests: XCTestCase {
     }
 
     func testDoubleVariation() {
-        let client = BKTClient.shared
+        let client = try! BKTClient.shared
         XCTAssertEqual(client.doubleVariation(featureId: FEATURE_ID_DOUBLE, defaultValue: 0.1), 2.1)
     }
 
     func testDoubleVariationDetail() async throws {
-        let client = BKTClient.shared
+        let client = try! BKTClient.shared
         let actual = client.evaluationDetails(featureId: FEATURE_ID_DOUBLE)
 
         assertEvaluation(actual: actual, expected: .init(
@@ -91,12 +91,12 @@ final class BucketeerE2ETests: XCTestCase {
     }
 
     func testBoolVariation() {
-        let client = BKTClient.shared
+        let client = try! BKTClient.shared
         XCTAssertEqual(client.boolVariation(featureId: FEATURE_ID_BOOLEAN, defaultValue: false), true)
     }
 
     func testBoolVariationDetail() {
-        let client = BKTClient.shared
+        let client = try! BKTClient.shared
         let actual = client.evaluationDetails(featureId: FEATURE_ID_BOOLEAN)
 
         assertEvaluation(actual: actual, expected: .init(
@@ -111,13 +111,13 @@ final class BucketeerE2ETests: XCTestCase {
     }
 
     func testJSONVariation() {
-        let client = BKTClient.shared
+        let client = try! BKTClient.shared
         let json = client.jsonVariation(featureId: FEATURE_ID_JSON, defaultValue: [:])
         XCTAssertEqual(json as? [String: String], ["key": "value-1"])
     }
 
     func testJSONVariationDetail() {
-        let client = BKTClient.shared
+        let client = try! BKTClient.shared
         let actual = client.evaluationDetails(featureId: FEATURE_ID_JSON)
 
         assertEvaluation(actual: actual, expected: .init(
@@ -132,7 +132,7 @@ final class BucketeerE2ETests: XCTestCase {
     }
 
     func testEvaluationUpdateFlow() async throws {
-        let client = BKTClient.shared
+        let client = try! BKTClient.shared
         XCTAssertEqual(client.stringVariation(featureId: FEATURE_ID_STRING, defaultValue: ""), "value-1")
 
         client.updateUserAttributes(attributes: ["app_version": "0.0.1"])
@@ -153,7 +153,7 @@ final class BucketeerE2ETests: XCTestCase {
     }
 
     func testTrack() async throws {
-        let client = BKTClient.shared
+        let client = try! BKTClient.shared
         client.assert(expectedEventCount: 2)
         client.track(goalId: GOAL_ID, value: GOAL_VALUE)
         try await Task.sleep(nanoseconds: 1_000_000)
