@@ -88,7 +88,7 @@ final class BucketeerE2ETests: XCTestCase {
 
     func testDoubleVariation() {
         do {
-            let client = try! BKTClient.shared
+            let client = try BKTClient.shared
             XCTAssertEqual(client.doubleVariation(featureId: FEATURE_ID_DOUBLE, defaultValue: 0.1), 2.1)
         } catch {
             XCTFail(error.localizedDescription)

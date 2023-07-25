@@ -73,9 +73,10 @@ public class BKTClient {
 }
 
 extension BKTClient {
-    public static func initialize(config: BKTConfig, user: BKTUser, timeoutMillis: Int64 = 5000, completion: ((BKTError?) -> Void)? = nil) throws {
+    public static func initialize(config: BKTConfig, user: BKTUser, timeoutMillis: Int64 = 5000, completion: ((BKTError?) -> Void)? = nil) {
         guard (Thread.isMainThread) else {
-            throw BKTError.illegalState(message: "the initialize method must be called on main thread")
+            completion?(BKTError.illegalState(message: "the initialize method must be called on main thread"))
+            return
         }
         concurrentQueue.sync {
             guard BKTClient.default == nil else {
