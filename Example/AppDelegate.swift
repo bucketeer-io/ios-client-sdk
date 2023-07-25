@@ -21,13 +21,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             if let error {
                 print(error)
             }
-            let client = BKTClient.shared
+            
+            let client = try? BKTClient.shared
             client.updateUserAttributes(attributes: [:])
             print("intVariation =", client.intVariation(featureId: "feature-ios-e2e-integer", defaultValue: 0))
             print("doubleVariation =", client.doubleVariation(featureId: "feature-ios-e2e-double", defaultValue: 0.0))
             print("boolVariation =", client.boolVariation(featureId: "feature-ios-e2e-bool", defaultValue: false))
             print("stringVariation =", client.stringVariation(featureId: "feature-ios-e2e-string", defaultValue: "004 not found..."))
             print("jsonVariation =", client.jsonVariation(featureId: "feature-ios-e2e-json", defaultValue: [:]))
+            
             DispatchQueue.main.async {
                 self.setSingleViewController()
             }
