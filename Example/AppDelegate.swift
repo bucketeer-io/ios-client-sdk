@@ -21,21 +21,24 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             if let error {
                 print(error)
             }
-            
-            let client = try? BKTClient.shared
-            client.updateUserAttributes(attributes: [:])
-            print("intVariation =", client.intVariation(featureId: "feature-ios-e2e-integer", defaultValue: 0))
-            print("doubleVariation =", client.doubleVariation(featureId: "feature-ios-e2e-double", defaultValue: 0.0))
-            print("boolVariation =", client.boolVariation(featureId: "feature-ios-e2e-bool", defaultValue: false))
-            print("stringVariation =", client.stringVariation(featureId: "feature-ios-e2e-string", defaultValue: "004 not found..."))
-            print("jsonVariation =", client.jsonVariation(featureId: "feature-ios-e2e-json", defaultValue: [:]))
-            
+            var client : BKTClient?
+            do {
+                try client = BKTClient.shared
+            } catch {
+                print(error.localizedDescription)
+            }
+            client?.updateUserAttributes(attributes: [:])
+            print("intVariation =", client?.intVariation(featureId: "feature-ios-e2e-integer", defaultValue: 0) ?? 0)
+            print("doubleVariation =", client?.doubleVariation(featureId: "feature-ios-e2e-double", defaultValue: 0.0) ?? 0.0)
+            print("boolVariation =", client?.boolVariation(featureId: "feature-ios-e2e-bool", defaultValue: false) ?? false)
+            print("stringVariation =", client?.stringVariation(featureId: "feature-ios-e2e-string", defaultValue: "004 not found...") ?? "004 not found...")
+            print("jsonVariation =", client?.jsonVariation(featureId: "feature-ios-e2e-json", defaultValue: [:]) ?? [:])
             DispatchQueue.main.async {
                 self.setSingleViewController()
             }
 
             DispatchQueue.main.async {
-                let isTabMode = client.boolVariation(featureId: "ios_test_001", defaultValue: false)
+                let isTabMode = client?.boolVariation(featureId: "ios_test_001", defaultValue: false) ?? false
                 if isTabMode {
                     self.setTabBarController()
                 } else {
