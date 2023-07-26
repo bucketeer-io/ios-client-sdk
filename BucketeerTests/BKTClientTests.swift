@@ -4,6 +4,59 @@ import XCTest
 // swiftlint:disable type_body_length
 final class BKTClientTests: XCTestCase {
 
+    func testMainThreadRequired() throws {
+        let expectation = self.expectation(description: "")
+        expectation.expectedFulfillmentCount = 4
+        let config = BKTConfig.mock1
+        let user = try BKTUser.Builder().with(id: USER_ID).build()
+        
+        let threadQueue = DispatchQueue(label: "threads")
+        
+        threadQueue.async {
+            do {
+                try BKTClient.initialize(
+                    config: config,
+                    user: user, completion: { err in
+                        
+                    }
+                )
+            } catch {
+                // Should catch error, because we didn't on the main thread
+                expectation.fulfill()
+            }
+            
+            DispatchQueue.main.sync {
+                do {
+                    try BKTClient.initialize(
+                        config: config,
+                        user: user, completion: { err in
+
+                        }
+                    )
+                    // Should success and fullfill
+                    expectation.fulfill()
+                } catch {}
+            }
+            
+            do {
+                try BKTClient.destroy()
+            } catch {
+                // Should catch error, because we didn't on the main thread
+                expectation.fulfill()
+            }
+            
+            DispatchQueue.main.sync {
+                do {
+                    try BKTClient.destroy()
+                    // Should success and fullfill
+                    expectation.fulfill()
+                } catch {}
+            }
+        }
+        
+        wait(for: [expectation], timeout: 1)
+    }
+    
     func testCurrentUser() {
         let dataModule = MockDataModule(
             userHolder: .init(user: .mock1)
