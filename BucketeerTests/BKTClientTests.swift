@@ -7,9 +7,9 @@ final class BKTClientTests: XCTestCase {
     func testMainThreadRequired() throws {
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = 4
+
         let config = BKTConfig.mock1
         let user = try BKTUser.Builder().with(id: USER_ID).build()
-
         let threadQueue = DispatchQueue(label: "threads")
 
         threadQueue.async {
