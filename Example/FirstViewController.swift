@@ -11,7 +11,7 @@ class FirstViewController: UIViewController {
         do {
             try client = BKTClient.shared
         } catch {
-            // We may have an error when we did not initialize the client
+            // We may have an error when we did not success initialize the client
             // Handle error
         }
     }

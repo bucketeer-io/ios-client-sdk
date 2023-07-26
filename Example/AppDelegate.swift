@@ -14,38 +14,45 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             .with(attributes: [:])
             .build()
 
-        BKTClient.initialize(
-            config: self.makeConfigUsingBuilder(),
-            user: user
-        ) { error in
-            if let error {
-                print(error)
-            }
-            var client : BKTClient?
-            do {
-                try client = BKTClient.shared
-            } catch {
-                print(error.localizedDescription)
-            }
-            client?.updateUserAttributes(attributes: [:])
-            print("intVariation =", client?.intVariation(featureId: "feature-ios-e2e-integer", defaultValue: 0) ?? 0)
-            print("doubleVariation =", client?.doubleVariation(featureId: "feature-ios-e2e-double", defaultValue: 0.0) ?? 0.0)
-            print("boolVariation =", client?.boolVariation(featureId: "feature-ios-e2e-bool", defaultValue: false) ?? false)
-            print("stringVariation =", client?.stringVariation(featureId: "feature-ios-e2e-string", defaultValue: "004 not found...") ?? "004 not found...")
-            print("jsonVariation =", client?.jsonVariation(featureId: "feature-ios-e2e-json", defaultValue: [:]) ?? [:])
-            DispatchQueue.main.async {
-                self.setSingleViewController()
-            }
-
-            DispatchQueue.main.async {
-                let isTabMode = client?.boolVariation(featureId: "ios_test_001", defaultValue: false) ?? false
-                if isTabMode {
-                    self.setTabBarController()
-                } else {
+        do {
+            try BKTClient.initialize(
+                config: self.makeConfigUsingBuilder(),
+                user: user
+            ) { error in
+                if let error {
+                    print(error)
+                }
+                var client : BKTClient?
+                do {
+                    try client = BKTClient.shared
+                } catch {
+                    print(error.localizedDescription)
+                }
+                client?.updateUserAttributes(attributes: [:])
+                print("intVariation =", client?.intVariation(featureId: "feature-ios-e2e-integer", defaultValue: 0) ?? 0)
+                print("doubleVariation =", client?.doubleVariation(featureId: "feature-ios-e2e-double", defaultValue: 0.0) ?? 0.0)
+                print("boolVariation =", client?.boolVariation(featureId: "feature-ios-e2e-bool", defaultValue: false) ?? false)
+                print("stringVariation =", client?.stringVariation(featureId: "feature-ios-e2e-string", defaultValue: "004 not found...") ?? "004 not found...")
+                print("jsonVariation =", client?.jsonVariation(featureId: "feature-ios-e2e-json", defaultValue: [:]) ?? [:])
+                DispatchQueue.main.async {
                     self.setSingleViewController()
                 }
+
+                DispatchQueue.main.async {
+                    let isTabMode = client?.boolVariation(featureId: "ios_test_001", defaultValue: false) ?? false
+                    if isTabMode {
+                        self.setTabBarController()
+                    } else {
+                        self.setSingleViewController()
+                    }
+                }
             }
+        } catch {
+            // Handle exception when initialize the BKTClient,
+            // Usually because it required to call from the main thread
+            print(error.localizedDescription)
         }
+            
 
         return true
     }

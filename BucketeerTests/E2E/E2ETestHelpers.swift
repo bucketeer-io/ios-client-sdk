@@ -35,12 +35,16 @@ extension BKTClient {
     static func initialize(config: BKTConfig, user: BKTUser, timeoutMillis: Int64 = 5000) async throws {
         return try await withCheckedThrowingContinuation { continuation in
             DispatchQueue.main.async {
-                self.initialize(config: config, user: user) { error in
-                    if let error = error {
-                        continuation.resume(throwing: error)
-                    } else {
-                        continuation.resume(returning: ())
+                do {
+                    try self.initialize(config: config, user: user) { error in
+                        if let error = error {
+                            continuation.resume(throwing: error)
+                        } else {
+                            continuation.resume(returning: ())
+                        }
                     }
+                } catch {
+                    continuation.resume(throwing: error)
                 }
             }
         }
