@@ -2,10 +2,11 @@ import Foundation
 @testable import Bucketeer
 
 // swiftlint:disable large_tuple
-final class MockApiClient: ApiClient {
-    typealias GetEvaluationsHandler = ((User, String, Int64?, ((GetEvaluationsResult) -> Void)?)) -> Void
-    typealias RegisterEventsHandler = ([Event], ((Result<RegisterEventsResponse, BKTError>) -> Void)?) -> Void
+typealias GetEvaluationsHandler = ((User, String, Int64?, UserEvaluationCondition, ((GetEvaluationsResult) -> Void)?)) -> Void
+typealias RegisterEventsHandler = ([Event], ((Result<RegisterEventsResponse, BKTError>) -> Void)?) -> Void
 
+// MockApiClient: this mock will return the result immediately
+final class MockApiClient: ApiClient {
     let getEvaluationsHandler: GetEvaluationsHandler?
     let registerEventsHandler: RegisterEventsHandler?
 
@@ -16,8 +17,13 @@ final class MockApiClient: ApiClient {
         self.registerEventsHandler = registerEventsHandler
     }
 
-    func getEvaluations(user: User, userEvaluationsId: String, timeoutMillis: Int64?, completion: ((GetEvaluationsResult) -> Void)?) {
-        getEvaluationsHandler?((user, userEvaluationsId, timeoutMillis, completion))
+    func getEvaluations(
+        user: Bucketeer.User,
+        userEvaluationsId: String,
+        timeoutMillis: Int64?,
+        condition: UserEvaluationCondition,
+        completion: ((Bucketeer.GetEvaluationsResult) -> Void)?) {
+        getEvaluationsHandler?((user, userEvaluationsId, timeoutMillis, condition, completion))
     }
 
     func registerEvents(events: [Event], completion: ((Result<RegisterEventsResponse, BKTError>) -> Void)?) {
@@ -25,10 +31,9 @@ final class MockApiClient: ApiClient {
     }
 }
 
+// MockApiClient: this mock will run synchronized, blocking the current thread.
+// It will get unlock after 3s from a `fake networkQueue` queue
 final class MockSynchronizedApiClient: ApiClient {
-    typealias GetEvaluationsHandler = ((User, String, Int64?, ((GetEvaluationsResult) -> Void)?)) -> Void
-    typealias RegisterEventsHandler = ([Event], ((Result<RegisterEventsResponse, BKTError>) -> Void)?) -> Void
-
     let getEvaluationsHandler: GetEvaluationsHandler?
     let registerEventsHandler: RegisterEventsHandler?
     let networkQueue = DispatchQueue(label: "io.bucketeer.concurrentQueue.network", attributes: .concurrent)
@@ -44,14 +49,14 @@ final class MockSynchronizedApiClient: ApiClient {
         self.registerEventsHandler = registerEventsHandler
     }
 
-    func getEvaluations(user: User, userEvaluationsId: String, timeoutMillis: Int64?, completion: ((GetEvaluationsResult) -> Void)?) {
+    func getEvaluations(user: User, userEvaluationsId: String, timeoutMillis: Int64?, condition: UserEvaluationCondition, completion: ((GetEvaluationsResult) -> Void)?) {
         networkQueue.asyncAfter(deadline: .now() + 3) { [weak self] in
             self?.semaphore.signal()
             debugPrint("getEvaluations unlocked")
         }
         debugPrint("getEvaluations wait")
         semaphore.wait()
-        getEvaluationsHandler?((user, userEvaluationsId, timeoutMillis, completion))
+        getEvaluationsHandler?((user, userEvaluationsId, timeoutMillis, condition, completion))
     }
 
     func registerEvents(events: [Event], completion: ((Result<RegisterEventsResponse, BKTError>) -> Void)?) {

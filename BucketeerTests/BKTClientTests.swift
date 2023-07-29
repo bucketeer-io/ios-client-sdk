@@ -1,7 +1,7 @@
 import XCTest
 @testable import Bucketeer
 
-// swiftlint:disable type_body_length
+// swiftlint:disable type_body_length file_length
 final class BKTClientTests: XCTestCase {
 
     func testMainThreadRequired() throws {
@@ -74,11 +74,13 @@ final class BKTClientTests: XCTestCase {
         XCTAssertEqual(client.currentUser()?.attr, attributes)
     }
 
-    func testUpdateUserAttributesAndResetEvaluationId() {
+    func testUpdateUserAttributesShouldNotResetEvaluationId() {
         let expectation = self.expectation(description: "")
+        expectation.expectedFulfillmentCount = 2
+        expectation.assertForOverFulfill = true
         let dataModule = MockDataModule(
             userHolder: .init(user: .mock1),
-            apiClient: MockApiClient(getEvaluationsHandler: { (_, _, _, handler) in
+            apiClient: MockApiClient(getEvaluationsHandler: { (_, _, _, _, handler) in
                 handler?(.success(.init(
                     evaluations: .mock1,
                     userEvaluationsId: "id",
@@ -86,6 +88,49 @@ final class BKTClientTests: XCTestCase {
                     sizeByte: 3,
                     featureTag: "feature"
                 )))
+                expectation.fulfill()
+            })
+        )
+        let client = BKTClient(dataModule: dataModule, dispatchQueue: .global())
+        client.fetchEvaluations(timeoutMillis: nil) { error in
+            XCTAssertEqual(error, nil)
+            XCTAssertEqual(client.component.evaluationInteractor.currentEvaluationsId, "id")
+            let attributes: [String: String] = ["key": "updated"]
+            // `UpdateUserAttributesWillResetEvaluationId` ~ It was old requirement, but now it should be
+            // updateUserAttributes will not clear `userEvaluationsID`
+            // `userEvaluationsID` only clear if the featureTag changes
+            client.updateUserAttributes(attributes: attributes)
+            XCTAssertEqual(client.component.evaluationInteractor.currentEvaluationsId, "id")
+            expectation.fulfill()
+        }
+
+        wait(for: [expectation], timeout: 0.1)
+    }
+
+    // https://github.com/bucketeer-io/android-client-sdk/issues/69
+    // userAttributesUpdated: when the user attributes change via the customAttributes interface,
+    // the userAttributesUpdated field must be set to true in the next request.
+    func testUpdateUserAttributesWillSetUserAttributesUpdatedTrue() {
+        let expectation = self.expectation(description: "")
+        expectation.expectedFulfillmentCount = 5
+        expectation.assertForOverFulfill = true
+        var requestCount = 1
+        let dataModule = MockDataModule(
+            userHolder: .init(user: .mock1),
+            apiClient: MockApiClient(getEvaluationsHandler: { (_, _, _, condition, handler) in
+                if requestCount == 2 {
+                    // the userAttributesUpdated field must be set to true in the 2nd request.
+                    XCTAssertEqual(condition.userAttributesUpdated, true, "the userAttributesUpdated field must be set to true in the 2nd request.")
+                    expectation.fulfill()
+                }
+                handler?(.success(.init(
+                    evaluations: .mock1,
+                    userEvaluationsId: "id",
+                    seconds: 2,
+                    sizeByte: 3,
+                    featureTag: "feature"
+                )))
+                expectation.fulfill()
             })
         )
         let client = BKTClient(dataModule: dataModule, dispatchQueue: .global())
@@ -94,9 +139,18 @@ final class BKTClientTests: XCTestCase {
             XCTAssertEqual(client.component.evaluationInteractor.currentEvaluationsId, "id")
             let attributes: [String: String] = ["key": "updated"]
             client.updateUserAttributes(attributes: attributes)
-            XCTAssertEqual(client.component.evaluationInteractor.currentEvaluationsId, "")
+            // mark the next request ready
+            requestCount = 2
+            XCTAssertEqual(
+                dataModule.evaluationStorage.userAttributesUpdated,
+                true, "userAttributesUpdated should be true")
+            client.fetchEvaluations(timeoutMillis: nil) { error in
+                XCTAssertEqual(error, nil)
+                expectation.fulfill()
+            }
             expectation.fulfill()
         }
+
         wait(for: [expectation], timeout: 0.1)
     }
 
@@ -106,7 +160,7 @@ final class BKTClientTests: XCTestCase {
         var count = 0
         let dataModule = MockDataModule(
             userHolder: .init(user: .mock1),
-            apiClient: MockApiClient(getEvaluationsHandler: { (user, userEvaluationsId, timeoutMillis, handler) in
+            apiClient: MockApiClient(getEvaluationsHandler: { (user, userEvaluationsId, timeoutMillis, _, handler) in
                 XCTAssertEqual(user, .mock1)
                 XCTAssertEqual(userEvaluationsId, "")
                 XCTAssertEqual(timeoutMillis, nil)
@@ -187,7 +241,7 @@ final class BKTClientTests: XCTestCase {
         let expectedTimeoutMillis: Int64 = 3500
         let dataModule = MockDataModule(
             userHolder: .init(user: .mock1),
-            apiClient: MockApiClient(getEvaluationsHandler: { (user, userEvaluationsId, timeoutMillis, handler) in
+            apiClient: MockApiClient(getEvaluationsHandler: { (user, userEvaluationsId, timeoutMillis, _, handler) in
                 XCTAssertEqual(user, .mock1)
                 XCTAssertEqual(userEvaluationsId, "")
                 XCTAssertEqual(timeoutMillis, expectedTimeoutMillis)
@@ -308,19 +362,33 @@ final class BKTClientTests: XCTestCase {
 
     func testEvaluationDetails() {
         let expectation = self.expectation(description: "")
-        expectation.expectedFulfillmentCount = 2
+        expectation.expectedFulfillmentCount = 4
+        expectation.assertForOverFulfill = true
         let dataModule = MockDataModule(
             userHolder: .init(user: .mock1),
-            apiClient: MockApiClient(getEvaluationsHandler: { (user, _, _, handler) in
+            apiClient: MockApiClient(getEvaluationsHandler: { (user, _, _, _, handler) in
+                expectation.fulfill()
                 XCTAssertEqual(user, .mock1)
                 handler?(.success(.init(evaluations: .mock1, userEvaluationsId: "new")))
-                expectation.fulfill()
             }),
-            evaluationDao: MockEvaluationDao(deleteAllAndInsertHandler: { id, evaluations in
-                XCTAssertEqual(id, User.mock1.id)
-                XCTAssertEqual(evaluations, [.mock1, .mock2])
-                expectation.fulfill()
-            })
+            evaluationStorage: MockEvaluationStorage(
+                getHandler: { _ in
+                    XCTFail("should not reach here")
+                    return []
+                },
+                updateHandler: { evaluations, archivedFeautureIds, evaluatedAt in
+                    XCTAssertEqual(archivedFeautureIds, [])
+                    XCTAssertEqual(evaluations, [.mock1, .mock2])
+                    XCTAssertEqual(evaluatedAt, UserEvaluations.mock1.createdAt)
+                    expectation.fulfill()
+                    return true
+                }, getByFeatureIdHandler: { userId, featureId in
+                    if (userId == User.mock1.id && featureId == "feature1") {
+                        expectation.fulfill()
+                        return .mock1
+                    }
+                    return nil
+                })
         )
         let client = BKTClient(dataModule: dataModule, dispatchQueue: .global())
         client.fetchEvaluations(timeoutMillis: nil) { _ in
@@ -336,8 +404,9 @@ final class BKTClientTests: XCTestCase {
                 reason: .rule
             )
             XCTAssertEqual(evaluation, expected)
+            expectation.fulfill()
         }
-        wait(for: [expectation], timeout: 0.1)
+        wait(for: [expectation], timeout: 1)
     }
 
     func testTrackGoal() {
@@ -346,9 +415,7 @@ final class BKTClientTests: XCTestCase {
         let dataModule = MockDataModule(
             userHolder: .init(user: .mock1),
             eventDao: MockEventDao(addEventsHandler: { events in
-
                 XCTAssertEqual(events.count, 1)
-
                 XCTAssertEqual(events.first, Event(
                     id: "id",
                     event: .goal(.init(
@@ -388,14 +455,32 @@ final class BKTClientTests: XCTestCase {
 
     func testStringVariation() {
         let expectation = self.expectation(description: "")
-        expectation.expectedFulfillmentCount = 2
+        expectation.expectedFulfillmentCount = 4
+        expectation.assertForOverFulfill = true
         let dataModule = MockDataModule(
             userHolder: .init(user: .mock1),
-            apiClient: MockApiClient(getEvaluationsHandler: { (user, _, _, handler) in
+            apiClient: MockApiClient(getEvaluationsHandler: { (user, _, _, _, handler) in
                 XCTAssertEqual(user, .mock1)
                 handler?(.success(.init(evaluations: .mock1, userEvaluationsId: "new")))
                 expectation.fulfill()
-            })
+            }),
+            evaluationStorage: MockEvaluationStorage(
+                getHandler: { _ in
+                    XCTFail("Should not call")
+                    return []
+                }, updateHandler: { evalutions, archivedFeatureIds, evaluedAt in
+                    expectation.fulfill()
+                    XCTAssertEqual(evalutions, UserEvaluations.mock1.evaluations)
+                    XCTAssertEqual(archivedFeatureIds, UserEvaluations.mock1.archivedFeatureIds)
+                    XCTAssertEqual(evaluedAt, UserEvaluations.mock1.createdAt)
+                    return true
+                }, getByFeatureIdHandler: { userId, featureId in
+                    expectation.fulfill()
+                    XCTAssertEqual(userId, User.mock1.id)
+                    XCTAssertEqual(featureId, "feature1")
+                    return .mock1
+                }
+            )
         )
         let client = BKTClient(dataModule: dataModule, dispatchQueue: .global())
         client.fetchEvaluations(timeoutMillis: nil) { _ in
@@ -408,14 +493,32 @@ final class BKTClientTests: XCTestCase {
 
     func testIntVariation() {
         let expectation = self.expectation(description: "")
-        expectation.expectedFulfillmentCount = 2
+        expectation.expectedFulfillmentCount = 4
+        expectation.assertForOverFulfill = true
         let dataModule = MockDataModule(
             userHolder: .init(user: .mock1),
-            apiClient: MockApiClient(getEvaluationsHandler: { (user, _, _, handler) in
+            apiClient: MockApiClient(getEvaluationsHandler: { (user, _, _, _, handler) in
                 XCTAssertEqual(user, .mock1)
                 handler?(.success(.init(evaluations: .mock1, userEvaluationsId: "new")))
                 expectation.fulfill()
-            })
+            }),
+            evaluationStorage: MockEvaluationStorage(
+                getHandler: { _ in
+                    XCTFail("Should not call")
+                    return []
+                }, updateHandler: { evalutions, archivedFeatureIds, evaluedAt in
+                    expectation.fulfill()
+                    XCTAssertEqual(evalutions, UserEvaluations.mock1.evaluations)
+                    XCTAssertEqual(archivedFeatureIds, UserEvaluations.mock1.archivedFeatureIds)
+                    XCTAssertEqual(evaluedAt, UserEvaluations.mock1.createdAt)
+                    return true
+                }, getByFeatureIdHandler: { userId, featureId in
+                    expectation.fulfill()
+                    XCTAssertEqual(userId, User.mock1.id)
+                    XCTAssertEqual(featureId, "feature2")
+                    return .mock2
+                }
+            )
         )
         let client = BKTClient(dataModule: dataModule, dispatchQueue: .global())
         client.fetchEvaluations(timeoutMillis: nil) { _ in
@@ -428,19 +531,37 @@ final class BKTClientTests: XCTestCase {
 
     func testDoubleVariation() {
         let expectation = self.expectation(description: "")
-        expectation.expectedFulfillmentCount = 2
+        expectation.expectedFulfillmentCount = 4
+        expectation.assertForOverFulfill = true
         let dataModule = MockDataModule(
             userHolder: .init(user: .mock1),
-            apiClient: MockApiClient(getEvaluationsHandler: { (user, _, _, handler) in
+            apiClient: MockApiClient(getEvaluationsHandler: { (user, _, _, _, handler) in
                 XCTAssertEqual(user, .mock1)
                 handler?(.success(.init(evaluations: .mock2, userEvaluationsId: "new")))
                 expectation.fulfill()
-            })
+            }),
+            evaluationStorage: MockEvaluationStorage(
+                getHandler: { _ in
+                    XCTFail("Should not call")
+                    return []
+                }, updateHandler: { evalutions, archivedFeatureIds, evaluedAt in
+                    expectation.fulfill()
+                    XCTAssertEqual(evalutions, UserEvaluations.mock2.evaluations)
+                    XCTAssertEqual(archivedFeatureIds, UserEvaluations.mock2.archivedFeatureIds)
+                    XCTAssertEqual(evaluedAt, UserEvaluations.mock2.createdAt)
+                    return true
+                }, getByFeatureIdHandler: { userId, featureId in
+                    expectation.fulfill()
+                    XCTAssertEqual(userId, User.mock1.id)
+                    XCTAssertEqual(featureId, "feature3")
+                    return .mock3
+                }
+            )
         )
         let client = BKTClient(dataModule: dataModule, dispatchQueue: .global())
         client.fetchEvaluations(timeoutMillis: nil) { _ in
             let value = client.doubleVariation(featureId: "feature3", defaultValue: 0)
-            XCTAssertEqual(value, 3.0)
+            XCTAssertEqual(value, 3)
             expectation.fulfill()
         }
         wait(for: [expectation], timeout: 0.1)
@@ -448,14 +569,32 @@ final class BKTClientTests: XCTestCase {
 
     func testBoolVariation() {
         let expectation = self.expectation(description: "")
-        expectation.expectedFulfillmentCount = 2
+        expectation.expectedFulfillmentCount = 4
+        expectation.assertForOverFulfill = true
         let dataModule = MockDataModule(
-            userHolder: .init(user: .mock2),
-            apiClient: MockApiClient(getEvaluationsHandler: { (user, _, _, handler) in
-                XCTAssertEqual(user, .mock2)
+            userHolder: .init(user: .mock1),
+            apiClient: MockApiClient(getEvaluationsHandler: { (user, _, _, _, handler) in
+                XCTAssertEqual(user, .mock1)
                 handler?(.success(.init(evaluations: .mock2, userEvaluationsId: "new")))
                 expectation.fulfill()
-            })
+            }),
+            evaluationStorage: MockEvaluationStorage(
+                getHandler: { _ in
+                    XCTFail("Should not call")
+                    return []
+                }, updateHandler: { evalutions, archivedFeatureIds, evaluedAt in
+                    expectation.fulfill()
+                    XCTAssertEqual(evalutions, UserEvaluations.mock2.evaluations)
+                    XCTAssertEqual(archivedFeatureIds, UserEvaluations.mock2.archivedFeatureIds)
+                    XCTAssertEqual(evaluedAt, UserEvaluations.mock2.createdAt)
+                    return true
+                }, getByFeatureIdHandler: { userId, featureId in
+                    expectation.fulfill()
+                    XCTAssertEqual(userId, User.mock1.id)
+                    XCTAssertEqual(featureId, "feature4")
+                    return .mock4
+                }
+            )
         )
         let client = BKTClient(dataModule: dataModule, dispatchQueue: .global())
         client.fetchEvaluations(timeoutMillis: nil) { _ in
@@ -468,14 +607,32 @@ final class BKTClientTests: XCTestCase {
 
     func testJSONVariation() {
         let expectation = self.expectation(description: "")
-        expectation.expectedFulfillmentCount = 2
+        expectation.expectedFulfillmentCount = 4
+        expectation.assertForOverFulfill = true
         let dataModule = MockDataModule(
-            userHolder: .init(user: .mock2),
-            apiClient: MockApiClient(getEvaluationsHandler: { (user, _, _, handler) in
-                XCTAssertEqual(user, .mock2)
+            userHolder: .init(user: .mock1),
+            apiClient: MockApiClient(getEvaluationsHandler: { (user, _, _, _, handler) in
+                XCTAssertEqual(user, .mock1)
                 handler?(.success(.init(evaluations: .mock2, userEvaluationsId: "new")))
                 expectation.fulfill()
-            })
+            }),
+            evaluationStorage: MockEvaluationStorage(
+                getHandler: { _ in
+                    XCTFail("Should not call")
+                    return []
+                }, updateHandler: { evalutions, archivedFeatureIds, evaluedAt in
+                    expectation.fulfill()
+                    XCTAssertEqual(evalutions, UserEvaluations.mock2.evaluations)
+                    XCTAssertEqual(archivedFeatureIds, UserEvaluations.mock2.archivedFeatureIds)
+                    XCTAssertEqual(evaluedAt, UserEvaluations.mock2.createdAt)
+                    return true
+                }, getByFeatureIdHandler: { userId, featureId in
+                    expectation.fulfill()
+                    XCTAssertEqual(userId, User.mock1.id)
+                    XCTAssertEqual(featureId, "feature5")
+                    return .mock5
+                }
+            )
         )
         let client = BKTClient(dataModule: dataModule, dispatchQueue: .global())
         client.fetchEvaluations(timeoutMillis: nil) { _ in
@@ -486,4 +643,4 @@ final class BKTClientTests: XCTestCase {
         wait(for: [expectation], timeout: 0.1)
     }
 }
-// swiftlint:enable type_body_length
+// swiftlint:enable type_body_length file_length

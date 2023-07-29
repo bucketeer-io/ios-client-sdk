@@ -38,7 +38,7 @@ extension SQLite {
         var _pointer: OpaquePointer?
         let result = sqlite3_prepare_v2(pointer, sql, -1, &_pointer, nil)
         guard result == SQLITE_OK,
-            let pointer = _pointer else {
+              let pointer = _pointer else {
             throw Error.failedToPrepare(.init(pointer: pointer, result: result))
         }
         return .init(pointer: pointer)
@@ -54,30 +54,30 @@ extension SQLite {
 
 extension SQLite {
     var userVersion: Int32 {
-          get {
-              do {
-                  let statement = try prepareStatement(sql: "PRAGMA user_version")
-                  try statement.step()
-                  let userVersion = statement.int(at: 0)
-                  try statement.reset()
-                  try statement.finalize()
-                  return userVersion
-              } catch let error {
-                  logger?.error(error)
-                  return 0
-              }
-          }
-          set {
-              do {
-                  let statement = try prepareStatement(sql: "PRAGMA user_version = \(newValue)")
-                  repeat {} while try statement.step()
-                  try statement.reset()
-                  try statement.finalize()
-              } catch let error {
-                  logger?.error(error)
-              }
-          }
-      }
+        get {
+            do {
+                let statement = try prepareStatement(sql: "PRAGMA user_version")
+                try statement.step()
+                let userVersion = statement.int(at: 0)
+                try statement.reset()
+                try statement.finalize()
+                return userVersion
+            } catch let error {
+                logger?.error(error)
+                return 0
+            }
+        }
+        set {
+            do {
+                let statement = try prepareStatement(sql: "PRAGMA user_version = \(newValue)")
+                repeat {} while try statement.step()
+                try statement.reset()
+                try statement.finalize()
+            } catch let error {
+                logger?.error(error)
+            }
+        }
+    }
 }
 
 extension SQLite {
@@ -87,7 +87,7 @@ extension SQLite {
         let statement = try prepareStatement(sql: sql)
 
         var models: [Entity.Model] = []
-        while (try statement.step()) {
+        while try statement.step() {
             do {
                 let model = try Entity.model(from: statement)
                 models.append(model)
@@ -121,5 +121,38 @@ extension SQLite {
         try statement.step()
         try statement.reset()
         try statement.finalize()
+    }
+
+    func startTransaction(block: () throws -> Void) throws {
+        let beginTransactionQuery = "BEGIN;"
+        let result = sqlite3_exec(pointer, beginTransactionQuery, nil, nil, nil)
+        guard result == SQLITE_OK else {
+            debugPrint("Failed to start transaction")
+            throw Error.failedToExecute(.init(pointer: pointer, result: result))
+        }
+
+        do {
+            try block()
+            let commitTransactionQuery = "COMMIT;"
+            let commitResult = sqlite3_exec(pointer, commitTransactionQuery, nil, nil, nil)
+            guard commitResult == SQLITE_OK else {
+                debugPrint("Failed to commit transaction")
+                throw Error.failedToExecute(.init(pointer: pointer, result: result))
+            }
+        } catch {
+            try rollback()
+            // forward original error caused the rollback to the caller
+            throw error
+        }
+    }
+
+    private func rollback() throws {
+        let rollbackQuery = "ROLLBACK;"
+        debugPrint("Transaction rolled back")
+        let result = sqlite3_exec(pointer, rollbackQuery, nil, nil, nil)
+        guard result == SQLITE_OK else {
+            debugPrint("Failed to rollback transaction")
+            throw Error.failedToExecute(.init(pointer: pointer, result: result))
+        }
     }
 }

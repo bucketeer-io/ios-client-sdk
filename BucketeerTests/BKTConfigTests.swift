@@ -160,7 +160,12 @@ final class BKTConfigTests: XCTestCase {
         wait(for: [expectation], timeout: 0.1)
     }
 
-    func testFeaturedRequired() {
+    func testFeaturedTagIsOptional() {
+        // https://github.com/bucketeer-io/android-client-sdk/issues/69
+        // Change the featureTag setting to be optional in the BKTConfig
+        // featured_tag is no longer required, it could be null when using `BKTConfig.Builder`
+        // when we did not set feature_tag on the Builder
+        // the value of BKTConfig.feature_tag should be empty string ""
         let expectation = XCTestExpectation()
         expectation.expectedFulfillmentCount = 2
         let builders = [
@@ -177,10 +182,11 @@ final class BKTConfigTests: XCTestCase {
 
         builders.forEach { builder in
             do {
-                _ = try builder.build()
-            } catch BKTError.illegalArgument(let message) {
-                XCTAssertEqual("featureTag is required", message)
+                let config = try builder.build()
+                XCTAssertEqual(config.featureTag, "", "explicitly passing nil or empty string to featureTag results in empty string")
                 expectation.fulfill()
+            } catch BKTError.illegalArgument(let message) {
+                XCTAssertEqual("builder.build() should success", message)
             } catch {
                 print("Unexpected error: \(error).")
                 XCTFail("Unexpected error: \(error).")

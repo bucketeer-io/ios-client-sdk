@@ -3,8 +3,8 @@ import Foundation
 protocol EvaluationInteractor {
     func fetch(user: User, timeoutMillis: Int64?, completion: ((GetEvaluationsResult) -> Void)?)
     func getLatest(userId: String, featureId: String) -> Evaluation?
-    func refreshCache(userId: String) throws
-    func clearCurrentEvaluationsId()
+    func refreshCache() throws
+    func setUserAttributesUpdated()
     @discardableResult
     func addUpdateListener(listener: EvaluationUpdateListener) -> String
     func removeUpdateListener(key: String)
@@ -21,90 +21,113 @@ extension EvaluationInteractor {
 
 final class EvaluationInteractorImpl: EvaluationInteractor {
 
-    private static let userEvaluationsIdKey = "bucketeer_user_evaluations_id"
-
     let apiClient: ApiClient
-    let evaluationDao: EvaluationDao
-    let defaults: Defaults
     let idGenerator: IdGenerator
-    let featureTag: String
     let logger: Logger?
+    private let evaluationStorage: EvaluationStorage
 
-    init(apiClient: ApiClient, evaluationDao: EvaluationDao, defaults: Defaults, idGenerator: IdGenerator, featureTag: String, logger: Logger? = nil) {
+    init(apiClient: ApiClient,
+         evaluationStorage: EvaluationStorage,
+         idGenerator: IdGenerator,
+         featureTag: String,
+         logger: Logger? = nil) {
         self.apiClient = apiClient
-        self.evaluationDao = evaluationDao
-        self.defaults = defaults
+        self.evaluationStorage = evaluationStorage
+
         self.idGenerator = idGenerator
-        self.featureTag = featureTag
         self.logger = logger
+        updateFeatureTag(value: featureTag)
     }
 
-    // key: userId
-    var evaluations: [String: [Evaluation]] = [:]
-    var currentEvaluationsId: String {
-        get {
-            return defaults.string(forKey: Self.userEvaluationsIdKey) ?? ""
-        }
-        set {
-            defaults.set(newValue, forKey: Self.userEvaluationsIdKey)
-        }
-    }
     var updateListeners: [String: EvaluationUpdateListener] = [:]
 
+    var currentEvaluationsId: String {
+        get {
+            return evaluationStorage.currentEvaluationsId
+        }
+        set {
+            evaluationStorage.setCurrentEvaluationsId(value: newValue)
+        }
+    }
+
     func fetch(user: User, timeoutMillis: Int64?, completion: ((GetEvaluationsResult) -> Void)?) {
-        let currentEvaluationsId = self.currentEvaluationsId
-        let evaluationDao = self.evaluationDao
+
         let logger = self.logger
-        let featureTag = self.featureTag
+        let evaluatedAt = evaluationStorage.evaluatedAt
+        let userAttributesUpdated = evaluationStorage.userAttributesUpdated
+        let currentEvaluationsId = evaluationStorage.currentEvaluationsId
+        let featureTag = evaluationStorage.featureTag
         apiClient.getEvaluations(
             user: user,
             userEvaluationsId: currentEvaluationsId,
-            timeoutMillis: timeoutMillis) { [weak self] result in
-                switch result {
-                case .success(let response):
-                    let newEvaluationsId = response.userEvaluationsId
-                    if currentEvaluationsId == newEvaluationsId {
-                        logger?.debug(message: "Nothing to sync")
-                        completion?(result)
-                        return
-                    }
-                    let newEvaluations = response.evaluations.evaluations
-                    do {
-                        try evaluationDao.deleteAllAndInsert(userId: user.id, evaluations: newEvaluations)
-                    } catch let error {
-                        logger?.error(error)
-                        completion?(.failure(error: .init(error: error), featureTag: featureTag))
-                        return
-                    }
-                    self?.currentEvaluationsId = newEvaluationsId
-                    self?.evaluations[user.id] = newEvaluations
-
-                    // Update listeners should be called on the main thread
-                    // to avoid unintentional lock on Interactor's execution thread.
-                    DispatchQueue.main.async {
-                        self?.updateListeners.forEach({ _, listener in
-                            listener.onUpdate()
-                        })
-                    }
-
+            timeoutMillis: timeoutMillis,
+            condition: UserEvaluationCondition(
+                evaluatedAt: evaluatedAt,
+                userAttributesUpdated: userAttributesUpdated)) { [weak self] result in
+            switch result {
+            case .success(let response):
+                let newEvaluationsId = response.userEvaluationsId
+                if currentEvaluationsId == newEvaluationsId {
+                    logger?.debug(message: "Nothing to sync")
+                    // Reset UserAttributesUpdated
+                    self?.evaluationStorage.setUserAttributesUpdated(value: false)
                     completion?(result)
-                case .failure:
-                    completion?(result)
+                    return
                 }
+
+                let newEvaluations = response.evaluations.evaluations
+                let evaluatedAt = response.evaluations.createdAt
+                let forceUpdate = response.evaluations.forceUpdate
+                var shouldNotifyListener = true
+                do {
+                    // https://github.com/bucketeer-io/android-client-sdk/issues/69
+                    // forceUpdate: a boolean that tells the SDK to delete all the current data and save the latest evaluations from the response
+                    if forceUpdate {
+                        try self?.evaluationStorage.deleteAllAndInsert(
+                            userId: user.id,
+                            evaluations: response.evaluations.evaluations,
+                            evaluatedAt: evaluatedAt
+                        )
+                    } else {
+                        // 1. Check the evaluation list in the response and upsert them in the DB if the list is not empty
+                        // 2. Check the list of the feature flags that were archived on the console and delete them from the DB
+                        shouldNotifyListener = try self?.evaluationStorage.update(
+                            evaluations: newEvaluations,
+                            archivedFeatureIds: response.evaluations.archivedFeatureIds,
+                            evaluatedAt: evaluatedAt
+                        ) ?? false
+                    }
+                } catch let error {
+                    logger?.error(error)
+                    completion?(.failure(error: .init(error: error), featureTag: featureTag))
+                    return
+                }
+
+                self?.onSuccessFetchEvaluation(
+                    newEvaluationsId: newEvaluationsId,
+                    shouldNotifyListener: shouldNotifyListener
+                )
+
+                completion?(result)
+            case .failure:
+                completion?(result)
+            }
         }
     }
 
-    func refreshCache(userId: String) throws {
-        evaluations[userId] = try evaluationDao.get(userId: userId)
+    func refreshCache() throws {
+        try evaluationStorage.refreshCache()
     }
 
-    func clearCurrentEvaluationsId() {
-        currentEvaluationsId = ""
+    func setUserAttributesUpdated() {
+        // https://github.com/bucketeer-io/android-client-sdk/issues/69
+        // userAttributesUpdated: when the user attributes change via the customAttributes interface,
+        // the userAttributesUpdated field must be set to true in the next request.
+        evaluationStorage.setUserAttributesUpdated(value: true)
     }
 
     func getLatest(userId: String, featureId: String) -> Evaluation? {
-        let evaluations = evaluations[userId] ?? []
-        return evaluations.first(where: { $0.featureId == featureId })
+        return evaluationStorage.getBy(userId: userId, featureId: featureId)
     }
 
     func addUpdateListener(listener: EvaluationUpdateListener) -> String {
@@ -119,5 +142,33 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
 
     func clearUpdateListeners() {
         updateListeners.removeAll()
+    }
+
+    private func updateFeatureTag(value: String) {
+        // https://github.com/bucketeer-io/android-client-sdk/issues/69
+        // 1- Save the featureTag in the UserDefault configured in the BKTConfig
+        // 2- Clear the userEvaluationsID in the UserDefault if the featureTag changes
+        let featureTag = evaluationStorage.featureTag
+        if value != featureTag {
+            evaluationStorage.setCurrentEvaluationsId(value: "")
+        }
+        evaluationStorage.setFeatureTag(value: value)
+    }
+
+    private func onSuccessFetchEvaluation(
+        newEvaluationsId: String,
+        shouldNotifyListener: Bool
+    ) {
+        self.currentEvaluationsId = newEvaluationsId
+        evaluationStorage.setUserAttributesUpdated(value: false)
+        if shouldNotifyListener {
+            // Update listeners should be called on the main thread
+            // to avoid unintentional lock on Interactor's execution thread.
+            DispatchQueue.main.async {
+                self.updateListeners.forEach({ _, listener in
+                    listener.onUpdate()
+                })
+            }
+        }
     }
 }

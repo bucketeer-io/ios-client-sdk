@@ -16,13 +16,14 @@ let GOAL_VALUE = 1.0
 
 @available(iOS 13, *)
 extension BKTConfig {
-    static func e2e() throws -> BKTConfig {
+    static func e2e(featureTag: String = FEATURE_TAG) throws -> BKTConfig {
         let apiKey = ProcessInfo.processInfo.environment["E2E_API_KEY"]!
         let apiEndpoint = ProcessInfo.processInfo.environment["E2E_API_ENDPOINT"]!
+
         let builder = BKTConfig.Builder()
             .with(apiKey: apiKey)
             .with(apiEndpoint: apiEndpoint)
-            .with(featureTag: FEATURE_TAG)
+            .with(featureTag: featureTag)
             .with(appVersion: "1.2.3")
             .with(logger: E2ELogger())
 
@@ -155,5 +156,19 @@ extension URL {
             .url(for: DatabaseOpenHelper.directory, in: .userDomainMask, appropriateFor: nil, create: true)
         return directoryURL.appendingPathComponent(Constant.DB.FILE_NAME)
         // swiftlint:enable force_try
+    }
+}
+
+final class MockAsyncEventUpdateListener: EvaluationUpdateListener {
+    private var mockContinuation: CheckedContinuation< Bool, Error>?
+
+    @discardableResult
+    func waitForOnUpdateEvent() async throws -> Bool {
+        return try await withCheckedThrowingContinuation { continuation in
+            mockContinuation = continuation
+        }
+    }
+    func onUpdate() {
+        mockContinuation?.resume(returning: true)
     }
 }

@@ -55,7 +55,7 @@ public class BKTClient {
 
     func refreshCache() {
         do {
-            try component.evaluationInteractor.refreshCache(userId: component.userHolder.userId)
+            try component.evaluationInteractor.refreshCache()
         } catch let error {
             component.config.logger?.error(error)
         }
@@ -74,7 +74,7 @@ public class BKTClient {
 
 extension BKTClient {
     public static func initialize(config: BKTConfig, user: BKTUser, timeoutMillis: Int64 = 5000, completion: ((BKTError?) -> Void)? = nil) throws {
-        guard (Thread.isMainThread) else {
+        guard Thread.isMainThread else {
             throw BKTError.illegalState(message: "the initialize method must be called on main thread")
         }
         concurrentQueue.sync {
@@ -101,7 +101,7 @@ extension BKTClient {
     }
 
     public static func destroy() throws {
-        guard (Thread.isMainThread) else {
+        guard Thread.isMainThread else {
             throw BKTError.illegalState(message: "the destroy method must be called on main thread")
         }
         BKTClient.default?.resetTasks()
@@ -158,11 +158,11 @@ extension BKTClient {
         component.userHolder.user.toBKTUser()
     }
 
-    public func updateUserAttributes(attributes: [String : String]) {
+    public func updateUserAttributes(attributes: [String: String]) {
         component.userHolder.updateAttributes { _ in
             attributes
         }
-        component.evaluationInteractor.clearCurrentEvaluationsId()
+        component.evaluationInteractor.setUserAttributesUpdated()
     }
 
     public func fetchEvaluations(timeoutMillis: Int64? = nil, completion: ((BKTError?) -> Void)? = nil) {
@@ -227,33 +227,33 @@ extension BKTClient {
         dispatchQueue: DispatchQueue,
         timeoutMillis: Int64?,
         completion: ((BKTError?) -> Void)?
-      ) {
-          component.evaluationInteractor.fetch(user: component.userHolder.user, timeoutMillis: timeoutMillis, completion: { result in
-              dispatchQueue.async {
-                  do {
-                      let interactor = component.eventInteractor
-                      switch result {
-                      case .success(let response):
-                          try interactor.trackFetchEvaluationsSuccess(
+    ) {
+        component.evaluationInteractor.fetch(user: component.userHolder.user, timeoutMillis: timeoutMillis, completion: { result in
+            dispatchQueue.async {
+                do {
+                    let interactor = component.eventInteractor
+                    switch result {
+                    case .success(let response):
+                        try interactor.trackFetchEvaluationsSuccess(
                             featureTag: response.featureTag,
                             seconds: response.seconds,
                             sizeByte: response.sizeByte
-                          )
-                          completion?(nil)
-                      case .failure(let error, let featureTag):
-                          try interactor.trackFetchEvaluationsFailure(
+                        )
+                        completion?(nil)
+                    case .failure(let error, let featureTag):
+                        try interactor.trackFetchEvaluationsFailure(
                             featureTag: featureTag,
                             error: error
-                          )
-                          completion?(error)
-                      }
-                  } catch let error {
-                      component.config.logger?.error(error)
-                      completion?(error as? BKTError)
-                  }
-              }
-          })
-      }
+                        )
+                        completion?(error)
+                    }
+                } catch let error {
+                    component.config.logger?.error(error)
+                    completion?(error as? BKTError)
+                }
+            }
+        })
+    }
 
     static func flushSync(component: Component, completion: ((BKTError?) -> Void)?) {
         component.eventInteractor.sendEvents(force: true) { result in

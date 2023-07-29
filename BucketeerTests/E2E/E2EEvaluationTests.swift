@@ -3,7 +3,7 @@ import XCTest
 import Bucketeer
 
 @available(iOS 13, *)
-final class BucketeerE2ETests: XCTestCase {
+final class E2EEvaluationTests: XCTestCase {
 
     private var config: BKTConfig!
 
