@@ -5,7 +5,7 @@ import BackgroundTasks
 
 @available(iOS 13.0, tvOS 13.0, *)
 final class EvaluationBackgroundTask {
-    static let taskId = "io.bucketeer.evaluation.refresh"
+    static let taskId = "io.bucketeer.background.fetch.evaluations"
 
     private weak var component: Component?
     private let queue: DispatchQueue
