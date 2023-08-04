@@ -5,7 +5,7 @@ import BackgroundTasks
 
 @available(iOS 13.0, tvOS 13.0, *)
 final class EventBackgroundTask {
-    static let taskId = "io.bucketeer.event.refresh"
+    static let taskId = "io.bucketeer.background.flush.events"
 
     private weak var component: Component?
     private let queue: DispatchQueue
