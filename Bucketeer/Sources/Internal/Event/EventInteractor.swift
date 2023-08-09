@@ -26,7 +26,7 @@ final class EventInteractorImpl: EventInteractor {
     let idGenerator: IdGenerator
     let logger: Logger?
     let featureTag: String
-    
+
     private let sendEventSemaphore = DispatchSemaphore(value: 1)
     private let metadata: [String: String]
     private var eventUpdateListener: EventUpdateListener?
