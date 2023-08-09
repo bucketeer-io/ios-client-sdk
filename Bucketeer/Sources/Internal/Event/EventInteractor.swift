@@ -26,10 +26,14 @@ final class EventInteractorImpl: EventInteractor {
     let idGenerator: IdGenerator
     let logger: Logger?
     let featureTag: String
-
+    
+    private let sendEventSemaphore = DispatchSemaphore(value: 1)
     private let metadata: [String: String]
-
     private var eventUpdateListener: EventUpdateListener?
+
+    deinit {
+        sendEventSemaphore.signal()
+    }
 
     init(
         sdkVersion: String,
@@ -211,6 +215,10 @@ final class EventInteractorImpl: EventInteractor {
     }
 
     func sendEvents(force: Bool, completion: ((Result<Bool, BKTError>) -> Void)?) {
+        // https://github.com/bucketeer-io/ios-client-sdk/issues/23
+        // Only allow one `sendEvents` action
+        // The `Semaphore` will unlock after the request is success or fail
+        sendEventSemaphore.wait()
         do {
             let currentEvents = try eventDao.getEvents()
             guard !currentEvents.isEmpty else {
@@ -254,9 +262,13 @@ final class EventInteractorImpl: EventInteractor {
                     }
                     completion?(.failure(BKTError(error: error)))
                 }
+                // Release lock
+                self?.sendEventSemaphore.signal()
             }
         } catch let error {
             completion?(.failure(BKTError(error: error)))
+            // Release lock
+            sendEventSemaphore.signal()
         }
     }
 

@@ -570,5 +570,117 @@ final class EventInteractorTests: XCTestCase {
         })
         wait(for: [expectation], timeout: 1)
     }
+
+    // Unit test to verify the bug fixed: "duplicate event because sendEvents it is not synchronized"
+    // https://github.com/bucketeer-io/ios-client-sdk/issues/23
+    func testAddSendEventSynchronized() throws {
+        let expectation = XCTestExpectation()
+        expectation.assertForOverFulfill = true
+        expectation.expectedFulfillmentCount = 7
+
+        let addedEvents1: [Event] = [.mockEvaluation1, .mockGoal1]
+        let addedEvents2: [Event] = [.mockEvaluation2, .mockGoal2]
+        let dao = MockEventDao()
+        try dao.add(events: addedEvents1)
+
+        XCTAssertEqual(dao.events.count, 2)
+        XCTAssertEqual(dao.events, addedEvents1)
+
+        var requestCount = 0
+        let api = MockApiClient(registerEventsHandler: { events, completion in
+            // must be serialized in the correct order
+            // the first request should send `addedEvents1`
+            // the second request should send `addedEvents2`
+            // finally no more call
+            if (requestCount == 0) {
+                XCTAssertEqual(events.count, 2)
+                XCTAssertEqual(events, addedEvents1)
+                // Delay
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                    completion?(.success(.init(
+                        errors: [:]
+                    )))
+                    expectation.fulfill()
+                }
+                requestCount+=1
+            } else if (requestCount == 1) {
+                XCTAssertEqual(events.count, 2)
+                XCTAssertEqual(events, addedEvents2)
+                // Delay
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                    completion?(.success(.init(
+                        errors: [:]
+                    )))
+                    expectation.fulfill()
+                }
+                requestCount+=1
+            } else {
+                XCTFail("should not reach here, no more call")
+            }
+        })
+
+        let interactor = self.eventInteractor(api: api, dao: dao)
+        var listenCount = 0
+        let listener = MockEventUpdateListener { events in
+            if (listenCount == 0) {
+                XCTAssertEqual(events.count, 2)
+                XCTAssertEqual(events, addedEvents2)
+                expectation.fulfill()
+            } else if (listenCount == 1) {
+                XCTAssertEqual(events.count, 0)
+                expectation.fulfill()
+            } else {
+                XCTFail("should not reach here, no more call")
+            }
+            listenCount+=1
+        }
+        interactor.set(eventUpdateListener: listener)
+
+        // Simulate the SDK queue
+        let threadQueue = DispatchQueue(label: "threads")
+
+        threadQueue.async {
+            // Send all
+            interactor.sendEvents(force: true, completion: { result in
+                switch result {
+                case .success(let success):
+                    XCTAssertTrue(success)
+                case .failure:
+                    XCTFail()
+                }
+                expectation.fulfill()
+            })
+            // New event added
+            do {
+                try dao.add(events: addedEvents2)
+            } catch {
+                XCTFail(error.localizedDescription)
+            }
+
+            // Send all again
+            interactor.sendEvents(force: true, completion: { result in
+                switch result {
+                case .success(let success):
+                    XCTAssertTrue(success)
+                case .failure:
+                    XCTFail()
+                }
+                expectation.fulfill()
+            })
+
+            // Send all again, but no more to send
+            interactor.sendEvents(force: true, completion: { result in
+                switch result {
+                case .success(let success):
+                    XCTAssertFalse(success)
+                case .failure:
+                    XCTFail()
+                }
+                expectation.fulfill()
+            })
+        }
+
+        wait(for: [expectation], timeout: 10)
+    }
 }
 // swiftlint:enable type_body_length file_length
