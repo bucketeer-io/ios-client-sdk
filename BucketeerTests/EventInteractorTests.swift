@@ -703,8 +703,7 @@ final class EventInteractorTests: XCTestCase {
             }
             semaphore.signal()
             semaphore.signal()
-            semaphore.signal()
-            DispatchQueue.main.async {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                 semaphore.signal()
                 semaphore.signal()
                 semaphore.signal()
@@ -712,7 +711,6 @@ final class EventInteractorTests: XCTestCase {
                 expectation.fulfill()
             }
         }
-
         wait(for: [expectation], timeout: 10)
     }
 }
