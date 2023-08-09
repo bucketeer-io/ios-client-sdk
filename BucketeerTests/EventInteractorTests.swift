@@ -696,7 +696,7 @@ final class EventInteractorTests: XCTestCase {
             for i in 1...3 {
                 semaphore.wait()
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
-                    count = count + i
+                    count+=i
                     print(count)
                     semaphore.signal()
                 }
