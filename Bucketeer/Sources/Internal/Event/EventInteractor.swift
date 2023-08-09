@@ -32,6 +32,11 @@ final class EventInteractorImpl: EventInteractor {
     private var eventUpdateListener: EventUpdateListener?
 
     deinit {
+        // If EventInteractor deinit before the sendEvents() finished could cause "bad instrucstion crash"
+        // Its a problem because out APIClient didn't provides the way to cancel the request
+        // over-signaling does not introduce new problems
+        // https://stackoverflow.com/questions/70457141/safe-to-signal-semaphore-before-deinitialization-just-in-case
+        // verified it will be okay see `testSemaphoreOverSignalShouldNotCauseProblem` in EventInteractorTests.swift
         sendEventSemaphore.signal()
     }
 
@@ -219,17 +224,22 @@ final class EventInteractorImpl: EventInteractor {
         // Only allow one `sendEvents` action
         // The `Semaphore` will unlock after the request is success or fail
         sendEventSemaphore.wait()
+        let callback : ((Result<Bool, BKTError>) -> Void)? = { [weak self] rs in
+            completion?(rs)
+            // Release lock
+            self?.sendEventSemaphore.signal()
+        }
         do {
             let currentEvents = try eventDao.getEvents()
             guard !currentEvents.isEmpty else {
                 logger?.debug(message: "no events to register")
-                completion?(.success(false))
+                callback?(.success(false))
                 return
             }
 
             guard force || currentEvents.count >= eventsMaxBatchQueueCount else {
                 logger?.debug(message: "event count is less than threshold - current: \(currentEvents.count), threshold: \(eventsMaxBatchQueueCount)")
-                completion?(.success(false))
+                callback?(.success(false))
                 return
             }
             let sendingEvents: [Event] = Array(currentEvents.prefix(eventsMaxBatchQueueCount))
@@ -250,9 +260,9 @@ final class EventInteractorImpl: EventInteractor {
                     do {
                         try self?.eventDao.delete(ids: deletedIds)
                         self?.updateEventsAndNotify()
-                        completion?(.success(true))
+                        callback?(.success(true))
                     } catch let error {
-                        completion?(.failure(BKTError(error: error)))
+                        callback?(.failure(BKTError(error: error)))
                     }
                 case .failure(let error):
                     do {
@@ -260,15 +270,11 @@ final class EventInteractorImpl: EventInteractor {
                     } catch let error {
                         self?.logger?.error(error)
                     }
-                    completion?(.failure(BKTError(error: error)))
+                    callback?(.failure(BKTError(error: error)))
                 }
-                // Release lock
-                self?.sendEventSemaphore.signal()
             }
         } catch let error {
-            completion?(.failure(BKTError(error: error)))
-            // Release lock
-            sendEventSemaphore.signal()
+            callback?(.failure(BKTError(error: error)))
         }
     }
 

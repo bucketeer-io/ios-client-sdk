@@ -682,5 +682,38 @@ final class EventInteractorTests: XCTestCase {
 
         wait(for: [expectation], timeout: 10)
     }
+
+    // Related to testAddSendEventSynchronized
+    func testSemaphoreOverSignalShouldNotCauseProblem() throws {
+        let expectation = XCTestExpectation()
+        expectation.assertForOverFulfill = true
+        expectation.expectedFulfillmentCount = 1
+        // Simulate the SDK queue
+        let threadQueue = DispatchQueue(label: "threads")
+        let semaphore = DispatchSemaphore(value: 1)
+        var count = 0
+        threadQueue.async {
+            for i in 1...3 {
+                semaphore.wait()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+                    count = count + i
+                    print(count)
+                    semaphore.signal()
+                }
+            }
+            semaphore.signal()
+            semaphore.signal()
+            semaphore.signal()
+            DispatchQueue.main.async {
+                semaphore.signal()
+                semaphore.signal()
+                semaphore.signal()
+                semaphore.signal()
+                expectation.fulfill()
+            }
+        }
+
+        wait(for: [expectation], timeout: 10)
+    }
 }
 // swiftlint:enable type_body_length file_length
