@@ -30,7 +30,6 @@ jobs:
               {"type":"revert","section":"Reverts","hidden":false}
             ]
           release-type: simple
-          release-as: 2.0.1
           extra-files: |
             Bucketeer.podspec
             Bucketeer/Sources/Internal/Utils/Version.swift
