@@ -27,7 +27,7 @@ final class TaskScheduler {
             NotificationCenter.default.addObserver(
                 self,
                 selector: #selector(onForeground),
-                name: UIScene.willConnectNotification,
+                name: UIScene.didActivateNotification,
                 object: nil
             )
             NotificationCenter.default.addObserver(
