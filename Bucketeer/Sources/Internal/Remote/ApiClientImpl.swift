@@ -84,9 +84,7 @@ final class ApiClientImpl: ApiClient {
             completion: { (result: Result<(RegisterEventsResponse, URLResponse), Error>) in
                 switch result {
                 case .success((let response, _)):
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                        completion?(.success(response))
-                    }
+                    completion?(.success(response))
                 case .failure(let error):
                     completion?(.failure(.init(error: error)))
                 }

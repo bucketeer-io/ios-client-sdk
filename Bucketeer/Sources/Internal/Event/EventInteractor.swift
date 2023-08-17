@@ -227,10 +227,10 @@ final class EventInteractorImpl: EventInteractor {
         sendEventSemaphore.wait()
         logger?.debug(message:"sendEvents starting...")
         let callback : ((Result<Bool, BKTError>) -> Void) = { [weak self] rs in
-            completion?(rs)
             // Release lock in the same queue
             self?.sendEventSemaphore.signal()
             self?.logger?.debug(message:"sendEvents unlock... with result \(rs)")
+            completion?(rs)
             if .success(true) == rs {
                 self?.updateEventsAndNotify()
             }
@@ -333,16 +333,15 @@ final class EventInteractorImpl: EventInteractor {
     }
 
     private func updateEventsAndNotify() {
-        // Update listeners should be called on the main thread
-        // to avoid unintentional lock on Interactor's execution thread.
-        DispatchQueue.main.async { [weak self] in
-            do {
-                if let events = try self?.eventDao.getEvents(), events.count > 0 {
-                    self?.eventUpdateListener?.onUpdate(events: events)
-                }
-            } catch let error {
-                self?.logger?.error(error)
+        do {
+            let events = try eventDao.getEvents()
+            // Update listeners should be called on the main thread
+            // to avoid unintentional lock on Interactor's execution thread.
+            DispatchQueue.main.async { [weak self] in
+                self?.eventUpdateListener?.onUpdate(events: events)
             }
+        } catch let error {
+            logger?.error(error)
         }
     }
 }

@@ -619,7 +619,7 @@ final class EventInteractorTests: XCTestCase {
             }
         })
 
-        let interactor = self.eventInteractor(api: api, dao: dao)
+        let interactor = self.eventInteractor(api: api, dao: dao, config: BKTConfig.mock(eventsMaxQueueSize: 1))
         var listenCount = 0
         let listener = MockEventUpdateListener { events in
             if (listenCount == 0) {
@@ -649,23 +649,24 @@ final class EventInteractorTests: XCTestCase {
                     XCTFail()
                 }
                 expectation.fulfill()
-            })
-            // New event added
-            do {
-                try dao.add(events: addedEvents2)
-            } catch {
-                XCTFail(error.localizedDescription)
-            }
 
-            // Send all again
-            interactor.sendEvents(force: true, completion: { result in
-                switch result {
-                case .success(let success):
-                    XCTAssertTrue(success)
-                case .failure:
-                    XCTFail()
+                // New event added
+                do {
+                    try dao.add(events: addedEvents2)
+                } catch {
+                    XCTFail(error.localizedDescription)
                 }
-                expectation.fulfill()
+
+                // Send all again
+                interactor.sendEvents(force: true, completion: { result in
+                    switch result {
+                    case .success(let success):
+                        XCTAssertTrue(success)
+                    case .failure:
+                        XCTFail()
+                    }
+                    expectation.fulfill()
+                })
             })
 
             // Send all again, but no more to send

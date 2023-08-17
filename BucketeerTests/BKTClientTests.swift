@@ -231,7 +231,8 @@ final class BKTClientTests: XCTestCase {
 
     func testFlushSuccess() {
         let expectation = self.expectation(description: "")
-        expectation.expectedFulfillmentCount = 3
+        expectation.expectedFulfillmentCount = 4
+        expectation.assertForOverFulfill = true
         let dataModule = MockDataModule(
             userHolder: .init(user: .mock1),
             apiClient: MockApiClient(registerEventsHandler: { events, handler in
@@ -240,7 +241,12 @@ final class BKTClientTests: XCTestCase {
                 expectation.fulfill()
             }),
             eventDao: MockEventDao(getEventsHandler: {
-                defer { expectation.fulfill() }
+                defer {
+                    // It will call 2 times.
+                    // 1- for prepare for flushing
+                    // 3- for prepare send update to the listener
+                    expectation.fulfill()
+                }
                 return [.mockGoal1, .mockEvaluation1]
             })
         )
@@ -249,24 +255,28 @@ final class BKTClientTests: XCTestCase {
             XCTAssertEqual(error, nil)
             expectation.fulfill()
         }
-        wait(for: [expectation], timeout: 0.1)
+        wait(for: [expectation], timeout: 100)
     }
 
     func testFlushFailure() {
         let expectation = self.expectation(description: "")
-        expectation.expectedFulfillmentCount = 4
+        expectation.expectedFulfillmentCount = 5
+        expectation.assertForOverFulfill = true
         let dataModule = MockDataModule(
             userHolder: .init(user: .mock1),
             apiClient: MockApiClient(registerEventsHandler: { events, handler in
                 XCTAssertEqual(events, [.mockGoal1, .mockEvaluation1])
                 handler?(.failure(.apiServer(message: "unknown")))
+                print("expectation.fulfill() 1")
                 expectation.fulfill()
             }),
             eventDao: MockEventDao(getEventsHandler: {
                 defer {
-                    // It will call 2 times.
-                    // 1 for prepare for flushing
-                    // 2 for checking duplicate
+                    // It will call 3 times.
+                    // 1- for prepare for flushing
+                    // 2- for checking duplicate
+                    // 3- for prepare send update to the listener
+                    print("expectation.fulfill() 2")
                     expectation.fulfill()
                 }
                 return [.mockGoal1, .mockEvaluation1]
@@ -275,6 +285,7 @@ final class BKTClientTests: XCTestCase {
         let client = BKTClient(dataModule: dataModule, dispatchQueue: .global())
         client.flush { error in
             XCTAssertEqual(error, .apiServer(message: "unknown"))
+            print("expectation.fulfill() 3")
             expectation.fulfill()
         }
         wait(for: [expectation], timeout: 0.1)
