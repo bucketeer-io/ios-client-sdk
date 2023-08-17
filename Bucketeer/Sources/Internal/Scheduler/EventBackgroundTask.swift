@@ -38,10 +38,12 @@ final class EventBackgroundTask {
         scheduleAppRefresh()
 
         guard let component = self.component else { return }
-        BKTClient.flushSync(component: component) { [weak self] error in
-            task?.setTaskCompleted(success: error == nil)
-            if let error {
-                self?.component?.config.logger?.error(error)
+        queue.async {
+            BKTClient.flushSync(component: component) { [weak self] error in
+                task?.setTaskCompleted(success: error == nil)
+                if let error {
+                    self?.component?.config.logger?.error(error)
+                }
             }
         }
         // Provide the background task with an expiration handler that cancels the operation.

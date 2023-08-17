@@ -223,11 +223,17 @@ final class EventInteractorImpl: EventInteractor {
         // https://github.com/bucketeer-io/ios-client-sdk/issues/23
         // Only allow one `sendEvents` action
         // The `Semaphore` will unlock after the request is success or fail
+        logger?.debug(message:"sendEvents called, wait() if needed")
         sendEventSemaphore.wait()
+        logger?.debug(message:"sendEvents starting...")
         let callback : ((Result<Bool, BKTError>) -> Void) = { [weak self] rs in
             completion?(rs)
-            // Release lock
+            // Release lock in the same queue
             self?.sendEventSemaphore.signal()
+            self?.logger?.debug(message:"sendEvents unlock... with result \(rs)")
+            if .success(true) == rs {
+                self?.updateEventsAndNotify()
+            }
         }
         do {
             let currentEvents = try eventDao.getEvents()
@@ -237,6 +243,7 @@ final class EventInteractorImpl: EventInteractor {
                 return
             }
 
+            logger?.debug(message:"currentEvents.count \(currentEvents.count)")
             guard force || currentEvents.count >= eventsMaxBatchQueueCount else {
                 logger?.debug(message: "event count is less than threshold - current: \(currentEvents.count), threshold: \(eventsMaxBatchQueueCount)")
                 callback(.success(false))
@@ -259,7 +266,6 @@ final class EventInteractorImpl: EventInteractor {
                         })
                     do {
                         try self?.eventDao.delete(ids: deletedIds)
-                        self?.updateEventsAndNotify()
                         callback(.success(true))
                     } catch let error {
                         callback(.failure(BKTError(error: error)))
@@ -327,10 +333,16 @@ final class EventInteractorImpl: EventInteractor {
     }
 
     private func updateEventsAndNotify() {
-        do {
-            eventUpdateListener?.onUpdate(events: try eventDao.getEvents())
-        } catch let error {
-            logger?.error(error)
+        // Update listeners should be called on the main thread
+        // to avoid unintentional lock on Interactor's execution thread.
+        DispatchQueue.main.async { [weak self] in
+            do {
+                if let events = try self?.eventDao.getEvents(), events.count > 0 {
+                    self?.eventUpdateListener?.onUpdate(events: events)
+                }
+            } catch let error {
+                self?.logger?.error(error)
+            }
         }
     }
 }

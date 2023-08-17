@@ -578,12 +578,12 @@ final class EventInteractorTests: XCTestCase {
         expectation.assertForOverFulfill = true
         expectation.expectedFulfillmentCount = 7
 
-        let addedEvents1: [Event] = [.mockEvaluation1, .mockGoal1]
+        let addedEvents1: [Event] = [.mockEvaluation1, .mockGoal1, .mockMetricsResponseLatency1]
         let addedEvents2: [Event] = [.mockEvaluation2, .mockGoal2]
         let dao = MockEventDao()
         try dao.add(events: addedEvents1)
 
-        XCTAssertEqual(dao.events.count, 2)
+        XCTAssertEqual(dao.events.count, 3)
         XCTAssertEqual(dao.events, addedEvents1)
 
         var requestCount = 0
@@ -593,7 +593,7 @@ final class EventInteractorTests: XCTestCase {
             // the second request should send `addedEvents2`
             // finally no more call
             if (requestCount == 0) {
-                XCTAssertEqual(events.count, 2)
+                XCTAssertEqual(events.count, 3)
                 XCTAssertEqual(events, addedEvents1)
                 // Delay
                 DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
