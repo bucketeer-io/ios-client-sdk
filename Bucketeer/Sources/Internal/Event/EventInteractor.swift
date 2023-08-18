@@ -220,33 +220,19 @@ final class EventInteractorImpl: EventInteractor {
     }
 
     func sendEvents(force: Bool, completion: ((Result<Bool, BKTError>) -> Void)?) {
-        // https://github.com/bucketeer-io/ios-client-sdk/issues/23
-        // Only allow one `sendEvents` action
-        // The `Semaphore` will unlock after the request is success or fail
-        logger?.debug(message:"sendEvents called, wait() if needed")
-        sendEventSemaphore.wait()
-        logger?.debug(message:"sendEvents starting...")
-        let callback : ((Result<Bool, BKTError>) -> Void) = { [weak self] rs in
-            // Release lock in the same queue
-            self?.sendEventSemaphore.signal()
-            self?.logger?.debug(message:"sendEvents unlock... with result \(rs)")
-            completion?(rs)
-            if .success(true) == rs {
-                self?.updateEventsAndNotify()
-            }
-        }
+        logger?.debug(message:"sendEvents called")
         do {
             let currentEvents = try eventDao.getEvents()
             guard !currentEvents.isEmpty else {
                 logger?.debug(message: "no events to register")
-                callback(.success(false))
+                completion?(.success(false))
                 return
             }
 
             logger?.debug(message:"currentEvents.count \(currentEvents.count)")
             guard force || currentEvents.count >= eventsMaxBatchQueueCount else {
                 logger?.debug(message: "event count is less than threshold - current: \(currentEvents.count), threshold: \(eventsMaxBatchQueueCount)")
-                callback(.success(false))
+                completion?(.success(false))
                 return
             }
             let sendingEvents: [Event] = Array(currentEvents.prefix(eventsMaxBatchQueueCount))
@@ -266,9 +252,10 @@ final class EventInteractorImpl: EventInteractor {
                         })
                     do {
                         try self?.eventDao.delete(ids: deletedIds)
-                        callback(.success(true))
+                        completion?(.success(true))
+                        self?.updateEventsAndNotify()
                     } catch let error {
-                        callback(.failure(BKTError(error: error)))
+                        completion?(.failure(BKTError(error: error)))
                     }
                 case .failure(let error):
                     do {
@@ -276,11 +263,11 @@ final class EventInteractorImpl: EventInteractor {
                     } catch let error {
                         self?.logger?.error(error)
                     }
-                    callback(.failure(BKTError(error: error)))
+                    completion?(.failure(BKTError(error: error)))
                 }
             }
         } catch let error {
-            callback(.failure(BKTError(error: error)))
+            completion?(.failure(BKTError(error: error)))
         }
     }
 

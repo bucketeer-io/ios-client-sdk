@@ -255,7 +255,7 @@ final class BKTClientTests: XCTestCase {
             XCTAssertEqual(error, nil)
             expectation.fulfill()
         }
-        wait(for: [expectation], timeout: 100)
+        wait(for: [expectation], timeout: 0.1)
     }
 
     func testFlushFailure() {
@@ -267,7 +267,6 @@ final class BKTClientTests: XCTestCase {
             apiClient: MockApiClient(registerEventsHandler: { events, handler in
                 XCTAssertEqual(events, [.mockGoal1, .mockEvaluation1])
                 handler?(.failure(.apiServer(message: "unknown")))
-                print("expectation.fulfill() 1")
                 expectation.fulfill()
             }),
             eventDao: MockEventDao(getEventsHandler: {
@@ -276,7 +275,6 @@ final class BKTClientTests: XCTestCase {
                     // 1- for prepare for flushing
                     // 2- for checking duplicate
                     // 3- for prepare send update to the listener
-                    print("expectation.fulfill() 2")
                     expectation.fulfill()
                 }
                 return [.mockGoal1, .mockEvaluation1]
@@ -285,7 +283,6 @@ final class BKTClientTests: XCTestCase {
         let client = BKTClient(dataModule: dataModule, dispatchQueue: .global())
         client.flush { error in
             XCTAssertEqual(error, .apiServer(message: "unknown"))
-            print("expectation.fulfill() 3")
             expectation.fulfill()
         }
         wait(for: [expectation], timeout: 0.1)

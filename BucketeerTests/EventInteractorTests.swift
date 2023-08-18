@@ -576,7 +576,10 @@ final class EventInteractorTests: XCTestCase {
     func testAddSendEventSynchronized() throws {
         let expectation = XCTestExpectation()
         expectation.assertForOverFulfill = true
-        expectation.expectedFulfillmentCount = 7
+        expectation.expectedFulfillmentCount = 8
+
+        // Simulate the SDK queue
+        let sdkInternalQueue = DispatchQueue(label: "sdk_internal_queue", attributes: .concurrent)
 
         let addedEvents1: [Event] = [.mockEvaluation1, .mockGoal1, .mockMetricsResponseLatency1]
         let addedEvents2: [Event] = [.mockEvaluation2, .mockGoal2]
@@ -587,7 +590,8 @@ final class EventInteractorTests: XCTestCase {
         XCTAssertEqual(dao.events, addedEvents1)
 
         var requestCount = 0
-        let api = MockApiClient(registerEventsHandler: { events, completion in
+        // MockSynchronizedApiClient
+        let api = MockSynchronizedApiClient(registerEventsHandler: { events, completion in
             // must be serialized in the correct order
             // the first request should send `addedEvents1`
             // the second request should send `addedEvents2`
@@ -595,32 +599,28 @@ final class EventInteractorTests: XCTestCase {
             if (requestCount == 0) {
                 XCTAssertEqual(events.count, 3)
                 XCTAssertEqual(events, addedEvents1)
-                // Delay
-                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                    completion?(.success(.init(
-                        errors: [:]
-                    )))
-                    expectation.fulfill()
-                }
                 requestCount+=1
+                completion?(.success(.init(
+                    errors: [:]
+                )))
+                expectation.fulfill()
             } else if (requestCount == 1) {
                 XCTAssertEqual(events.count, 2)
                 XCTAssertEqual(events, addedEvents2)
-                // Delay
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                    completion?(.success(.init(
-                        errors: [:]
-                    )))
-                    expectation.fulfill()
-                }
                 requestCount+=1
+                completion?(.success(.init(
+                    errors: [:]
+                )))
+                expectation.fulfill()
             } else {
                 XCTFail("should not reach here, no more call")
             }
         })
-
-        let interactor = self.eventInteractor(api: api, dao: dao, config: BKTConfig.mock(eventsMaxQueueSize: 1))
+        let config = BKTConfig.mock()
+        let logger = config.logger
+        let interactor = self.eventInteractor(api: api, dao: dao, config: config)
         var listenCount = 0
+
         let listener = MockEventUpdateListener { events in
             if (listenCount == 0) {
                 XCTAssertEqual(events.count, 2)
@@ -629,18 +629,32 @@ final class EventInteractorTests: XCTestCase {
             } else if (listenCount == 1) {
                 XCTAssertEqual(events.count, 0)
                 expectation.fulfill()
+            } else if (listenCount == 2) {
+                XCTAssertEqual(events.count, 0)
+                expectation.fulfill()
             } else {
                 XCTFail("should not reach here, no more call")
             }
             listenCount+=1
+            if (events.count > 0) {
+                // Simulate EventForegroundTask will call send events after received onUpdate()
+                logger?.debug(message: "interactor.sendEvents 2")
+                interactor.sendEvents(force: true, completion: { result in
+                    switch result {
+                    case .success(let success):
+                        XCTAssertTrue(success)
+                    case .failure:
+                        XCTFail()
+                    }
+                    expectation.fulfill()
+                })
+            }
         }
         interactor.set(eventUpdateListener: listener)
 
-        // Simulate the SDK queue
-        let threadQueue = DispatchQueue(label: "threads")
-
-        threadQueue.async {
+        sdkInternalQueue.async {
             // Send all
+            logger?.debug(message: "interactor.sendEvents 1")
             interactor.sendEvents(force: true, completion: { result in
                 switch result {
                 case .success(let success):
@@ -653,22 +667,12 @@ final class EventInteractorTests: XCTestCase {
                 // New event added
                 do {
                     try dao.add(events: addedEvents2)
+                    listener.onUpdate(events: addedEvents2)
                 } catch {
                     XCTFail(error.localizedDescription)
                 }
-
-                // Send all again
-                interactor.sendEvents(force: true, completion: { result in
-                    switch result {
-                    case .success(let success):
-                        XCTAssertTrue(success)
-                    case .failure:
-                        XCTFail()
-                    }
-                    expectation.fulfill()
-                })
             })
-
+            logger?.debug(message: "interactor.sendEvents 3")
             // Send all again, but no more to send
             interactor.sendEvents(force: true, completion: { result in
                 switch result {
@@ -681,38 +685,7 @@ final class EventInteractorTests: XCTestCase {
             })
         }
 
-        wait(for: [expectation], timeout: 10)
-    }
-
-    // Related to testAddSendEventSynchronized
-    func testSemaphoreOverSignalShouldNotCauseProblem() throws {
-        let expectation = XCTestExpectation()
-        expectation.assertForOverFulfill = true
-        expectation.expectedFulfillmentCount = 1
-        // Simulate the SDK queue
-        let threadQueue = DispatchQueue(label: "threads")
-        let semaphore = DispatchSemaphore(value: 1)
-        var count = 0
-        threadQueue.async {
-            for i in 1...3 {
-                semaphore.wait()
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
-                    count+=i
-                    print(count)
-                    semaphore.signal()
-                }
-            }
-            semaphore.signal()
-            semaphore.signal()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                semaphore.signal()
-                semaphore.signal()
-                semaphore.signal()
-                semaphore.signal()
-                expectation.fulfill()
-            }
-        }
-        wait(for: [expectation], timeout: 10)
+        wait(for: [expectation], timeout: 20)
     }
 }
 // swiftlint:enable type_body_length file_length

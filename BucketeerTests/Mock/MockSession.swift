@@ -7,9 +7,14 @@ struct MockSession: Session {
     var data: Data?
     var response: HTTPURLResponse?
     var error: Error?
+    let networkQueue = DispatchQueue(label: "io.bucketeer.concurrentQueue.network", attributes: .concurrent)
 
     func task(with request: URLRequest, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) {
-        requestHandler?(request)
-        completionHandler(data, response, error)
+        networkQueue.async {
+            requestHandler?(request)
+            networkQueue.asyncAfter(deadline: .now() + 0.1) {
+                completionHandler(data, response, error)
+            }
+        }
     }
 }
