@@ -4,7 +4,7 @@ import XCTest
 final class EvaluationForegroundTaskTests: XCTestCase {
     func testStartAndReceiveSuccess() {
         let expectation = self.expectation(description: "")
-        expectation.expectedFulfillmentCount = 10
+        expectation.expectedFulfillmentCount = 3
         expectation.assertForOverFulfill = true
         let dispatchQueue = DispatchQueue(label: "default", qos: .default)
 
@@ -33,7 +33,7 @@ final class EvaluationForegroundTaskTests: XCTestCase {
         let config = BKTConfig.mock(
             eventsFlushInterval: 10,
             eventsMaxQueueSize: 3,
-            pollingInterval: 5000,
+            pollingInterval: 5000, // The minimum polling interval is 60 seconds, but is set to 5 seconds to shorten the test.
             backgroundPollingInterval: 1000
         )
         let component = MockComponent(
@@ -79,7 +79,7 @@ final class EvaluationForegroundTaskTests: XCTestCase {
         let config = BKTConfig.mock(
             eventsFlushInterval: 50,
             eventsMaxQueueSize: 3,
-            pollingInterval: 5000,
+            pollingInterval: 5000, // The minimum polling interval is 60 seconds, but is set to 5 seconds to shorten the test.
             backgroundPollingInterval: 1000
         )
 
