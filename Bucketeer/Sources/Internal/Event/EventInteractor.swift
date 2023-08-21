@@ -321,12 +321,7 @@ final class EventInteractorImpl: EventInteractor {
 
     private func updateEventsAndNotify() {
         do {
-            let events = try eventDao.getEvents()
-            // Update listeners should be called on the main thread
-            // to avoid unintentional lock on Interactor's execution thread.
-            DispatchQueue.main.async { [weak self] in
-                self?.eventUpdateListener?.onUpdate(events: events)
-            }
+            eventUpdateListener?.onUpdate(events: try eventDao.getEvents())
         } catch let error {
             logger?.error(error)
         }
