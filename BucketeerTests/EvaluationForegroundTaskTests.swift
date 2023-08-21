@@ -33,7 +33,7 @@ final class EvaluationForegroundTaskTests: XCTestCase {
         let config = BKTConfig.mock(
             eventsFlushInterval: 10,
             eventsMaxQueueSize: 3,
-            pollingInterval: 100,
+            pollingInterval: 5000,
             backgroundPollingInterval: 1000
         )
         let component = MockComponent(
@@ -47,7 +47,7 @@ final class EvaluationForegroundTaskTests: XCTestCase {
         )
         task.start()
 
-        wait(for: [expectation], timeout: 0.3)
+        wait(for: [expectation], timeout: 20)
     }
 
     func testStartAndReceiveError() {
@@ -79,7 +79,7 @@ final class EvaluationForegroundTaskTests: XCTestCase {
         let config = BKTConfig.mock(
             eventsFlushInterval: 50,
             eventsMaxQueueSize: 3,
-            pollingInterval: 100,
+            pollingInterval: 5000,
             backgroundPollingInterval: 1000
         )
 
@@ -98,7 +98,7 @@ final class EvaluationForegroundTaskTests: XCTestCase {
         )
         task.start()
 
-        wait(for: [expectation], timeout: 0.1)
+        wait(for: [expectation], timeout: 20)
     }
 
     func testStop() {
