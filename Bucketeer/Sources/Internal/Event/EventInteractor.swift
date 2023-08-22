@@ -252,8 +252,8 @@ final class EventInteractorImpl: EventInteractor {
                         })
                     do {
                         try self?.eventDao.delete(ids: deletedIds)
-                        completion?(.success(true))
                         self?.updateEventsAndNotify()
+                        completion?(.success(true))
                     } catch let error {
                         completion?(.failure(BKTError(error: error)))
                     }
@@ -321,7 +321,8 @@ final class EventInteractorImpl: EventInteractor {
 
     private func updateEventsAndNotify() {
         do {
-            eventUpdateListener?.onUpdate(events: try eventDao.getEvents())
+            let events = try eventDao.getEvents()
+            eventUpdateListener?.onUpdate(events: events)
         } catch let error {
             logger?.error(error)
         }

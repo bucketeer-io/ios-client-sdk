@@ -4,25 +4,25 @@ final class TaskScheduler {
     let component: Component
     let dispatchQueue: DispatchQueue
 
-    private lazy var foregroundSchedulers: [ScheduledTask] = [
-        EvaluationForegroundTask(component: component, queue: dispatchQueue),
-        EventForegroundTask(component: component, queue: dispatchQueue)
-    ]
-
-    private lazy var backgroundSchedulers: [ScheduledTask] = {
-
-        guard #available(iOS 13.0, tvOS 13.0, *) else {
-            return []
-        }
-        return [
-            EvaluationBackgroundTask(component: component, queue: dispatchQueue),
-            EventBackgroundTask(component: component, queue: dispatchQueue)
-        ]
-    }()
+    private let foregroundSchedulers: [ScheduledTask]
+    private let backgroundSchedulers: [ScheduledTask]
 
     init(component: Component, dispatchQueue: DispatchQueue) {
         self.component = component
         self.dispatchQueue = dispatchQueue
+        self.foregroundSchedulers = [
+            EvaluationForegroundTask(component: component, queue: dispatchQueue),
+            EventForegroundTask(component: component, queue: dispatchQueue)
+        ]
+        self.backgroundSchedulers = {
+            guard #available(iOS 13.0, tvOS 13.0, *) else {
+                return []
+            }
+            return [
+                EvaluationBackgroundTask(component: component, queue: dispatchQueue),
+                EventBackgroundTask(component: component, queue: dispatchQueue)
+            ]
+        }()
         if #available(iOS 13.0, tvOS 13.0, *) {
             NotificationCenter.default.addObserver(
                 self,

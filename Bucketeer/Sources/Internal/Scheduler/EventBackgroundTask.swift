@@ -13,11 +13,14 @@ final class EventBackgroundTask {
     init(component: Component, queue: DispatchQueue) {
         self.component = component
         self.queue = queue
+        register()
     }
 
     func register() {
         BGTaskScheduler.shared.register(forTaskWithIdentifier: Self.taskId, using: nil) { task in
-            self.handleAppRefresh(task: task as? BGAppRefreshTask)
+            self.queue.async {
+                self.handleAppRefresh(task: task as? BGAppRefreshTask)
+            }
         }
     }
 

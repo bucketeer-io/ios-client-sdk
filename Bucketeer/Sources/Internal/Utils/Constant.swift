@@ -7,7 +7,7 @@ public struct Constant {
     static let MINIMUM_POLLING_INTERVAL_MILLIS: Int64 = 60_000 // 60 seconds
     public static let DEFAULT_POLLING_INTERVAL_MILLIS: Int64 = 600_000 // 10 minutes
     static let MINIMUM_BACKGROUND_POLLING_INTERVAL_MILLIS: Int64 = 1_200_000 // 20 minutes
-    public static let DEFAULT_BACKGROUND_POLLING_INTERVAL_MILLIS: Int64 = 3_600_000 // 1 hour
+    public static let DEFAULT_BACKGROUND_POLLING_INTERVAL_MILLIS: Int64 = 60_000 // 1 hour
 
     struct DB {
         static let FILE_NAME = "bucketeer.db"
