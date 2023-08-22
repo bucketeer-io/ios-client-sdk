@@ -24,7 +24,7 @@ final class EvaluationForegroundTask: ScheduledTask {
         self.stop()
         guard let component = component else { return }
         self.poller = .init(
-            intervalMillis: isRetrying ? retryPollingInterval : component.config.eventsFlushInterval,
+            intervalMillis: isRetrying ? retryPollingInterval : component.config.pollingInterval,
             queue: queue,
             logger: component.config.logger,
             handler: { [weak self] _ in

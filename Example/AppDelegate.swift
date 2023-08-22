@@ -65,7 +65,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             .with(apiKey: apiKey)
             .with(apiEndpoint: apiEndpoint)
             .with(featureTag: "ios")
-            .with(pollingInterval: 5_000)
+            .with(pollingInterval: 150_000)
             .with(appVersion: bundle.infoDictionary?["CFBundleShortVersionString"] as! String)
 
         return try! builder.build()
@@ -80,7 +80,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             apiKey: apiKey,
             apiEndpoint: apiEndpoint,
             featureTag: "ios",
-            pollingInterval: 5_000,
+            pollingInterval: 150_000,
             appVersion: bundle.infoDictionary?["CFBundleShortVersionString"] as! String,
             logger: nil
         )
