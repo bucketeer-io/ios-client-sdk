@@ -220,7 +220,7 @@ final class EventInteractorImpl: EventInteractor {
     }
 
     func sendEvents(force: Bool, completion: ((Result<Bool, BKTError>) -> Void)?) {
-        logger?.debug(message:"sendEvents called")
+        logger?.debug(message:"sendEvents called, force:\(force)")
         do {
             let currentEvents = try eventDao.getEvents()
             guard !currentEvents.isEmpty else {
