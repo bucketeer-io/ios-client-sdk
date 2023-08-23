@@ -252,8 +252,8 @@ final class EventInteractorImpl: EventInteractor {
                         })
                     do {
                         try self?.eventDao.delete(ids: deletedIds)
-                        completion?(.success(true))
                         self?.updateEventsAndNotify()
+                        completion?(.success(true))
                     } catch let error {
                         completion?(.failure(BKTError(error: error)))
                     }
@@ -322,11 +322,7 @@ final class EventInteractorImpl: EventInteractor {
     private func updateEventsAndNotify() {
         do {
             let events = try eventDao.getEvents()
-            // Update listeners should be called on the main thread
-            // to avoid unintentional lock on Interactor's execution thread.
-            DispatchQueue.main.async { [weak self] in
-                self?.eventUpdateListener?.onUpdate(events: events)
-            }
+            eventUpdateListener?.onUpdate(events: events)
         } catch let error {
             logger?.error(error)
         }

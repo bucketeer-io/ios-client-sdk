@@ -623,11 +623,11 @@ final class EventInteractorTests: XCTestCase {
 
         let listener = MockEventUpdateListener { events in
             if (listenCount == 0) {
-                XCTAssertEqual(events.count, 2)
-                XCTAssertEqual(events, addedEvents2)
+                XCTAssertEqual(events.count, 0)
                 expectation.fulfill()
             } else if (listenCount == 1) {
-                XCTAssertEqual(events.count, 0)
+                XCTAssertEqual(events.count, 2)
+                XCTAssertEqual(events, addedEvents2)
                 expectation.fulfill()
             } else if (listenCount == 2) {
                 XCTAssertEqual(events.count, 0)
