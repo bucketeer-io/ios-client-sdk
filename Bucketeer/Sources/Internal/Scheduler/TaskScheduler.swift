@@ -39,7 +39,7 @@ final class TaskScheduler {
             NotificationCenter.default.addObserver(
                 self,
                 selector: #selector(onBackground),
-                name: UIScene.didEnterBackgroundNotification,
+                name: UIScene.willDeactivateNotification,
                 object: nil
             )
         } else {
@@ -58,7 +58,7 @@ final class TaskScheduler {
             NotificationCenter.default.addObserver(
                 self,
                 selector: #selector(onBackground),
-                name: UIApplication.didEnterBackgroundNotification,
+                name: UIApplication.willResignActiveNotification,
                 object: nil
             )
         }
