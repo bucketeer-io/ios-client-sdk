@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.0.2](https://github.com/bucketeer-io/ios-client-sdk/compare/v2.0.1...v2.0.2) (2023-08-23)
+
+
+### Bug Fixes
+
+* evaluation polling interval setting ([#31](https://github.com/bucketeer-io/ios-client-sdk/issues/31)) ([64da192](https://github.com/bucketeer-io/ios-client-sdk/commit/64da19220ed2e3a2520a9644cc14320e39c8eb76))
+* events not being sent to the server ([#30](https://github.com/bucketeer-io/ios-client-sdk/issues/30)) ([0bb11c8](https://github.com/bucketeer-io/ios-client-sdk/commit/0bb11c8f3749c286f359a5cd4562ae50c06edeed))
+
 ## [2.0.1](https://github.com/bucketeer-io/ios-client-sdk/compare/v2.0.0...v2.0.1) (2023-08-09)
 
 
