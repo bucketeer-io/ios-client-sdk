@@ -10,6 +10,13 @@ final class ApiClientImpl: ApiClient {
     private let session: Session
     private let defaultRequestTimeoutMills: Int64
     private let logger: Logger?
+    private let semaphore = DispatchSemaphore(value: 0)
+
+    deinit {
+        // over-signaling does not introduce new problems
+        // https://stackoverflow.com/questions/70457141/safe-to-signal-semaphore-before-deinitialization-just-in-case
+        semaphore.signal()
+    }
 
     init(
         apiEndpoint: URL,
@@ -92,13 +99,16 @@ final class ApiClientImpl: ApiClient {
         )
     }
 
+    // noted: this method will run `synchronized`. It will blocking the current queue please do not call it from the app main thread
     func send<RequestBody: Encodable, Response: Decodable>(
         requestBody: RequestBody,
         path: String,
         timeoutMillis: Int64,
         encoder: JSONEncoder = JSONEncoder(),
         completion: ((Result<(Response, URLResponse), Error>) -> Void)?) {
-
+        let requestId = Date().unixTimestamp
+        logger?.debug(message: "[API] RequestID enqueue: \(requestId)")
+        logger?.debug(message: "[API] Register events: \(requestBody)")
         do {
             if #available(iOS 11.0, *) {
                 encoder.outputFormatting = [encoder.outputFormatting, .prettyPrinted, .sortedKeys]
@@ -113,35 +123,57 @@ final class ApiClientImpl: ApiClient {
             ]
             request.httpBody = body
             request.timeoutInterval = TimeInterval(timeoutMillis) / 1000
-
-            session.task(with: request) { data, urlResponse, error in
+            // `result` shared resource between the network queue and the SDK queue
+            var result : Result<(Response, URLResponse), Error>?
+            let responseParser : (Data?, URLResponse?, Error?) -> Result<(Response, URLResponse), Error> = { data, urlResponse, error in
                 guard let data = data else {
                     guard let error = error else {
-                        completion?(.failure(ResponseError.unknown(urlResponse)))
-                        return
+                        return .failure(ResponseError.unknown(urlResponse))
                     }
-                    completion?(.failure(error))
-                    return
+                    return .failure(error)
                 }
 
                 guard let urlResponse = urlResponse as? HTTPURLResponse else {
-                    completion?(.failure(ResponseError.unknown(urlResponse)))
-                    return
+                    return .failure(ResponseError.unknown(urlResponse))
                 }
                 do {
                     guard 200..<300 ~= urlResponse.statusCode else {
                         let response: ErrorResponse? = try JSONDecoder().decode(ErrorResponse.self, from: data)
                         let error = ResponseError.unacceptableCode(code: urlResponse.statusCode, response: response)
-                        completion?(.failure(error))
-                        return
+                        return .failure(error)
                     }
                     let response = try JSONDecoder().decode(Response.self, from: data)
-                    completion?(.success((response, urlResponse)))
+                    return .success((response, urlResponse))
                 } catch let error {
-                    completion?(.failure(error))
+                    return .failure(error)
                 }
             }
+
+            let requestHandler : (Result<(Response, URLResponse), Error>) -> Void = { [weak self] data in
+                result = data
+                // unlock from network queue
+                self?.logger?.debug(message: "[API] Resource available")
+                self?.semaphore.signal()
+            }
+
+            session.task(with: request) { data, urlResponse, error in
+                let output = responseParser(data, urlResponse, error)
+                requestHandler(output)
+            }
+
+            logger?.debug(message: "[API] RequestID wait: \(requestId)")
+            semaphore.wait()
+            logger?.debug(message: "[API] RequestID finished: \(requestId)")
+            guard result != nil else {
+                completion?(.failure(BKTError.illegalState(message: "fail to handle the request result")))
+                return
+            }
+            completion?(result!)
         } catch let error {
+            // catch error may throw before sending the request
+            // runtime error will handle in the session callback
+            // so that we will not required call `semephore.signal()` here
+            logger?.debug(message: "[API] RequestID: \(requestId) could not request with error \(error.localizedDescription)")
             completion?(.failure(error))
         }
     }
@@ -164,5 +196,21 @@ private struct AnyKey: CodingKey {
     init?(intValue: Int) {
         self.stringValue = String(intValue)
         self.intValue = intValue
+    }
+}
+
+private typealias UnixTimestamp = Int
+
+fileprivate extension Date {
+    /// Date to Unix timestamp.
+    var unixTimestamp: UnixTimestamp {
+        return UnixTimestamp(self.timeIntervalSince1970 * 1_000) // millisecond precision
+    }
+}
+
+fileprivate extension UnixTimestamp {
+    /// Unix timestamp to date.
+    var date: Date {
+        return Date(timeIntervalSince1970: TimeInterval(self / 1_000)) // must take a millisecond-precise Unix timestamp
     }
 }

@@ -67,6 +67,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             .with(featureTag: "ios")
             .with(pollingInterval: 150_000)
             .with(appVersion: bundle.infoDictionary?["CFBundleShortVersionString"] as! String)
+            .with(logger: AppLogger())
 
         return try! builder.build()
     }
@@ -82,7 +83,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             featureTag: "ios",
             pollingInterval: 150_000,
             appVersion: bundle.infoDictionary?["CFBundleShortVersionString"] as! String,
-            logger: nil
+            logger: AppLogger()
         )
     }
 

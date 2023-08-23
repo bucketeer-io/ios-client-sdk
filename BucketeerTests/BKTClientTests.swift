@@ -231,7 +231,8 @@ final class BKTClientTests: XCTestCase {
 
     func testFlushSuccess() {
         let expectation = self.expectation(description: "")
-        expectation.expectedFulfillmentCount = 3
+        expectation.expectedFulfillmentCount = 4
+        expectation.assertForOverFulfill = true
         let dataModule = MockDataModule(
             userHolder: .init(user: .mock1),
             apiClient: MockApiClient(registerEventsHandler: { events, handler in
@@ -240,7 +241,12 @@ final class BKTClientTests: XCTestCase {
                 expectation.fulfill()
             }),
             eventDao: MockEventDao(getEventsHandler: {
-                defer { expectation.fulfill() }
+                defer {
+                    // It will call 2 times.
+                    // 1- for prepare for flushing
+                    // 3- for prepare send update to the listener
+                    expectation.fulfill()
+                }
                 return [.mockGoal1, .mockEvaluation1]
             })
         )
@@ -254,7 +260,8 @@ final class BKTClientTests: XCTestCase {
 
     func testFlushFailure() {
         let expectation = self.expectation(description: "")
-        expectation.expectedFulfillmentCount = 4
+        expectation.expectedFulfillmentCount = 5
+        expectation.assertForOverFulfill = true
         let dataModule = MockDataModule(
             userHolder: .init(user: .mock1),
             apiClient: MockApiClient(registerEventsHandler: { events, handler in
@@ -264,9 +271,10 @@ final class BKTClientTests: XCTestCase {
             }),
             eventDao: MockEventDao(getEventsHandler: {
                 defer {
-                    // It will call 2 times.
-                    // 1 for prepare for flushing
-                    // 2 for checking duplicate
+                    // It will call 3 times.
+                    // 1- for prepare for flushing
+                    // 2- for checking duplicate
+                    // 3- for prepare send update to the listener
                     expectation.fulfill()
                 }
                 return [.mockGoal1, .mockEvaluation1]

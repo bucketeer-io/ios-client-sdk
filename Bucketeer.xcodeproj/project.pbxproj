@@ -121,6 +121,7 @@
 		93AC8F8028E351C500A4719B /* ScheduledTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93AC8F7F28E351C500A4719B /* ScheduledTask.swift */; };
 		941E007E2A4FD964002CBFBB /* BKTConfigTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 941E007D2A4FD964002CBFBB /* BKTConfigTests.swift */; };
 		949542E42A3AEBC0008D0C60 /* MetricsEventUniqueKeyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 949542E32A3AEBC0008D0C60 /* MetricsEventUniqueKeyTests.swift */; };
+		94E130F22A8DD07700120F84 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E130F12A8DD07700120F84 /* Logger.swift */; };
 		E2BE019D2A531C120040F40F /* BKTUserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2BE019C2A531C120040F40F /* BKTUserTests.swift */; };
 		EB2310E2209D91640023A98D /* SecondViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB2310E1209D91640023A98D /* SecondViewController.swift */; };
 		EB2310E4209D92570023A98D /* ThirdViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB2310E3209D92570023A98D /* ThirdViewController.swift */; };
@@ -288,6 +289,7 @@
 		93AC8F7F28E351C500A4719B /* ScheduledTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduledTask.swift; sourceTree = "<group>"; };
 		941E007D2A4FD964002CBFBB /* BKTConfigTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BKTConfigTests.swift; sourceTree = "<group>"; };
 		949542E32A3AEBC0008D0C60 /* MetricsEventUniqueKeyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricsEventUniqueKeyTests.swift; sourceTree = "<group>"; };
+		94E130F12A8DD07700120F84 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		E2BE019C2A531C120040F40F /* BKTUserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BKTUserTests.swift; sourceTree = "<group>"; };
 		EB2310E1209D91640023A98D /* SecondViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecondViewController.swift; sourceTree = "<group>"; };
 		EB2310E3209D92570023A98D /* ThirdViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThirdViewController.swift; sourceTree = "<group>"; };
@@ -681,6 +683,7 @@
 				EB2310E1209D91640023A98D /* SecondViewController.swift */,
 				EB26128C209863F100D62282 /* SplashViewController.swift */,
 				EB2310E3209D92570023A98D /* ThirdViewController.swift */,
+				94E130F12A8DD07700120F84 /* Logger.swift */,
 			);
 			path = Example;
 			sourceTree = "<group>";
@@ -1037,6 +1040,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				EB7867F9209722050071D524 /* AppDelegate.swift in Sources */,
+				94E130F22A8DD07700120F84 /* Logger.swift in Sources */,
 				EB7867FB209722050071D524 /* FirstViewController.swift in Sources */,
 				EB2310E2209D91640023A98D /* SecondViewController.swift in Sources */,
 				EB26128D209863F100D62282 /* SplashViewController.swift in Sources */,

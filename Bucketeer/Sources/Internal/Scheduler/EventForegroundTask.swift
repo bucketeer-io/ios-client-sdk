@@ -18,7 +18,9 @@ final class EventForegroundTask {
             queue: queue,
             logger: component.config.logger,
             handler: { [weak self] _ in
-                self?.component?.eventInteractor.sendEvents(force: true, completion: nil)
+                self?.queue.async {
+                    self?.component?.eventInteractor.sendEvents(force: true, completion: nil)
+                }
             }
         )
         poller?.start()
@@ -40,11 +42,13 @@ extension EventForegroundTask: ScheduledTask {
 
 extension EventForegroundTask: EventUpdateListener {
     func onUpdate(events: [Event]) {
-        component?.eventInteractor.sendEvents(force: false) { [weak self] result in
-            guard case .success(let success) = result, success else {
-                return
+        queue.async { [weak self] in
+            self?.component?.eventInteractor.sendEvents(force: false) { result in
+                guard case .success(let success) = result, success else {
+                    return
+                }
+                self?.reschedule()
             }
-            self?.reschedule()
         }
     }
 }

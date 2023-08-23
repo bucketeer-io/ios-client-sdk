@@ -64,19 +64,19 @@ class ApiClientTests: XCTestCase {
         api.getEvaluations(
             user: .mock1,
             userEvaluationsId: userEvaluationsId) { result in
-                switch result {
-                case .success(let response):
-                    XCTAssertEqual(response.evaluations.evaluations, evaluations)
-                    XCTAssertEqual(response.evaluations.id, userEvaluationsId)
-                    XCTAssertEqual(response.userEvaluationsId, userEvaluationsId)
-                    XCTAssertNotEqual(response.seconds, 0)
-                    XCTAssertNotEqual(response.sizeByte, 0)
-                    XCTAssertEqual(response.featureTag, "tag1")
-                case .failure(let error, _):
-                    XCTFail("\(error)")
-                }
-                expectation.fulfill()
+            switch result {
+            case .success(let response):
+                XCTAssertEqual(response.evaluations.evaluations, evaluations)
+                XCTAssertEqual(response.evaluations.id, userEvaluationsId)
+                XCTAssertEqual(response.userEvaluationsId, userEvaluationsId)
+                XCTAssertNotEqual(response.seconds, 0)
+                XCTAssertNotEqual(response.sizeByte, 0)
+                XCTAssertEqual(response.featureTag, "tag1")
+            case .failure(let error, _):
+                XCTFail("\(error)")
             }
+            expectation.fulfill()
+        }
         wait(for: [expectation], timeout: 1)
     }
 
@@ -130,15 +130,15 @@ class ApiClientTests: XCTestCase {
         api.getEvaluations(
             user: .mock1,
             userEvaluationsId: userEvaluationsId) { result in
-                switch result {
-                case .success:
-                    XCTFail()
-                case .failure(let error, let featureTag):
-                    XCTAssertEqual(error, .badRequest(message: "invalid parameter"))
-                    XCTAssertEqual(featureTag, "tag1")
-                }
-                expectation.fulfill()
+            switch result {
+            case .success:
+                XCTFail()
+            case .failure(let error, let featureTag):
+                XCTAssertEqual(error, .badRequest(message: "invalid parameter"))
+                XCTAssertEqual(featureTag, "tag1")
             }
+            expectation.fulfill()
+        }
         wait(for: [expectation], timeout: 1)
     }
 
@@ -434,14 +434,14 @@ class ApiClientTests: XCTestCase {
             requestBody: mockRequestBody,
             path: path,
             timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
-                switch result {
-                case .success((let response, _)):
-                    XCTAssertEqual(response, mockResponse)
-                case .failure(let error):
-                    XCTFail("\(error)")
-                }
-                expectation.fulfill()
+            switch result {
+            case .success((let response, _)):
+                XCTAssertEqual(response, mockResponse)
+            case .failure(let error):
+                XCTFail("\(error)")
             }
+            expectation.fulfill()
+        }
         wait(for: [expectation], timeout: 1)
     }
 
@@ -496,14 +496,14 @@ class ApiClientTests: XCTestCase {
             requestBody: mockRequestBody,
             path: path,
             timeoutMillis: 200) { (result: Result<(MockResponse, URLResponse), Error>) in
-                switch result {
-                case .success((let response, _)):
-                    XCTAssertEqual(response, mockResponse)
-                case .failure(let error):
-                    XCTFail("\(error)")
-                }
-                expectation.fulfill()
+            switch result {
+            case .success((let response, _)):
+                XCTAssertEqual(response, mockResponse)
+            case .failure(let error):
+                XCTFail("\(error)")
             }
+            expectation.fulfill()
+        }
         wait(for: [expectation], timeout: 1)
     }
 
@@ -557,14 +557,14 @@ class ApiClientTests: XCTestCase {
             requestBody: mockRequestBody,
             path: path,
             timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
-                switch result {
-                case .success((let response, _)):
-                    XCTAssertEqual(response, mockResponse)
-                case .failure(let error):
-                    XCTFail("\(error)")
-                }
-                expectation.fulfill()
+            switch result {
+            case .success((let response, _)):
+                XCTAssertEqual(response, mockResponse)
+            case .failure(let error):
+                XCTFail("\(error)")
             }
+            expectation.fulfill()
+        }
         wait(for: [expectation], timeout: 1)
     }
 
@@ -610,20 +610,20 @@ class ApiClientTests: XCTestCase {
             requestBody: mockRequestBody,
             path: path,
             timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
-                switch result {
-                case .success:
+            switch result {
+            case .success:
+                XCTFail()
+            case .failure(let error):
+                guard
+                    let error = error as? ResponseError,
+                    case .unknown(let urlResponse) = error else {
                     XCTFail()
-                case .failure(let error):
-                    guard
-                        let error = error as? ResponseError,
-                        case .unknown(let urlResponse) = error else {
-                        XCTFail()
-                        return
-                    }
-                    XCTAssertNil(urlResponse)
+                    return
                 }
-                expectation.fulfill()
+                XCTAssertNil(urlResponse)
             }
+            expectation.fulfill()
+        }
         wait(for: [expectation], timeout: 1)
     }
 
@@ -669,18 +669,18 @@ class ApiClientTests: XCTestCase {
             requestBody: mockRequestBody,
             path: path,
             timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
-                switch result {
-                case .success:
+            switch result {
+            case .success:
+                XCTFail()
+            case .failure(let error):
+                guard let error = error as? SomeError else {
                     XCTFail()
-                case .failure(let error):
-                    guard let error = error as? SomeError else {
-                        XCTFail()
-                        return
-                    }
-                    XCTAssertEqual(error, .failed)
+                    return
                 }
-                expectation.fulfill()
+                XCTAssertEqual(error, .failed)
             }
+            expectation.fulfill()
+        }
         wait(for: [expectation], timeout: 1)
     }
 
@@ -728,20 +728,20 @@ class ApiClientTests: XCTestCase {
             requestBody: mockRequestBody,
             path: path,
             timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
-                switch result {
-                case .success:
+            switch result {
+            case .success:
+                XCTFail()
+            case .failure(let error):
+                guard
+                    let error = error as? ResponseError,
+                    case .unknown(let urlResponse) = error else {
                     XCTFail()
-                case .failure(let error):
-                    guard
-                        let error = error as? ResponseError,
-                        case .unknown(let urlResponse) = error else {
-                        XCTFail()
-                        return
-                    }
-                    XCTAssertNil(urlResponse)
+                    return
                 }
-                expectation.fulfill()
+                XCTAssertNil(urlResponse)
             }
+            expectation.fulfill()
+        }
         wait(for: [expectation], timeout: 1)
     }
 
@@ -793,20 +793,20 @@ class ApiClientTests: XCTestCase {
             requestBody: mockRequestBody,
             path: path,
             timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
-                switch result {
-                case .success:
+            switch result {
+            case .success:
+                XCTFail()
+            case .failure(let error):
+                guard
+                    let error = error as? DecodingError,
+                    case .keyNotFound(let codingKey, _) = error else {
                     XCTFail()
-                case .failure(let error):
-                    guard
-                        let error = error as? DecodingError,
-                        case .keyNotFound(let codingKey, _) = error else {
-                        XCTFail()
-                        return
-                    }
-                    XCTAssertEqual(codingKey.stringValue, "error")
+                    return
                 }
-                expectation.fulfill()
+                XCTAssertEqual(codingKey.stringValue, "error")
             }
+            expectation.fulfill()
+        }
         wait(for: [expectation], timeout: 1)
     }
 
@@ -837,20 +837,164 @@ class ApiClientTests: XCTestCase {
             requestBody: mockRequestBody,
             path: path,
             timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
-                switch result {
-                case .success:
+            switch result {
+            case .success:
+                XCTFail()
+            case .failure(let error):
+                guard let error = error as? SomeError else {
                     XCTFail()
-                case .failure(let error):
-                    guard let error = error as? SomeError else {
-                        XCTFail()
-                        return
-                    }
-                    XCTAssertEqual(error, .failed)
+                    return
                 }
-                expectation.fulfill()
+                XCTAssertEqual(error, .failed)
             }
+            expectation.fulfill()
+        }
         wait(for: [expectation], timeout: 1)
     }
+
+    func testRequestShouldRunSynchronized() throws {
+        let expectation = XCTestExpectation()
+        expectation.expectedFulfillmentCount = 6
+        expectation.assertForOverFulfill = true
+        let mockRequestBody = MockRequestBody()
+        let mockResponse = MockResponse()
+        let data = try JSONEncoder().encode(mockResponse)
+        let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
+        let path = "path"
+        let apiKey = "x:api-key"
+        var requestId = 0
+        var requestCounter = 0
+        let session = MockSession(
+            configuration: .default,
+            requestHandler: { request in
+                XCTAssertEqual(request.httpMethod, "POST")
+                XCTAssertEqual(request.url?.host, apiEndpointURL.host)
+                XCTAssertEqual(request.url?.path, "/\(path)")
+                XCTAssertEqual(request.allHTTPHeaderFields?["Authorization"], apiKey)
+                XCTAssertEqual(request.timeoutInterval, 30)
+                let data = request.httpBody ?? Data()
+                let jsonString = String(data: data, encoding: .utf8) ?? ""
+                let expected = """
+{
+  "value" : "body"
 }
+"""
+                XCTAssertEqual(jsonString, expected)
+                requestCounter+=1
+                // Requests should come in the correct order like below
+                switch requestCounter {
+                case 1 :
+                    XCTAssertEqual(requestId, 1)
+                    expectation.fulfill()
+
+                case 2 :
+                    XCTAssertEqual(requestId, 2)
+                    expectation.fulfill()
+
+                case 3 :
+                    XCTAssertEqual(requestId, 3)
+                    expectation.fulfill()
+
+                default : XCTFail()
+                }
+            },
+            data: data,
+            response: HTTPURLResponse(
+                url: apiEndpointURL.appendingPathComponent(path),
+                statusCode: 200,
+                httpVersion: nil,
+                headerFields: nil
+            ),
+            error: nil
+        )
+        let api = ApiClientImpl(
+            apiEndpoint: apiEndpointURL,
+            apiKey: apiKey,
+            featureTag: "tag1",
+            session: session,
+            logger: MockLogger()
+        )
+
+        requestId = 1
+        // The 1st request
+        api.send(
+            requestBody: mockRequestBody,
+            path: path,
+            timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
+            switch result {
+            case .success((let response, _)):
+                XCTAssertEqual(response, mockResponse)
+            case .failure(let error):
+                XCTFail("\(error)")
+            }
+            XCTAssertEqual(requestId, 1, "The current request_id should equal 1")
+            expectation.fulfill()
+
+            requestId = 2
+            // The 2nd request
+            api.send(
+                requestBody: mockRequestBody,
+                path: path,
+                timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
+                switch result {
+                case .success((let response, _)):
+                    XCTAssertEqual(response, mockResponse)
+                case .failure(let error):
+                    XCTFail("\(error)")
+                }
+                XCTAssertEqual(requestId, 2, "The current request_id should equal 2")
+                expectation.fulfill()
+            }
+            }
+        requestId = 3
+        // The 3rd request
+        api.send(
+            requestBody: mockRequestBody,
+            path: path,
+            timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
+            switch result {
+            case .success((let response, _)):
+                XCTAssertEqual(response, mockResponse)
+            case .failure(let error):
+                XCTFail("\(error)")
+            }
+            XCTAssertEqual(requestId, 3, "The current request_id should equal 3")
+            expectation.fulfill()
+        }
+        wait(for: [expectation], timeout: 1)
+    }
+
+    // Related to testRequestShouldRunSynchronized
+    func testSemaphoreOverSignalShouldNotCauseProblem() throws {
+        let expectation = XCTestExpectation()
+        expectation.assertForOverFulfill = true
+        expectation.expectedFulfillmentCount = 1
+        // Simulate the SDK queue
+        let threadQueue = DispatchQueue(label: "threads")
+        let semaphore = DispatchSemaphore(value: 1)
+        var count = 0
+        threadQueue.async {
+            for i in 1...3 {
+                semaphore.wait()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+                    count+=i
+                    print(count)
+                    semaphore.signal()
+                }
+            }
+            semaphore.signal()
+            semaphore.signal()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                semaphore.signal()
+                semaphore.signal()
+                semaphore.signal()
+                semaphore.signal()
+                expectation.fulfill()
+            }
+        }
+        wait(for: [expectation], timeout: 5)
+    }
+}
+
 // swiftlint:enable type_body_length
 // swiftlint:enable file_length

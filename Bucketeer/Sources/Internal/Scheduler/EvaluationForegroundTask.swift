@@ -28,7 +28,9 @@ final class EvaluationForegroundTask: ScheduledTask {
             queue: queue,
             logger: component.config.logger,
             handler: { [weak self] _ in
-                self?.fetchEvaluations()
+                self?.queue.async {
+                    self?.fetchEvaluations()
+                }
             }
         )
         poller?.start()
