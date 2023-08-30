@@ -1,7 +1,7 @@
 import Foundation
 
 final class EvaluationForegroundTask: ScheduledTask {
-    private weak var component: Component?
+    private let component: Component
     private let queue: DispatchQueue
     private var poller: Poller?
     private var retryPollingInterval: Int64
@@ -20,11 +20,10 @@ final class EvaluationForegroundTask: ScheduledTask {
         self.maxRetryCount = maxRetryCount
     }
 
-    private func reschedule(isRetrying: Bool) {
+    private func reschedule(interval: Int64) {
         self.stop()
-        guard let component = component else { return }
         self.poller = .init(
-            intervalMillis: isRetrying ? retryPollingInterval : component.config.pollingInterval,
+            intervalMillis: interval,
             queue: queue,
             logger: component.config.logger,
             handler: { [weak self] _ in
@@ -37,7 +36,7 @@ final class EvaluationForegroundTask: ScheduledTask {
     }
 
     func start() {
-        reschedule(isRetrying: false)
+        reschedule(interval: self.component.config.pollingInterval)
     }
 
     func stop() {
@@ -46,7 +45,6 @@ final class EvaluationForegroundTask: ScheduledTask {
     }
 
     private func fetchEvaluations() {
-        guard let component = component else { return }
         let eventInteractor = component.eventInteractor
         let retryCount = self.retryCount
         let maxRetryCount = self.maxRetryCount
@@ -61,8 +59,11 @@ final class EvaluationForegroundTask: ScheduledTask {
                         seconds: response.seconds,
                         sizeByte: response.sizeByte
                     )
-                    // reset retry count
-                    self?.retryCount = 0
+                    // reset the scheduler to use the default polling interval configured in the BKTConfig
+                    if (retryCount > 0) {
+                        self?.retryCount = 0
+                        self?.reschedule(interval: pollingInterval)
+                    }
 
                 case .failure(let error, let featureTag):
                     try eventInteractor.trackFetchEvaluationsFailure(
@@ -79,16 +80,19 @@ final class EvaluationForegroundTask: ScheduledTask {
                         // we can retry more
                         self?.retryCount += 1
                         if !retried {
-                            self?.reschedule(isRetrying: true)
+                            // we reschedule just once and wait until it reaches
+                            // the max retrying count or succeeds to reschedule it again
+                            // to use the default polling interval configured in the BKTConfig
+                            self?.reschedule(interval: retryPollingInterval)
                         }
                     } else {
                         // we already retried enough, let's get back to daily job
                         self?.retryCount = 0
-                        self?.reschedule(isRetrying: false)
+                        self?.reschedule(interval: pollingInterval)
                     }
                 }
             } catch let error {
-                self?.component?.config.logger?.error(error)
+                self?.component.config.logger?.error(error)
             }
         }
     }
