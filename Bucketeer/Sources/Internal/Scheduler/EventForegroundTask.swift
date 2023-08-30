@@ -23,7 +23,7 @@ final class EventForegroundTask {
                 }
             }
         )
-        poller?.start()
+        poller?.start(afterMiliseconds: 0)
     }
 }
 

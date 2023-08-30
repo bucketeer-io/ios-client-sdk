@@ -18,13 +18,13 @@ final class Poller {
         self.logger = logger
     }
 
-    func start() {
+    func start(afterMiliseconds: Int64? = nil) {
         if isStarted {
             logger?.debug(message: "reset poller")
             stop()
         }
         let timer = DispatchSource.makeTimerSource(queue: self.queue)
-        timer.schedule(deadline: .now() + .milliseconds(Int(intervalMillis)), repeating: .milliseconds(Int(intervalMillis)))
+        timer.schedule(deadline: .now() + .milliseconds(Int(afterMiliseconds ?? intervalMillis)), repeating: .milliseconds(Int(intervalMillis)))
         timer.setEventHandler(handler: { [weak self] in
             guard let `self` = self else { return }
             self.handler(self)

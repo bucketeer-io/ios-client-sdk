@@ -23,7 +23,7 @@ class PollerTests: XCTestCase {
             expectation.fulfill()
             count += 1
         }
-        poller.start()
+        poller.start(afterMiliseconds: 0)
         wait(for: [expectation], timeout: 1)
     }
 
@@ -42,7 +42,7 @@ class PollerTests: XCTestCase {
             XCTAssert(!Thread.isMainThread)
             if count == 0 {
                 XCTAssertEqual(logger?.debugMessage, nil)
-                poller.start() // duplicate started
+                poller.start(afterMiliseconds: 0) // duplicate started
             } else if count == 1 {
                 XCTAssertEqual(logger?.debugMessage, "reset poller")
             } else {
@@ -52,7 +52,7 @@ class PollerTests: XCTestCase {
             count += 1
             expectation.fulfill()
         }
-        poller.start()
+        poller.start(afterMiliseconds: 0)
         wait(for: [expectation], timeout: 1)
     }
 
@@ -69,7 +69,7 @@ class PollerTests: XCTestCase {
         ) { _ in
             expectation.fulfill()
         }
-        poller.start()
+        poller.start(afterMiliseconds: 0)
         poller.stop()
         wait(for: [expectation], timeout: 1)
     }

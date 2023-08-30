@@ -33,7 +33,7 @@ final class EvaluationForegroundTask: ScheduledTask {
                 }
             }
         )
-        poller?.start()
+        poller?.start(afterMiliseconds: 0)
     }
 
     func start() {
