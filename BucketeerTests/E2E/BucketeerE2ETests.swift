@@ -73,9 +73,9 @@ final class BucketeerE2ETests: XCTestCase {
             let actual = client.evaluationDetails(featureId: FEATURE_ID_INT)
 
             assertEvaluation(actual: actual, expected: .init(
-                id: "feature-ios-e2e-integer:3:bucketeer-ios-user-id-1",
+                id: "feature-ios-e2e-integer:4:bucketeer-ios-user-id-1",
                 featureId: FEATURE_ID_INT,
-                featureVersion: 3,
+                featureVersion: 4,
                 variationId: "9c5fd2d2-d587-4ba2-8de2-0fc9454d564e",
                 variationName: "variation 10",
                 variationValue: "10",
