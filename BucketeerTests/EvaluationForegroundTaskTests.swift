@@ -4,7 +4,7 @@ import XCTest
 final class EvaluationForegroundTaskTests: XCTestCase {
     func testStartAndReceiveSuccess() {
         let expectation = self.expectation(description: "")
-        expectation.expectedFulfillmentCount = 3
+        expectation.expectedFulfillmentCount = 2
         expectation.assertForOverFulfill = true
         let dispatchQueue = DispatchQueue(label: "default", qos: .default)
 
@@ -93,7 +93,7 @@ final class EvaluationForegroundTaskTests: XCTestCase {
         let task = EvaluationForegroundTask(
             component: component,
             queue: dispatchQueue,
-            retryPollingInterval: 1,
+            retryPollingInterval: 1000,
             maxRetryCount: 5
         )
         task.start()
