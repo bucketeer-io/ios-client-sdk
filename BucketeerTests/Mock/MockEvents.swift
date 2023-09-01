@@ -290,7 +290,7 @@ extension Event {
             timestamp: 1,
             event: .timeoutError(.init(
                 apiId: .getEvaluations,
-                labels: ["tag": "featureTag1"]
+                labels: ["tag": "featureTag1", "timeout": "2.0"]
             )),
             type: .timeoutError,
             sourceId: .ios,

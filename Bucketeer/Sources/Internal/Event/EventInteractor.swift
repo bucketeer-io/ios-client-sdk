@@ -178,11 +178,17 @@ final class EventInteractorImpl: EventInteractor {
     }
 
     func trackFetchEvaluationsFailure(featureTag: String, error: BKTError) throws {
-        let metrics = metricsEvent(apiId: .getEvaluations, labels: ["tag": featureTag], error: error)
+        let eventData = error.toMetricsEventData(
+            apiId: .getEvaluations,
+            labels: ["tag": featureTag],
+            currentTimeSeconds: clock.currentTimeSeconds,
+            sdkVersion: sdkVersion,
+            metadata: metadata
+        )
         try trackMetricsEvent(events: [
             .init(
                 id: idGenerator.id(),
-                event: metrics,
+                event: eventData,
                 type: .metrics
             )
         ])
@@ -190,11 +196,17 @@ final class EventInteractorImpl: EventInteractor {
 
     func trackRegisterEventsFailure(error: BKTError) throws {
         // note: using the same tag in BKConfig.featureTag
-        let metrics = metricsEvent(apiId: .registerEvents, labels: ["tag": featureTag], error: error)
+        let eventData = error.toMetricsEventData(
+            apiId: .registerEvents,
+            labels: ["tag": featureTag],
+            currentTimeSeconds: clock.currentTimeSeconds,
+            sdkVersion: sdkVersion,
+            metadata: metadata
+        )
         try trackMetricsEvent(events: [
             .init(
                 id: idGenerator.id(),
-                event: metrics,
+                event: eventData,
                 type: .metrics
             )
         ])
@@ -271,54 +283,6 @@ final class EventInteractorImpl: EventInteractor {
         }
     }
 
-    private func metricsEvent(apiId: ApiId, labels: [String: String], error: BKTError) -> EventData {
-        let metricsEventData: MetricsEventData
-        let metricsEventType: MetricsEventType
-        switch error {
-        case .timeout:
-            metricsEventData = .timeoutError(.init(apiId: apiId, labels: labels))
-            metricsEventType = .timeoutError
-        case .network:
-            metricsEventData = .networkError(.init(apiId: apiId, labels: labels))
-            metricsEventType = .networkError
-        case .badRequest:
-            metricsEventData = .badRequestError(.init(apiId: apiId, labels: labels))
-            metricsEventType = .badRequestError
-        case .unauthorized:
-            metricsEventData = .unauthorizedError(.init(apiId: apiId, labels: labels))
-            metricsEventType = .unauthorizedError
-        case .forbidden:
-            metricsEventData = .forbiddenError(.init(apiId: apiId, labels: labels))
-            metricsEventType = .forbiddenError
-        case .notFound:
-            metricsEventData = .notFoundError(.init(apiId: apiId, labels: labels))
-            metricsEventType = .notFoundError
-        case .clientClosed:
-            metricsEventData = .clientClosedError(.init(apiId: apiId, labels: labels))
-            metricsEventType = .clientClosedError
-        case .unavailable:
-            metricsEventData = .unavailableError(.init(apiId: apiId, labels: labels))
-            metricsEventType = .unavailableError
-        case .apiServer:
-            metricsEventData = .internalServerError(.init(apiId: apiId, labels: labels))
-            metricsEventType = .internalServerError
-        case .unknownServer:
-            metricsEventData = .unknownError(.init(apiId: apiId, labels: labels))
-            metricsEventType = .unknownError
-        default:
-            metricsEventData = .internalSdkError(.init(apiId: apiId, labels: labels))
-            metricsEventType = .internalError
-        }
-        return .metrics(.init(
-            timestamp: clock.currentTimeSeconds,
-            event: metricsEventData,
-            type: metricsEventType,
-            sourceId: .ios,
-            sdk_version: sdkVersion,
-            metadata: metadata
-        ))
-    }
-
     private func updateEventsAndNotify() {
         do {
             let events = try eventDao.getEvents()
@@ -367,5 +331,68 @@ extension Event {
             }
         default: return id
         }
+    }
+}
+
+extension BKTError {
+    func toMetricsEventData(apiId: ApiId, labels: [String: String], currentTimeSeconds: Int64, sdkVersion: String, metadata: [String: String]?) ->
+    EventData {
+        let error = self
+        let metricsEventData: MetricsEventData
+        let metricsEventType: MetricsEventType
+        switch error {
+        case .timeout(_, _, let timeoutMillis):
+            // https://github.com/bucketeer-io/ios-client-sdk/issues/16
+            // Pass the current timeout setting in seconds via labels.
+            let timeoutSecs : Double = Double(timeoutMillis)/1000
+            metricsEventData = .timeoutError(
+                .init(
+                    apiId: apiId,
+                    labels: labels.merging(
+                        ["timeout":"\(timeoutSecs)"]
+                        , uniquingKeysWith: { (first, _) in first }
+                    )
+                )
+            )
+            metricsEventType = .timeoutError
+        case .network:
+            metricsEventData = .networkError(.init(apiId: apiId, labels: labels))
+            metricsEventType = .networkError
+        case .badRequest:
+            metricsEventData = .badRequestError(.init(apiId: apiId, labels: labels))
+            metricsEventType = .badRequestError
+        case .unauthorized:
+            metricsEventData = .unauthorizedError(.init(apiId: apiId, labels: labels))
+            metricsEventType = .unauthorizedError
+        case .forbidden:
+            metricsEventData = .forbiddenError(.init(apiId: apiId, labels: labels))
+            metricsEventType = .forbiddenError
+        case .notFound:
+            metricsEventData = .notFoundError(.init(apiId: apiId, labels: labels))
+            metricsEventType = .notFoundError
+        case .clientClosed:
+            metricsEventData = .clientClosedError(.init(apiId: apiId, labels: labels))
+            metricsEventType = .clientClosedError
+        case .unavailable:
+            metricsEventData = .unavailableError(.init(apiId: apiId, labels: labels))
+            metricsEventType = .unavailableError
+        case .apiServer:
+            metricsEventData = .internalServerError(.init(apiId: apiId, labels: labels))
+            metricsEventType = .internalServerError
+        case .illegalArgument, .illegalState:
+            metricsEventData = .internalSdkError(.init(apiId: apiId, labels: labels))
+            metricsEventType = .internalError
+        case .unknownServer, .unknown:
+            metricsEventData = .unknownError(.init(apiId: apiId, labels: labels))
+            metricsEventType = .unknownError
+        }
+        return .metrics(.init(
+            timestamp: currentTimeSeconds,
+            event: metricsEventData,
+            type: metricsEventType,
+            sourceId: .ios,
+            sdk_version: sdkVersion,
+            metadata: metadata
+        ))
     }
 }

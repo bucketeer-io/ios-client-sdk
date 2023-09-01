@@ -10,7 +10,7 @@ public enum BKTError: Error, Equatable {
     case apiServer(message: String)
 
     // network errors
-    case timeout(message: String, error: Error)
+    case timeout(message: String, error: Error, timeoutMillis: Int64)
     case network(message: String, error: Error)
 
     // sdk errors
@@ -33,8 +33,9 @@ public enum BKTError: Error, Equatable {
              (.illegalArgument(let m1), .illegalArgument(let m2)),
              (.illegalState(let m1), .illegalState(let m2)):
             return m1 == m2
-        case (.timeout(let m1, _), .timeout(let m2, _)),
-             (.network(let m1, _), .network(let m2, _)),
+        case (.timeout(let m1, _, let t1), .timeout(let m2, _, let t2)):
+            return t1 == t2 && m1 == m2
+        case (.network(let m1, _), .network(let m2, _)),
              (.unknownServer(let m1, _), .unknownServer(let m2, _)),
              (.unknown(let m1, _), .unknown(let m2, _)):
             return m1 == m2
@@ -45,6 +46,7 @@ public enum BKTError: Error, Equatable {
 }
 
 extension BKTError : LocalizedError {
+
     internal init(error: Error) {
         if let bktError = error as? BKTError {
             self = bktError
@@ -87,9 +89,15 @@ extension BKTError : LocalizedError {
         }
 
         let nsError = error as NSError
-        if nsError.domain == NSURLErrorDomain,
-           nsError.code == NSURLErrorTimedOut {
-            self = .timeout(message: "Request timeout error: \(error)", error: error)
+        if nsError.domain == NSURLErrorDomain {
+            let nsErrorCode = nsError.code
+            if BKTError.networkErrorCodes.contains(nsErrorCode) {
+                self = .network(message: "Network connection error: \(error)", error: error)
+            } else if nsErrorCode == NSURLErrorTimedOut {
+                self = .timeout(message: "Request timeout error: \(error)", error: error, timeoutMillis: 0)
+            } else {
+                self = .unknown(message: "Unknown error: \(error)", error: error)
+            }
         } else {
             self = .unknown(message: "Unknown error: \(error)", error: error)
         }
@@ -113,7 +121,7 @@ extension BKTError : LocalizedError {
             return message
         case .apiServer(message: let message):
             return message
-        case .timeout(message: let message, _):
+        case .timeout(message: let message, _, _):
             return message
         case .network(message: let message, _):
             return message
@@ -143,7 +151,7 @@ extension BKTError : LocalizedError {
              .illegalState:
             return nil
 
-        case .timeout(message: _, error: let error):
+        case .timeout(message: _, error: let error, _):
             // note: create description for unknown error type
             return "\(error)"
 
@@ -157,4 +165,36 @@ extension BKTError : LocalizedError {
             return "\(error)"
         }
     }
+}
+
+extension BKTError {
+    // full list of NSURLError  https://developer.apple.com/documentation/foundation/nserror/1448136-nserror_codes#3139076
+    static let networkErrorCodes = [
+        NSURLErrorBadURL,
+        NSURLErrorUnsupportedURL,
+        NSURLErrorNotConnectedToInternet,
+        NSURLErrorNetworkConnectionLost,
+        NSURLErrorCannotFindHost,
+        NSURLErrorCannotConnectToHost,
+        NSURLErrorDNSLookupFailed,
+        // Router, gateway error
+        NSURLErrorHTTPTooManyRedirects,
+        NSURLErrorRedirectToNonExistentLocation,
+        // SSL error
+        NSURLErrorAppTransportSecurityRequiresSecureConnection,
+        NSURLErrorSecureConnectionFailed,
+        NSURLErrorServerCertificateHasBadDate,
+        NSURLErrorServerCertificateUntrusted,
+        NSURLErrorServerCertificateHasUnknownRoot,
+        NSURLErrorServerCertificateNotYetValid,
+        NSURLErrorClientCertificateRejected,
+        NSURLErrorClientCertificateRequired,
+        // Data network errors 3G,4G...
+        NSURLErrorResourceUnavailable,
+        NSURLErrorCannotLoadFromNetwork,
+        NSURLErrorInternationalRoamingOff,
+        NSURLErrorCallIsActive,
+        NSURLErrorDataNotAllowed,
+        NSURLErrorRequestBodyStreamExhausted
+    ]
 }
