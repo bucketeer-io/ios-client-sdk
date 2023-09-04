@@ -45,11 +45,12 @@ final class ApiClientImpl: ApiClient {
             sourceId: .ios
         )
         let featureTag = self.featureTag
+        let timeoutMillisValue = timeoutMillis ?? defaultRequestTimeoutMills
         logger?.debug(message: "[API] Fetch Evaluation: \(requestBody)")
         send(
             requestBody: requestBody,
             path: "get_evaluations",
-            timeoutMillis: timeoutMillis ?? defaultRequestTimeoutMills,
+            timeoutMillis: timeoutMillisValue,
             completion: { (result: Result<(GetEvaluationsResponse, URLResponse), Error>) in
                 switch result {
                 case .success((var response, let urlResponse)):
@@ -61,7 +62,7 @@ final class ApiClientImpl: ApiClient {
                     response.featureTag = featureTag
                     completion?(.success(response))
                 case .failure(let error):
-                    completion?(.failure(error: .init(error: error), featureTag: featureTag))
+                    completion?(.failure(error: .init(error: error).copyWith(timeoutMillis: timeoutMillisValue), featureTag: featureTag))
                 }
             }
         )
@@ -212,5 +213,16 @@ fileprivate extension UnixTimestamp {
     /// Unix timestamp to date.
     var date: Date {
         return Date(timeIntervalSince1970: TimeInterval(self / 1_000)) // must take a millisecond-precise Unix timestamp
+    }
+}
+
+extension BKTError {
+    func copyWith(timeoutMillis: Int64) -> BKTError {
+        switch self {
+        case .timeout(let m, let e, _):
+            return .timeout(message: m, error: e, timeoutMillis: timeoutMillis)
+        default:
+            return self
+        }
     }
 }

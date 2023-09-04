@@ -184,13 +184,14 @@ final class BKTClientTests: XCTestCase {
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = 3
         var count = 0
+        let expectedTimeoutMillis: Int64 = 3500
         let dataModule = MockDataModule(
             userHolder: .init(user: .mock1),
             apiClient: MockApiClient(getEvaluationsHandler: { (user, userEvaluationsId, timeoutMillis, handler) in
                 XCTAssertEqual(user, .mock1)
                 XCTAssertEqual(userEvaluationsId, "")
-                XCTAssertEqual(timeoutMillis, nil)
-                handler?(.failure(error: .timeout(message: "timeout", error: NSError()), featureTag: "feature"))
+                XCTAssertEqual(timeoutMillis, expectedTimeoutMillis)
+                handler?(.failure(error: .timeout(message: "timeout", error: NSError(), timeoutMillis: timeoutMillis ?? 0), featureTag: "feature"))
                 expectation.fulfill()
             }),
             eventDao: MockEventDao(addEventsHandler: { events in
@@ -199,7 +200,15 @@ final class BKTClientTests: XCTestCase {
                     id: "mock1",
                     event: .metrics(.init(
                         timestamp: 1,
-                        event: .timeoutError(.init(apiId: .getEvaluations, labels: ["tag": "feature"])),
+                        event: .timeoutError(
+                            .init(
+                                apiId: .getEvaluations,
+                                labels: [
+                                    "tag": "feature",
+                                    "timeout":"\(3.5)"
+                                ]
+                            )
+                        ),
                         type: .timeoutError,
                         sourceId: .ios,
                         sdk_version: "0.0.2",
@@ -222,8 +231,8 @@ final class BKTClientTests: XCTestCase {
             clock: MockClock(timestamp: 1)
         )
         let client = BKTClient(dataModule: dataModule, dispatchQueue: .global())
-        client.fetchEvaluations(timeoutMillis: nil) { error in
-            XCTAssertEqual(error, .timeout(message: "timeout", error: NSError()))
+        client.fetchEvaluations(timeoutMillis: expectedTimeoutMillis) { error in
+            XCTAssertEqual(error, .timeout(message: "timeout", error: NSError(), timeoutMillis: expectedTimeoutMillis))
             expectation.fulfill()
         }
         wait(for: [expectation], timeout: 0.1)

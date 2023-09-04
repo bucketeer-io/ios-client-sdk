@@ -222,7 +222,7 @@ final class EventInteractorTests: XCTestCase {
                     id: "id",
                     event: .metrics(.init(
                         timestamp: 1,
-                        event: .timeoutError(.init(apiId: .getEvaluations, labels: ["tag": "featureTag1"])),
+                        event: .timeoutError(.init(apiId: .getEvaluations, labels: ["tag": "featureTag1", "timeout": "3.0"])),
                         type: .timeoutError,
                         sourceId: .ios,
                         sdk_version: "0.0.2",
@@ -242,7 +242,7 @@ final class EventInteractorTests: XCTestCase {
         interactor.set(eventUpdateListener: listener)
         try interactor.trackFetchEvaluationsFailure(
             featureTag: "featureTag1",
-            error: .timeout(message: "timeout", error: SomeError.a)
+            error: .timeout(message: "timeout", error: SomeError.a, timeoutMillis: 3000)
         )
         wait(for: [expectation], timeout: 1)
     }
@@ -442,7 +442,7 @@ final class EventInteractorTests: XCTestCase {
         // Simulate track metrics events
         // Try continue send events but fail. Should tracked | id = 7
         let timeoutError = NSError(domain: NSURLErrorDomain, code: NSURLErrorTimedOut, userInfo: [:])
-        try interactor.trackFetchEvaluationsFailure(featureTag: "featureTag1", error: .timeout(message: "unknown", error: timeoutError))
+        try interactor.trackFetchEvaluationsFailure(featureTag: "featureTag1", error: .timeout(message: "unknown", error: timeoutError, timeoutMillis: 2000))
         // Try continue send events but fail. Should not track | id = 8
         try interactor.trackRegisterEventsFailure(error: .badRequest(message: "bad request"))
         storedEvents = try dao.getEvents()

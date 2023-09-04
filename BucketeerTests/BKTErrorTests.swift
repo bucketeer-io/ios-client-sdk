@@ -24,8 +24,8 @@ class BKTErrorTests: XCTestCase {
         assertEqual(.unavailable(message: "1"), .unavailable(message: "1"))
         assertEqual(.apiServer(message: "1"), .apiServer(message: "1"))
         assertEqual(
-            .timeout(message: "1", error: SomeError.a),
-            .timeout(message: "1", error: SomeError.a)
+            .timeout(message: "1", error: SomeError.a, timeoutMillis: 1000),
+            .timeout(message: "1", error: SomeError.a, timeoutMillis: 1000)
         )
         assertEqual(
             .network(message: "1", error: SomeError.a),
@@ -44,8 +44,8 @@ class BKTErrorTests: XCTestCase {
 
         // equal with diffrent error
         assertEqual(
-            .timeout(message: "1", error: SomeError.a),
-            .timeout(message: "1", error: SomeError.b)
+            .timeout(message: "1", error: SomeError.a, timeoutMillis: 1000),
+            .timeout(message: "1", error: SomeError.b, timeoutMillis: 1000)
         )
         assertEqual(
             .network(message: "1", error: SomeError.a),
@@ -69,8 +69,8 @@ class BKTErrorTests: XCTestCase {
         assertNotEqual(.unavailable(message: "1"), .unavailable(message: "2"))
         assertNotEqual(.apiServer(message: "1"), .apiServer(message: "2"))
         assertNotEqual(
-            .timeout(message: "1", error: SomeError.a),
-            .timeout(message: "2", error: SomeError.a)
+            .timeout(message: "1", error: SomeError.a, timeoutMillis: 1000),
+            .timeout(message: "2", error: SomeError.a, timeoutMillis: 1000)
         )
         assertNotEqual(
             .network(message: "1", error: SomeError.a),
@@ -151,8 +151,16 @@ class BKTErrorTests: XCTestCase {
         let timeoutError = NSError(domain: NSURLErrorDomain, code: NSURLErrorTimedOut, userInfo: [:])
         assertEqual(
             .init(error: timeoutError),
-            .timeout(message: "Request timeout error: \(timeoutError)", error: timeoutError)
+            .timeout(message: "Request timeout error: \(timeoutError)", error: timeoutError, timeoutMillis: 0)
         )
+
+        for networkErrorCode in BKTError.networkErrorCodes {
+            let networkError = NSError(domain: NSURLErrorDomain, code: networkErrorCode, userInfo: [:])
+            assertEqual(
+                .init(error: networkError),
+                .network(message: "Network connection error: \(networkError)", error: networkError)
+            )
+        }
 
         let unknownError = NSError(domain: "unknown", code: 3000, userInfo: [:])
         assertEqual(
@@ -160,4 +168,100 @@ class BKTErrorTests: XCTestCase {
             .unknown(message: "Unknown error: \(unknownError)", error: unknownError)
         )
     }
+
+    func testCopyWithCurrentTimeoutSetting() {
+        let timeoutMillis: Int64 = 5000
+        let errors : [BKTError] = [
+            .timeout(message: "message", error: BKTError.TestError.timeout, timeoutMillis: 0),
+            .network(message: "message", error: BKTError.TestError.network)
+        ]
+        let expected : [BKTError] = [
+            .timeout(message: "message", error: BKTError.TestError.timeout, timeoutMillis: timeoutMillis),
+            .network(message: "message", error: BKTError.TestError.network)
+        ]
+        let copyResults = errors.map { bktErr in
+            bktErr.copyWith(timeoutMillis: timeoutMillis)
+        }
+        XCTAssertEqual(copyResults, expected)
+    }
+
+    func testToMetricsEventData() {
+        for errorCase in BKTError.allCases {
+            let apiId : ApiId = .getEvaluations
+            let labels = ["key":"value"]
+            let eventData = errorCase.toMetricsEventData(apiId: .getEvaluations, labels: ["key":"value"], currentTimeSeconds: 1000, sdkVersion: "1.0.0", metadata: ["key_metadata":"data"])
+            let metricsEventData: MetricsEventData
+            let metricsEventType: MetricsEventType
+            switch errorCase {
+            case .timeout:
+                metricsEventData = .timeoutError(.init(apiId: apiId, labels: ["key":"value", "timeout": "4.5"]))
+                metricsEventType = .timeoutError
+            case .network:
+                metricsEventData = .networkError(.init(apiId: apiId, labels: labels))
+                metricsEventType = .networkError
+            case .badRequest:
+                metricsEventData = .badRequestError(.init(apiId: apiId, labels: labels))
+                metricsEventType = .badRequestError
+            case .unauthorized:
+                metricsEventData = .unauthorizedError(.init(apiId: apiId, labels: labels))
+                metricsEventType = .unauthorizedError
+            case .forbidden:
+                metricsEventData = .forbiddenError(.init(apiId: apiId, labels: labels))
+                metricsEventType = .forbiddenError
+            case .notFound:
+                metricsEventData = .notFoundError(.init(apiId: apiId, labels: labels))
+                metricsEventType = .notFoundError
+            case .clientClosed:
+                metricsEventData = .clientClosedError(.init(apiId: apiId, labels: labels))
+                metricsEventType = .clientClosedError
+            case .unavailable:
+                metricsEventData = .unavailableError(.init(apiId: apiId, labels: labels))
+                metricsEventType = .unavailableError
+            case .apiServer:
+                metricsEventData = .internalServerError(.init(apiId: apiId, labels: labels))
+                metricsEventType = .internalServerError
+            case .illegalArgument, .illegalState:
+                metricsEventData = .internalSdkError(.init(apiId: apiId, labels: labels))
+                metricsEventType = .internalError
+            case .unknownServer, .unknown:
+                metricsEventData = .unknownError(.init(apiId: apiId, labels: labels))
+                metricsEventType = .unknownError
+            }
+            let expectedEventData: EventData = .metrics(.init(
+                timestamp: 1000,
+                event: metricsEventData,
+                type: metricsEventType,
+                sourceId: .ios,
+                sdk_version: "1.0.0",
+                metadata: ["key_metadata":"data"]
+            ))
+            XCTAssertEqual(eventData, expectedEventData)
+        }
+    }
+}
+
+extension BKTError: CaseIterable {
+
+    public enum TestError: Error {
+        case timeout
+        case network
+        case unknown
+        case unknownServer
+    }
+
+    public static var allCases: [BKTError] = [
+        .badRequest(message: "badRequest"),
+        .unauthorized(message: "unauthorized"),
+        .forbidden(message: "forbidden"),
+        .notFound(message: "notFound"),
+        .clientClosed(message: "clientClosed"),
+        .unavailable(message: "unavailable"),
+        .apiServer(message: "apiServer"),
+        .timeout(message: "timeout", error: TestError.timeout, timeoutMillis: 4500),
+        .network(message: "network", error: TestError.network),
+        .illegalArgument(message: "illegalArgument"),
+        .illegalState(message: "illegalState"),
+        .unknownServer(message: "unknownServer", error: TestError.unknownServer),
+        .unknown(message: "unknown", error: TestError.unknown)
+    ]
 }
