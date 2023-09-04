@@ -33,26 +33,11 @@ final class TaskScheduler {
     init(component: Component, dispatchQueue: DispatchQueue) {
         self.component = component
         self.dispatchQueue = dispatchQueue
-        if .active == UIApplication.shared.applicationState {
-            // If the developer init the SDK when the app active
-            // Consider it as onForeground event()
-            DispatchQueue.main.async { [weak self] in
-                // Access onForeground on the main_thread like the notification listener below
-                self?.onForeground()
-            }
-        }
-        // Listen to UIApplication.didFinishLaunchingNotification to know the app became active
-        // if the developer init the SDK in the AppDelegate App lauching func.
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(onAppLaunch),
-            name: UIApplication.didFinishLaunchingNotification,
-            object: nil
-        )
+        onForeground()
         if #available(iOS 13.0, tvOS 13.0, *) {
             NotificationCenter.default.addObserver(
                 self,
-                selector: #selector(onUISceneDidActive),
+                selector: #selector(onForeground),
                 name: UIScene.didActivateNotification,
                 object: nil
             )
@@ -66,12 +51,6 @@ final class TaskScheduler {
             NotificationCenter.default.addObserver(
                 self,
                 selector: #selector(onForeground),
-                name: UIApplication.willEnterForegroundNotification,
-                object: nil
-            )
-            NotificationCenter.default.addObserver(
-                self,
-                selector: #selector(onForeground),
                 name: UIApplication.didBecomeActiveNotification,
                 object: nil
             )
@@ -82,16 +61,6 @@ final class TaskScheduler {
                 object: nil
             )
         }
-    }
-
-    @objc private func onAppLaunch() {
-        component.config.logger?.debug(message: "[TaskScheduler]: onAppLaunch")
-        onForeground()
-    }
-
-    @objc private func onUISceneDidActive() {
-        component.config.logger?.debug(message: "[TaskScheduler]: onUISceneDidActive")
-        onForeground()
     }
 
     @objc private func onForeground() {
