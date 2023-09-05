@@ -27,18 +27,8 @@ final class EventInteractorImpl: EventInteractor {
     let logger: Logger?
     let featureTag: String
 
-    private let sendEventSemaphore = DispatchSemaphore(value: 1)
     private let metadata: [String: String]
     private var eventUpdateListener: EventUpdateListener?
-
-    deinit {
-        // If EventInteractor deinit before the sendEvents() finished could cause "bad instrucstion crash"
-        // Because APIClient didn't provides the way to cancel the ongoing request
-        // over-signaling does not introduce new problems
-        // https://stackoverflow.com/questions/70457141/safe-to-signal-semaphore-before-deinitialization-just-in-case
-        // verified it will be okay see `testSemaphoreOverSignalShouldNotCauseProblem` in EventInteractorTests.swift
-        sendEventSemaphore.signal()
-    }
 
     init(
         sdkVersion: String,

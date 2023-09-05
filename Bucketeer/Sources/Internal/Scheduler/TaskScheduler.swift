@@ -10,30 +10,35 @@ final class TaskScheduler {
     ]
 
     private lazy var backgroundSchedulers: [ScheduledTask] = {
-
         guard #available(iOS 13.0, tvOS 13.0, *) else {
             return []
         }
-        return [
+        let tasks : [BackgroundTask] =  [
             EvaluationBackgroundTask(component: component, queue: dispatchQueue),
             EventBackgroundTask(component: component, queue: dispatchQueue)
         ]
+        // Register background task handler when init
+        tasks.forEach { bgTask in
+            BKTBackgroundTask.registerHandler(forTaskWithIdentifier: bgTask.getTaskIndentifier(), handler: bgTask)
+        }
+        return tasks
     }()
+
+    deinit {
+        if #available(iOS 13.0, *) {
+            BKTBackgroundTask.unregisterAllHandler()
+        }
+    }
 
     init(component: Component, dispatchQueue: DispatchQueue) {
         self.component = component
         self.dispatchQueue = dispatchQueue
+        onForeground()
         if #available(iOS 13.0, tvOS 13.0, *) {
             NotificationCenter.default.addObserver(
                 self,
                 selector: #selector(onForeground),
                 name: UIScene.didActivateNotification,
-                object: nil
-            )
-            NotificationCenter.default.addObserver(
-                self,
-                selector: #selector(onForeground),
-                name: UIScene.willEnterForegroundNotification,
                 object: nil
             )
             NotificationCenter.default.addObserver(
@@ -46,13 +51,7 @@ final class TaskScheduler {
             NotificationCenter.default.addObserver(
                 self,
                 selector: #selector(onForeground),
-                name: UIApplication.didFinishLaunchingNotification,
-                object: nil
-            )
-            NotificationCenter.default.addObserver(
-                self,
-                selector: #selector(onForeground),
-                name: UIApplication.willEnterForegroundNotification,
+                name: UIApplication.didBecomeActiveNotification,
                 object: nil
             )
             NotificationCenter.default.addObserver(
@@ -64,19 +63,19 @@ final class TaskScheduler {
         }
     }
 
-    @objc func onForeground() {
+    @objc private func onForeground() {
+        component.config.logger?.debug(message: "[TaskScheduler]: onForeground")
         foregroundSchedulers.forEach({ $0.start() })
         backgroundSchedulers.forEach({ $0.stop() })
     }
 
     @objc func onBackground() {
+        component.config.logger?.debug(message: "[TaskScheduler]: onBackground")
         foregroundSchedulers.forEach({ $0.stop() })
-
         // flush events before switching to background tasks
         dispatchQueue.async {
             self.component.eventInteractor.sendEvents(force: true, completion: nil)
         }
-
         backgroundSchedulers.forEach({ $0.start() })
     }
 

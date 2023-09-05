@@ -26,6 +26,45 @@ class FirstViewController: UIViewController {
     @IBAction func trackButtonAction(_ sender: Any) {
         client?.track(goalId: "ios_test_002", value: 1)
     }
+    @IBAction func destroyClient(_ sender: Any) {
+        try? BKTClient.destroy()
+    }
+    
+    @IBAction func initClient(_ sender: Any) {
+        let user = try! BKTUser.Builder()
+            .with(id: "001")
+            .with(attributes: [:])
+            .build()
+
+        do {
+            try BKTClient.initialize(
+                config: self.makeConfigUsingBuilder(),
+                user: user
+            ) { error in
+                if let error {
+                    print(error)
+                }
+            }
+        } catch {
+            // Handle exception when initialize the BKTClient,
+            // Usually because it required to call from the main thread
+            print(error.localizedDescription)
+        }
+    }
+    private func makeConfigUsingBuilder() -> BKTConfig {
+        let bundle = Bundle(for: type(of: self))
+        let apiKey = ProcessInfo.processInfo.environment["API_KEY"]!
+        let apiEndpoint = ProcessInfo.processInfo.environment["API_ENDPOINT"]!
+        let builder = BKTConfig.Builder()
+            .with(apiKey: apiKey)
+            .with(apiEndpoint: apiEndpoint)
+            .with(featureTag: "ios")
+            .with(pollingInterval: 150_000)
+            .with(appVersion: bundle.infoDictionary?["CFBundleShortVersionString"] as! String)
+            .with(logger: AppLogger())
+
+        return try! builder.build()
+    }
 }
 
 extension UIColor {

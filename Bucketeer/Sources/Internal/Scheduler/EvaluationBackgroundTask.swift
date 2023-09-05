@@ -5,8 +5,6 @@ import BackgroundTasks
 
 @available(iOS 13.0, tvOS 13.0, *)
 final class EvaluationBackgroundTask {
-    static let taskId = "io.bucketeer.background.fetch.evaluations"
-
     private weak var component: Component?
     private let queue: DispatchQueue
 
@@ -15,40 +13,49 @@ final class EvaluationBackgroundTask {
         self.queue = queue
     }
 
-    func register() {
-        BGTaskScheduler.shared.register(forTaskWithIdentifier: Self.taskId, using: nil) { task in
-            self.handleAppRefresh(task: task as? BGAppRefreshTask)
-        }
-    }
-
     func scheduleAppRefresh() {
-        let request = BGAppRefreshTaskRequest(identifier: Self.taskId)
+        let request = BGProcessingTaskRequest(identifier: getTaskIndentifier())
+        request.requiresNetworkConnectivity = true
         let interval: TimeInterval = TimeInterval(component?.config.backgroundPollingInterval ?? Constant.DEFAULT_BACKGROUND_POLLING_INTERVAL_MILLIS)
         request.earliestBeginDate = Date(timeIntervalSinceNow: interval / 1000)
 
         do {
             try BGTaskScheduler.shared.submit(request)
+            component?.config.logger?.debug(message: "[EvaluationBackgroundTask] The background task is scheduled.")
         } catch {
             component?.config.logger?.error(error)
         }
     }
 
-    func handleAppRefresh(task: BGAppRefreshTask?) {
+    private func handleAppRefresh(_ task: BGTask) {
+        component?.config.logger?.debug(message: "[EvaluationBackgroundTask] handleAppRefresh")
         // Schedule a new refresh task.
         scheduleAppRefresh()
 
         guard let component = self.component else { return }
-        BKTClient.fetchEvaluationsSync(
-            component: component,
-            dispatchQueue: queue,
-            timeoutMillis: nil,
-            completion: { error in
-                task?.setTaskCompleted(success: error == nil)
+        queue.async { [weak self] in
+            if let taskQueue = self?.queue {
+                BKTClient.fetchEvaluationsSync(
+                    component: component,
+                    dispatchQueue: taskQueue,
+                    timeoutMillis: nil,
+                    completion: { error in
+                        task.setTaskCompleted(success: error == nil)
+                        if let error {
+                            self?.component?.config.logger?.error(error)
+                        } else {
+                            self?.component?.config.logger?.debug(message: "[EventBackgroundTask] success")
+                        }
+                    }
+                )
             }
-        )
+        }
         // Provide the background task with an expiration handler that cancels the operation.
-        task?.expirationHandler = { [weak self] in
-            self?.component?.config.logger?.warn(message: "The background task is expired.")
+        task.expirationHandler = { [weak self] in
+            self?.component?.config.logger?.debug(message: "[EvaluationBackgroundTask] The background task is expired.")
+            // Must set task completed, if we don't do this OS will throttle and limit our background task request
+            // https://developer.apple.com/videos/play/wwdc2022/10142/
+            task.setTaskCompleted(success: false)
         }
     }
 }
@@ -60,8 +67,18 @@ extension EvaluationBackgroundTask: ScheduledTask {
     }
 
     func stop() {
-        BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: Self.taskId)
+        BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: getTaskIndentifier())
     }
 }
 
+@available(iOS 13.0, tvOS 13.0, *)
+extension EvaluationBackgroundTask: BackgroundTask {
+    func getTaskIndentifier() -> String {
+        return BackgroundTaskIndentifier.fetchEvaluations
+    }
+
+    func handle(_ task: BGTask) {
+        handleAppRefresh(task)
+    }
+}
 #endif
