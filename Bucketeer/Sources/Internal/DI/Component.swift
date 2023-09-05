@@ -16,8 +16,7 @@ final class ComponentImpl: Component {
         self.dataModule = dataModule
         self.evaluationInteractor = EvaluationInteractorImpl(
             apiClient: dataModule.apiClient,
-            evaluationDao: dataModule.evaluationDao,
-            defaults: dataModule.defaults,
+            evaluationStorage: dataModule.evaluationStorage,
             idGenerator: dataModule.idGenerator,
             featureTag: dataModule.config.featureTag
         )

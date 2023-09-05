@@ -5,4 +5,5 @@ struct GetEvaluationsRequestBody: Codable {
     let user: User
     let userEvaluationsId: String
     let sourceId: SourceID
+    let userEvaluationCondition: UserEvaluationCondition
 }

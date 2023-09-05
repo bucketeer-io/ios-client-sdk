@@ -202,10 +202,10 @@ final class EventInteractorImpl: EventInteractor {
         ])
     }
 
-    private func trackMetricsEvent(events : [Event]) throws {
+    private func trackMetricsEvent(events: [Event]) throws {
         // We will add logic to filter duplicate metrics event here
         let storedEvents = try eventDao.getEvents()
-        let metricsEventUniqueKeys : [String] = storedEvents.filter { item in
+        let metricsEventUniqueKeys: [String] = storedEvents.filter { item in
             return item.isMetricEvent()
         }.map { item in
             return item.uniqueKey()
@@ -213,7 +213,7 @@ final class EventInteractorImpl: EventInteractor {
         let newEvents = events.filter { item in
             return item.isMetricEvent() && !metricsEventUniqueKeys.contains(item.uniqueKey())
         }
-        if (newEvents.count > 0) {
+        if newEvents.count > 0 {
             try eventDao.add(events: newEvents)
             updateEventsAndNotify()
         } else {

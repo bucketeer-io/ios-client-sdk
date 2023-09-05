@@ -18,6 +18,20 @@ extension Evaluation {
         )
     )
 
+    static let mock1Updated = Evaluation(
+        id: "evaluation1_updated",
+        featureId: "feature1",
+        featureVersion: 1,
+        userId: User.mock1.id,
+        variationId: "variation1",
+        variationName: "variation name1",
+        variationValue: "variation_value1_updated",
+        reason: .init(
+            type: .rule,
+            ruleId: "rule1"
+        )
+    )
+
     /// id: evaluation2 - user: user1, value: int
     static let mock2 = Evaluation(
         id: "evaluation2",
@@ -82,11 +96,41 @@ extension Evaluation {
 extension UserEvaluations {
     static let mock1 = UserEvaluations(
         id: "user_evaluation1",
-        evaluations: [.mock1, .mock2]
+        evaluations: [.mock1, .mock2],
+        createdAt: "1690798000",
+        forceUpdate: false,
+        archivedFeatureIds: []
+    )
+
+    static let mock1Upsert = UserEvaluations(
+        id: "user_evaluation1",
+        evaluations: [.mock1Updated, .mock2],
+        createdAt: "1690798021",
+        forceUpdate: false,
+        archivedFeatureIds: []
+    )
+
+    static let mock1ForceUpdate = UserEvaluations(
+        id: "user_evaluation1",
+        evaluations: [.mock1, .mock2],
+        createdAt: "1690798021",
+        forceUpdate: true,
+        archivedFeatureIds: []
+    )
+
+    static let mock1UpsertAndArchivedFeature = UserEvaluations(
+        id: "user_evaluation1",
+        evaluations: [.mock1],
+        createdAt: "1690798021",
+        forceUpdate: false,
+        archivedFeatureIds: [Evaluation.mock2.featureId]
     )
 
     static let mock2 = UserEvaluations(
         id: "user_evaluation2",
-        evaluations: [.mock3, .mock4, .mock5]
+        evaluations: [.mock3, .mock4, .mock5],
+        createdAt: "",
+        forceUpdate: false,
+        archivedFeatureIds: []
     )
 }

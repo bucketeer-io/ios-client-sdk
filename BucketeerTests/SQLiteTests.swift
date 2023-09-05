@@ -69,6 +69,32 @@ class SQLiteTests: XCTestCase {
         let db = try SQLite(path: path, logger: nil)
         try db.delete(MockEntity(), condition: .equal(column: "id", value: "id1"))
     }
+
+    func testStartTransaction() throws {
+        let db = try SQLite(path: path, logger: nil)
+        let mock1 = try MockEntity(model: .init(id: "id100", value: 100))
+        let mock2 = try MockEntity(model: .init(id: "id200", value: 200))
+        try db.startTransaction(block: {
+            try db.insert([mock1])
+        })
+        var selected = try db.select(MockEntity(), conditions: [.equal(column: "id", value: mock1.id.value)])
+        XCTAssertEqual(selected.count, 1)
+        try? db.startTransaction {
+            try db.delete(MockEntity(), condition: .equal(column: "id", value: mock1.id.value))
+            selected = try db.select(MockEntity(), conditions: [.equal(column: "id", value: mock1.id.value)])
+            XCTAssertEqual(selected.count, 0, "should not have mock1 in the database")
+            try db.insert([mock2])
+            selected = try db.select(MockEntity(), conditions: [.equal(column: "id", value: mock2.id.value)])
+            XCTAssertEqual(selected.count, 1, "should have mock2 in the database")
+            // Importaint: Simulate error , all changes should rolled back
+            throw BKTError.illegalState(message: "error")
+        }
+        // Check if the rollback happended
+        selected = try db.select(MockEntity(), conditions: [.equal(column: "id", value: mock1.id.value)])
+        XCTAssertEqual(selected.count, 1, "should have mock1 in the database")
+        selected = try db.select(MockEntity(), conditions: [.equal(column: "id", value: mock2.id.value)])
+        XCTAssertEqual(selected.count, 0, "should not have mock2 in the database")
+    }
 }
 
 class SQLiteComponentsTests: XCTestCase {

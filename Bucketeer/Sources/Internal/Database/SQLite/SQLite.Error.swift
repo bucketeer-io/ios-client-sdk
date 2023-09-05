@@ -15,11 +15,11 @@ extension SQLite {
         var errorUserInfo: [String: Any] {
             switch self {
             case .failedToOpen(let info),
-                    .failedToPrepare(let info),
-                    .failedToStep(let info),
-                    .failedToBind(let info),
-                    .failedToFinalize(let info),
-                    .failedToExecute(let info):
+                 .failedToPrepare(let info),
+                 .failedToStep(let info),
+                 .failedToBind(let info),
+                 .failedToFinalize(let info),
+                 .failedToExecute(let info):
                 return info.userInfo
             case .unsupportedType:
                 return [NSLocalizedDescriptionKey: "Unsupported type"]
@@ -31,11 +31,11 @@ extension SQLite {
         var debugDescription: String {
             switch self {
             case .failedToOpen(let info),
-                    .failedToPrepare(let info),
-                    .failedToStep(let info),
-                    .failedToBind(let info),
-                    .failedToFinalize(let info),
-                    .failedToExecute(let info):
+                 .failedToPrepare(let info),
+                 .failedToStep(let info),
+                 .failedToBind(let info),
+                 .failedToFinalize(let info),
+                 .failedToExecute(let info):
                 return info.debugDescription
             case .unsupportedType:
                 return "Unsupported type"

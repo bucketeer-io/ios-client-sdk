@@ -22,52 +22,68 @@ final class EvaluationDaoTests: XCTestCase {
         try await super.tearDown()
     }
 
+    func testGetEmpty() throws {
+        let db = try SQLite(path: path, logger: nil)
+        let dao = EvaluationSQLDao(db: db)
+        let evaluations = try dao.get(userId: "user1")
+        XCTAssertTrue(evaluations.isEmpty)
+    }
+
+    func testGetSingleItem() throws {
+        let db = try SQLite(path: path, logger: nil)
+        let dao = EvaluationSQLDao(db: db)
+
+        try dao.put(userId: "user1", evaluations: [.mock1])
+
+        let evaluations = try dao.get(userId: "user1")
+        XCTAssertEqual(evaluations.count, 1)
+        XCTAssertEqual(evaluations[0], Evaluation.mock1)
+    }
+
+    func testGetMultipleItems() throws {
+        let db = try SQLite(path: path, logger: nil)
+        let dao = EvaluationSQLDao(db: db)
+
+        try dao.put(userId: "user1", evaluations: [.mock1, .mock2])
+
+        let evaluations = try dao.get(userId: "user1")
+        XCTAssertEqual(evaluations.count, 2)
+        XCTAssertEqual(evaluations[0], Evaluation.mock1)
+        XCTAssertEqual(evaluations[1], Evaluation.mock2)
+    }
+
     func testPutAsInsert() throws {
         let db = try SQLite(path: path, logger: nil)
-        let dao = EvaluationDaoImpl(db: db)
-        let mocks: [Evaluation] = [
+        let dao = EvaluationSQLDao(db: db)
+        try dao.put(userId: "user1", evaluations: [
             .mock1,
-            .mock2,
+            .mock2
+        ])
+        try dao.put(userId: "user2", evaluations: [
             .mock3
-        ]
-        try dao.put(userId: "user1", evaluations: mocks)
+        ])
 
-        let sql = "SELECT userId, featureId, data FROM Evaluations WHERE userId = 'user1'"
-        let statement = try db.prepareStatement(sql: sql)
-        let decoder = JSONDecoder()
+        var expectedEvaluation = try dao.get(userId: "user1")
+        XCTAssertEqual(expectedEvaluation, [.mock1, .mock2])
 
-        // Mock1
-        XCTAssertTrue(try statement.step())
-        XCTAssertEqual(statement.string(at: 0), "user1")
-        XCTAssertEqual(statement.string(at: 1), "feature1")
-        XCTAssertEqual(try decoder.decode(Evaluation.self, from: statement.data(at: 2)), Evaluation.mock1)
-
-        // Mock2
-        XCTAssertTrue(try statement.step())
-        XCTAssertEqual(statement.string(at: 0), "user1")
-        XCTAssertEqual(statement.string(at: 1), "feature2")
-        XCTAssertEqual(try decoder.decode(Evaluation.self, from: statement.data(at: 2)), Evaluation.mock2)
-
-        // no Mock3
-
-        // End
-        XCTAssertFalse(try statement.step())
-
-        try statement.reset()
-        try statement.finalize()
+        expectedEvaluation = try dao.get(userId: "user2")
+        XCTAssertEqual(expectedEvaluation, [.mock3])
     }
 
     func testPutAsUpdate() throws {
         let db = try SQLite(path: path, logger: nil)
-        let dao = EvaluationDaoImpl(db: db)
-        let mocks: [Evaluation] = [
-            .mock1
-        ]
-        try dao.put(userId: "user1", evaluations: mocks)
+        let dao = EvaluationSQLDao(db: db)
+        try dao.put(userId: "user1", evaluations: [
+            .mock1,
+            .mock2
+        ])
+        try dao.put(userId: "user2", evaluations: [
+            .mock3
+        ])
 
         // Update
         let updatedValue = "variation - updated"
-        var updatedMock = Evaluation(
+        let updatedMock = Evaluation(
             id: "evaluation1",
             featureId: "feature1",
             featureVersion: 1,
@@ -82,87 +98,63 @@ final class EvaluationDaoTests: XCTestCase {
         )
         try dao.put(userId: "user1", evaluations: [updatedMock])
 
-        let sql = "SELECT userId, featureId, data FROM Evaluations WHERE userId = 'user1'"
-        let statement = try db.prepareStatement(sql: sql)
-        let decoder = JSONDecoder()
+        var expectedEvaluation = try dao.get(userId: "user1")
+        XCTAssertEqual(expectedEvaluation, [.mock2, updatedMock])
 
-        // Mock1
-        XCTAssertTrue(try statement.step())
-        XCTAssertEqual(statement.string(at: 0), "user1")
-        XCTAssertEqual(statement.string(at: 1), "feature1")
-        let evaluation = try decoder.decode(Evaluation.self, from: statement.data(at: 2))
-        XCTAssertEqual(evaluation.variationValue, updatedValue)
-
-        // End
-        XCTAssertFalse(try statement.step())
-
-        try statement.reset()
-        try statement.finalize()
+        expectedEvaluation = try dao.get(userId: "user2")
+        XCTAssertEqual(expectedEvaluation, [.mock3])
     }
 
-    func testGetEmpty() throws {
+    func testDeleteAllForUserId() throws {
+        let userId1 = "user1"
         let db = try SQLite(path: path, logger: nil)
-        let dao = EvaluationDaoImpl(db: db)
-        let evaluations = try dao.get(userId: "user1")
-        XCTAssertTrue(evaluations.isEmpty)
+        let dao = EvaluationSQLDao(db: db)
+        try dao.put(userId: userId1, evaluations: [
+            .mock1,
+            .mock2
+        ])
+
+        // Put another evaluation for another user_id
+        let userId2 = "user2"
+        try dao.put(userId: userId2, evaluations: [
+            .mock3,
+            .mock4
+        ])
+
+        let evaluationsForUser1 = try dao.get(userId: userId1)
+        XCTAssertEqual([.mock1, .mock2], evaluationsForUser1, "evaluations in the database did not match")
+        let evaluationsForUser2 = try dao.get(userId: userId2)
+        XCTAssertEqual([.mock3, .mock4], evaluationsForUser2, "evaluations in the database did not match")
+
+        // Should delete all evaluation for userId
+        try dao.deleteAll(userId: userId1)
+        let shouldNotEmptyListOfEvaluations = try dao.get(userId: userId2)
+        // All evaluation for `user1` should removed. On database still has evaluations for `user2`
+        XCTAssertEqual(shouldNotEmptyListOfEvaluations, [.mock3, .mock4], "should not delete evaluations of other user")
+
+        try dao.deleteAll(userId: userId2)
+        let shouldEmptyListOfEvaluations = try dao.get(userId: userId2)
+        XCTAssertTrue(shouldEmptyListOfEvaluations.isEmpty, "database should empty")
     }
 
-    func testGetSingleItem() throws {
+    func testDeleteByIds() throws {
+        let userId = "user1"
         let db = try SQLite(path: path, logger: nil)
-        let dao = EvaluationDaoImpl(db: db)
+        let dao = EvaluationSQLDao(db: db)
+        let mocks: [Evaluation] = [
+            .mock1,
+            .mock2
+        ]
+        try dao.put(userId: userId, evaluations: mocks)
 
-        try dao.put(userId: "user1", evaluations: [.mock1])
+        let evaluations = try dao.get(userId: userId)
+        XCTAssertEqual(mocks, evaluations, "evaluations in the database did not match")
 
-        let evaluations = try dao.get(userId: "user1")
-        XCTAssertEqual(evaluations.count, 1)
-        XCTAssertEqual(evaluations[0], Evaluation.mock1)
-    }
+        // Should delete all evaluation with list feature_ids
+        let ids = [Evaluation.mock1.id]
+        try dao.deleteByIds(ids)
 
-    func testGetMultipleItems() throws {
-        let db = try SQLite(path: path, logger: nil)
-        let dao = EvaluationDaoImpl(db: db)
-
-        try dao.put(userId: "user1", evaluations: [.mock1, .mock2])
-
-        let evaluations = try dao.get(userId: "user1")
-        XCTAssertEqual(evaluations.count, 2)
-        XCTAssertEqual(evaluations[0], Evaluation.mock1)
-        XCTAssertEqual(evaluations[1], Evaluation.mock2)
-    }
-
-    func testDeleteAllAndInsert() throws {
-        let db = try SQLite(path: path, logger: nil)
-        let dao = EvaluationDaoImpl(db: db)
-        try dao.deleteAllAndInsert(userId: "user1", evaluations: [.mock1])
-
-        let evaluations = try dao.get(userId: "user1")
-        XCTAssertEqual(evaluations.count, 1)
-        XCTAssertEqual(evaluations[0], Evaluation.mock1)
-    }
-
-    func testDeleteAllAndInsertToDeleteOldItems() throws {
-        let db = try SQLite(path: path, logger: nil)
-        let dao = EvaluationDaoImpl(db: db)
-        try dao.deleteAllAndInsert(userId: "user1", evaluations: [.mock1])
-        try dao.deleteAllAndInsert(userId: "user1", evaluations: [.mock2])
-
-        let evaluations = try dao.get(userId: "user1")
-        XCTAssertEqual(evaluations.count, 1)
-        XCTAssertEqual(evaluations[0], Evaluation.mock2)
-    }
-
-    func testDeleteAllAndInsertNotUpdateItemOfOtherUser() throws {
-        let db = try SQLite(path: path, logger: nil)
-        let dao = EvaluationDaoImpl(db: db)
-        try dao.deleteAllAndInsert(userId: "user1", evaluations: [.mock1])
-        try dao.deleteAllAndInsert(userId: "user2", evaluations: [.mock3])
-
-        let evaluations1 = try dao.get(userId: "user1")
-        XCTAssertEqual(evaluations1.count, 1)
-        XCTAssertEqual(evaluations1[0], Evaluation.mock1)
-
-        let evaluations2 = try dao.get(userId: "user2")
-        XCTAssertEqual(evaluations2.count, 1)
-        XCTAssertEqual(evaluations2[0], Evaluation.mock3)
+        let expectedEvaluations = try dao.get(userId: userId)
+        XCTAssertEqual(expectedEvaluations, [Evaluation.mock2], "expectedEvaluations should not be empty")
     }
 }

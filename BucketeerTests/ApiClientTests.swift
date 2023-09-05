@@ -1,8 +1,7 @@
 import XCTest
 @testable import Bucketeer
 
-// swiftlint:disable file_length
-// swiftlint:disable type_body_length
+// swiftlint:disable type_body_length file_length
 class ApiClientTests: XCTestCase {
 
     // MARK: - getEvaluations
@@ -16,7 +15,12 @@ class ApiClientTests: XCTestCase {
         let response = GetEvaluationsResponse(
             evaluations: .init(
                 id: userEvaluationsId,
-                evaluations: evaluations
+                evaluations: evaluations,
+                // https://github.com/bucketeer-io/android-client-sdk/issues/69
+                // Test new fields from API
+                createdAt: "11223344",
+                forceUpdate: true,
+                archivedFeatureIds: ["removed_featureId_1", "removed_featureId_2"]
             ),
             userEvaluationsId: userEvaluationsId
         )
@@ -24,6 +28,7 @@ class ApiClientTests: XCTestCase {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "get_evaluations"
         let apiKey = "x:api-key"
+
         let session = MockSession(
             configuration: .default,
             requestHandler: { request in
@@ -39,6 +44,10 @@ class ApiClientTests: XCTestCase {
       "age" : "28"
     },
     "id" : "user1"
+  },
+  "userEvaluationCondition" : {
+    "evaluatedAt" : "11223000",
+    "userAttributesUpdated" : true
   },
   "userEvaluationsId" : "user_evaluation1"
 }
@@ -63,11 +72,18 @@ class ApiClientTests: XCTestCase {
         )
         api.getEvaluations(
             user: .mock1,
-            userEvaluationsId: userEvaluationsId) { result in
+            userEvaluationsId: userEvaluationsId,
+            condition: UserEvaluationCondition(
+                evaluatedAt: "11223000",
+                userAttributesUpdated: true)
+        ) { result in
             switch result {
             case .success(let response):
                 XCTAssertEqual(response.evaluations.evaluations, evaluations)
                 XCTAssertEqual(response.evaluations.id, userEvaluationsId)
+                XCTAssertEqual(response.evaluations.forceUpdate, true)
+                XCTAssertEqual(response.evaluations.archivedFeatureIds, ["removed_featureId_1", "removed_featureId_2"])
+                XCTAssertEqual(response.evaluations.createdAt, "11223344")
                 XCTAssertEqual(response.userEvaluationsId, userEvaluationsId)
                 XCTAssertNotEqual(response.seconds, 0)
                 XCTAssertNotEqual(response.sizeByte, 0)
@@ -106,6 +122,10 @@ class ApiClientTests: XCTestCase {
     },
     "id" : "user1"
   },
+  "userEvaluationCondition" : {
+    "evaluatedAt" : "0",
+    "userAttributesUpdated" : false
+  },
   "userEvaluationsId" : "user_evaluation1"
 }
 """
@@ -129,7 +149,11 @@ class ApiClientTests: XCTestCase {
         )
         api.getEvaluations(
             user: .mock1,
-            userEvaluationsId: userEvaluationsId) { result in
+            userEvaluationsId: userEvaluationsId,
+            condition: UserEvaluationCondition(
+                evaluatedAt: "0",
+                userAttributesUpdated: false)
+        ) { result in
             switch result {
             case .success:
                 XCTFail()
@@ -995,6 +1019,4 @@ class ApiClientTests: XCTestCase {
         wait(for: [expectation], timeout: 5)
     }
 }
-
-// swiftlint:enable type_body_length
-// swiftlint:enable file_length
+// swiftlint:enable type_body_length file_length

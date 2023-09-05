@@ -4,7 +4,7 @@ protocol DataModule {
     var config: BKTConfig { get }
     var userHolder: UserHolder { get }
     var apiClient: ApiClient { get }
-    var evaluationDao: EvaluationDao { get }
+    var evaluationStorage: EvaluationStorage { get }
     var eventDao: EventDao { get }
     var defaults: Defaults { get }
     var idGenerator: IdGenerator { get }
@@ -13,18 +13,17 @@ protocol DataModule {
 }
 
 final class DataModuleImpl: DataModule {
+
     let user: User
     let config: BKTConfig
-
     let sqlite: SQLite
-    let evaluationDao: EvaluationDao
     let eventDao: EventDao
 
     init(user: User, config: BKTConfig) throws {
         self.user = user
         self.config = config
         self.sqlite = try DatabaseOpenHelper.createDatabase(logger: config.logger)
-        self.evaluationDao = EvaluationDaoImpl(db: sqlite)
+        self.evaluationDao = EvaluationSQLDao(db: sqlite)
         self.eventDao = EventDaoImpl(db: sqlite)
     }
 
@@ -40,4 +39,13 @@ final class DataModuleImpl: DataModule {
     private(set) lazy var userHolder: UserHolder = UserHolder(user: self.user)
     private(set) lazy var defaults: Defaults = UserDefaults.standard
     private(set) lazy var device: Device = DeviceImpl()
+    // Evaluation Data Access Layer
+    private let evaluationDao: EvaluationDao
+    private lazy var evaluationMemCacheDao: EvaluationMemCacheDao = EvaluationMemCacheDao()
+    private lazy var evaluationUserDefaultsDao: EvaluationUserDefaultsDao = EvaluationUserDefaultDaoImpl(defaults: defaults)
+    private(set) lazy var evaluationStorage: EvaluationStorage = EvaluationStorageImpl(
+        userId: user.id,
+        evaluationDao: evaluationDao,
+        evaluationMemCacheDao: evaluationMemCacheDao,
+        evaluationUserDefaultsDao: evaluationUserDefaultsDao)
 }
