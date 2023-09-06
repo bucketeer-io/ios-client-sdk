@@ -4,12 +4,11 @@ import Bucketeer
 class FirstViewController: UIViewController {
 
     @IBOutlet weak var messageLabel: UILabel!
-    var client : BKTClient?
 
     override func viewDidLoad() {
         super.viewDidLoad()
         do {
-            try client = BKTClient.shared
+            _ = try BKTClient.shared
         } catch {
             // We may have an error when we did not success initialize the client
             // Handle error
@@ -17,13 +16,14 @@ class FirstViewController: UIViewController {
     }
     
     override func viewWillAppear(_ animated: Bool) {
-
+        let client = try? BKTClient.shared
         messageLabel.text = client?.stringVariation(featureId: "ios_test_002", defaultValue: "not found...") ?? "not found..."
 
         let colorCode = client?.stringVariation(featureId: "ios_test_003", defaultValue: "#999999") ?? "#999999"
         view.backgroundColor = UIColor(hex: colorCode)
     }
     @IBAction func trackButtonAction(_ sender: Any) {
+        let client = try? BKTClient.shared
         client?.track(goalId: "ios_test_002", value: 1)
     }
     @IBAction func destroyClient(_ sender: Any) {
