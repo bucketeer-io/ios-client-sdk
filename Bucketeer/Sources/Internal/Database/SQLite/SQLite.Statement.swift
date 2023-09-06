@@ -13,7 +13,7 @@ extension SQLite {
         func step() throws -> Bool {
             let result = sqlite3_step(pointer)
             guard result == SQLITE_ROW || result == SQLITE_DONE else {
-                throw Error.failedToStep(.init(pointer: pointer, result: result))
+                throw Error.failedToStep(.init(errorMessage: pointer.readErrorMessage(), result: result))
             }
             return result == SQLITE_ROW
         }
@@ -31,7 +31,7 @@ extension SQLite {
                 throw Error.unsupportedType
             }
             guard result == SQLITE_OK else {
-                throw Error.failedToBind(.init(pointer: pointer, result: result))
+                throw Error.failedToBind(.init(errorMessage: pointer.readErrorMessage(), result: result))
             }
             return self
         }
@@ -51,14 +51,14 @@ extension SQLite {
         func reset() throws {
             let result = sqlite3_reset(pointer)
             guard result == SQLITE_OK else {
-                throw Error.failedToFinalize(.init(pointer: pointer, result: result))
+                throw Error.failedToFinalize(.init(errorMessage: pointer.readErrorMessage(), result: result))
             }
         }
 
         func finalize() throws {
             let result = sqlite3_finalize(pointer)
             guard result == SQLITE_OK else {
-                throw Error.failedToFinalize(.init(pointer: pointer, result: result))
+                throw Error.failedToFinalize(.init(errorMessage: pointer.readErrorMessage(), result: result))
             }
         }
     }
@@ -96,3 +96,10 @@ private extension OpaquePointer {
         return Data(buffer: i8bufptr)
     }
 }
+
+extension OpaquePointer {
+    func readErrorMessage() -> String {
+        return String(cString: sqlite3_errmsg(self))
+    }
+}
+

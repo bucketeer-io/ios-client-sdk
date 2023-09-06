@@ -17,4 +17,8 @@ struct MockSession: Session {
             }
         }
     }
+    
+    func invalidateAndCancel() {
+        
+    }
 }

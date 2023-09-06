@@ -274,6 +274,7 @@ final class EventInteractorImpl: EventInteractor {
     }
 
     private func updateEventsAndNotify() {
+        guard eventUpdateListener != nil else { return }
         do {
             let events = try eventDao.getEvents()
             eventUpdateListener?.onUpdate(events: events)

@@ -2,8 +2,7 @@ import Foundation
 
 public class BKTClient {
     static var `default`: BKTClient!
-    private static let concurrentQueue = DispatchQueue(label: "io.bucketeer.concurrentQueue", attributes: .concurrent)
-
+    private static let concurrentQueue = DispatchQueue(label: "io.bucketeer.concurrentQueue")
     let component: Component
     let dispatchQueue: DispatchQueue
     private(set) var taskScheduler: TaskScheduler?
@@ -48,11 +47,6 @@ public class BKTClient {
         self.taskScheduler = TaskScheduler(component: component, dispatchQueue: dispatchQueue)
     }
 
-    fileprivate func resetTasks() {
-        taskScheduler?.stop()
-        taskScheduler = nil
-    }
-
     func refreshCache() {
         do {
             try component.evaluationInteractor.refreshCache()
@@ -70,6 +64,15 @@ public class BKTClient {
             }
         }
     }
+    
+    private func destroy() {
+        taskScheduler?.invalidate()
+        taskScheduler = nil
+        execute { [weak self] in
+            // must destroy in the intenal queue to prevent race condition
+            self?.component.destroy()
+        }
+    }
 }
 
 extension BKTClient {
@@ -77,22 +80,22 @@ extension BKTClient {
         guard Thread.isMainThread else {
             throw BKTError.illegalState(message: "the initialize method must be called on main thread")
         }
+        guard BKTClient.default == nil else {
+            config.logger?.warn(message: "BKTClient is already initialized. Not sure if the initial fetch has finished")
+            completion?(nil)
+            return
+        }
         concurrentQueue.sync {
-            guard BKTClient.default == nil else {
-                config.logger?.warn(message: "BKTClient is already initialized. Not sure if the initial fetch has finished")
-                completion?(nil)
-                return
-            }
             do {
                 let dispatchQueue = DispatchQueue(label: "io.bucketeer.taskQueue")
                 let dataModule = try DataModuleImpl(user: user.toUser(), config: config)
                 let client = BKTClient(dataModule: dataModule, dispatchQueue: dispatchQueue)
-                BKTClient.default = client
                 client.scheduleTasks()
-                client.execute {
-                    client.refreshCache()
-                    client.fetchEvaluations(timeoutMillis: timeoutMillis, completion: completion)
+                client.execute { [weak client] in
+                    client?.refreshCache()
+                    client?.fetchEvaluations(timeoutMillis: timeoutMillis, completion: completion)
                 }
+                BKTClient.default = client
             } catch let error {
                 config.logger?.error(error)
                 completion?(error as? BKTError)
@@ -104,8 +107,10 @@ extension BKTClient {
         guard Thread.isMainThread else {
             throw BKTError.illegalState(message: "the destroy method must be called on main thread")
         }
-        BKTClient.default?.resetTasks()
-        BKTClient.default = nil
+        concurrentQueue.sync {
+            BKTClient.default?.destroy()
+            BKTClient.default = nil
+        }
     }
 
     // Please make sure the BKTClient is initialize before access it

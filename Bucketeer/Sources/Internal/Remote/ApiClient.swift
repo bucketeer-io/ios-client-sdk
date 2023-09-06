@@ -9,6 +9,7 @@ protocol ApiClient {
         completion: ((GetEvaluationsResult) -> Void)?
     )
     func registerEvents(events: [Event], completion: ((Result<RegisterEventsResponse, BKTError>) -> Void)?)
+    func cancelAllOngoingRequest()
 }
 
 extension ApiClient {
@@ -25,4 +26,6 @@ extension ApiClient {
             completion: completion
         )
     }
+    
+    func cancelAllOngoingRequest() {}
 }
