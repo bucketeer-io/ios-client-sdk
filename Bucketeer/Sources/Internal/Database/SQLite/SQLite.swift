@@ -26,9 +26,6 @@ final class SQLite {
             }
             return dbConnection
         }
-        // allow concurrent reads and writes https://www.sqlite.org/walformat.html
-        // its nice to have
-        try exec(query: "PRAGMA journal_mode = WAL")
     }
     
     deinit {
