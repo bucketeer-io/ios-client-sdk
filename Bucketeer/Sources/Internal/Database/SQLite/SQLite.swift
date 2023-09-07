@@ -41,7 +41,7 @@ final class SQLite {
 
     // note: any public method of this class `SQLite` should use the static func below to make sure it run on the `dbQueue`
     // that will prevent the crash with error `dispatch_queue_wait_forever`
-    static func runSynchronouslyOnDBQueue<T>(block: () throws -> T) throws -> T {
+    private static func runSynchronouslyOnDBQueue<T>(block: () throws -> T) throws -> T {
         if DispatchQueue.getSpecific(key: dispatchKey) == queueName {
             // If we have run in the `dbQueue` already
             // safe for run without `dbQueue.sync{}`
