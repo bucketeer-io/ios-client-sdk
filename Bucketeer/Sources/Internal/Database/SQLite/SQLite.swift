@@ -38,7 +38,7 @@ final class SQLite {
             sqlite3_close_v2(dbConnection)
         }
     }
-    
+
     // note: any public method of this class `SQLite` should use the static func below to make sure it run on the `dbQueue`
     // that will prevent the crash with error `dispatch_queue_wait_forever`
     static func runSynchronouslyOnDBQueue<T>(block: () throws -> T) throws -> T {
@@ -56,7 +56,7 @@ final class SQLite {
 
 extension SQLite {
     func prepareStatement(sql: String) throws -> Statement {
-        try Self.runSynchronouslyOnDBQueue{
+        try Self.runSynchronouslyOnDBQueue {
             var _pointer: OpaquePointer?
             let result = sqlite3_prepare_v2(pointer, sql, -1, &_pointer, nil)
             guard result == SQLITE_OK,
@@ -81,7 +81,7 @@ extension SQLite {
     var userVersion: Int32 {
         get {
             do {
-                return try Self.runSynchronouslyOnDBQueue{
+                return try Self.runSynchronouslyOnDBQueue {
                     let statement = try prepareStatement(sql: "PRAGMA user_version")
                     try statement.step()
                     let userVersion = statement.int(at: 0)
@@ -96,7 +96,7 @@ extension SQLite {
         }
         set {
             do {
-                return try Self.runSynchronouslyOnDBQueue{
+                return try Self.runSynchronouslyOnDBQueue {
                     let statement = try prepareStatement(sql: "PRAGMA user_version = \(newValue)")
                     repeat {} while try statement.step()
                     try statement.reset()
@@ -158,7 +158,7 @@ extension SQLite {
     }
 
     func startTransaction(block: () throws -> Void) throws {
-        try Self.runSynchronouslyOnDBQueue{
+        try Self.runSynchronouslyOnDBQueue {
             // 1- begin transaction
             let beginTransactionQuery = "BEGIN;"
             let result = sqlite3_exec(pointer, beginTransactionQuery, nil, nil, nil)

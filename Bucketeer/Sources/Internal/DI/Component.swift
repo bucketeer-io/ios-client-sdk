@@ -5,6 +5,7 @@ protocol Component: AnyObject {
     var userHolder: UserHolder { get }
     var evaluationInteractor: EvaluationInteractor { get }
     var eventInteractor: EventInteractor { get }
+    
     func destroy()
 }
 
