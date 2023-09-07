@@ -80,12 +80,12 @@ extension BKTClient {
         guard Thread.isMainThread else {
             throw BKTError.illegalState(message: "the initialize method must be called on main thread")
         }
-        guard BKTClient.default == nil else {
-            config.logger?.warn(message: "BKTClient is already initialized. Not sure if the initial fetch has finished")
-            completion?(nil)
-            return
-        }
         concurrentQueue.sync {
+            guard BKTClient.default == nil else {
+                config.logger?.warn(message: "BKTClient is already initialized. Not sure if the initial fetch has finished")
+                completion?(nil)
+                return
+            }
             do {
                 let dispatchQueue = DispatchQueue(label: "io.bucketeer.taskQueue")
                 let dataModule = try DataModuleImpl(user: user.toUser(), config: config)

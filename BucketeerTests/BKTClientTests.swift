@@ -294,7 +294,7 @@ final class BKTClientTests: XCTestCase {
 
     func testFlushSuccess() {
         let expectation = self.expectation(description: "")
-        expectation.expectedFulfillmentCount = 4
+        expectation.expectedFulfillmentCount = 3
         expectation.assertForOverFulfill = true
         let dataModule = MockDataModule(
             userHolder: .init(user: .mock1),
@@ -323,7 +323,7 @@ final class BKTClientTests: XCTestCase {
 
     func testFlushFailure() {
         let expectation = self.expectation(description: "")
-        expectation.expectedFulfillmentCount = 5
+        expectation.expectedFulfillmentCount = 4
         expectation.assertForOverFulfill = true
         let dataModule = MockDataModule(
             userHolder: .init(user: .mock1),
