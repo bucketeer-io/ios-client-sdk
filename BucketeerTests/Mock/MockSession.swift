@@ -18,7 +18,7 @@ struct MockSession: Session {
             }
         }
     }
-    
+
     func invalidateAndCancel() {
         invalidateAndCancelHandler?()
     }

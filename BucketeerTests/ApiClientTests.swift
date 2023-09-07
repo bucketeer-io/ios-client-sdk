@@ -1018,7 +1018,7 @@ class ApiClientTests: XCTestCase {
         }
         wait(for: [expectation], timeout: 5)
     }
-    
+
     func testCancelOngoingRequest() throws {
         let expectation = XCTestExpectation()
         expectation.expectedFulfillmentCount = 2
@@ -1032,7 +1032,7 @@ class ApiClientTests: XCTestCase {
 
         let session = MockSession(
             configuration: .default,
-            requestHandler: { request in
+            requestHandler: { _ in
                 XCTFail("should not sending the request because the client has been closed")
             },
             data: nil,
@@ -1050,9 +1050,9 @@ class ApiClientTests: XCTestCase {
             session: session,
             logger: nil
         )
-        
+
         api.cancelAllOngoingRequest()
-        
+
         api.send(
             requestBody: mockRequestBody,
             path: path,

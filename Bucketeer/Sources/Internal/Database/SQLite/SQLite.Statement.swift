@@ -102,4 +102,3 @@ extension OpaquePointer {
         return String(cString: sqlite3_errmsg(self))
     }
 }
-

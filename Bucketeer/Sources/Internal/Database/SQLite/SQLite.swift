@@ -27,7 +27,7 @@ final class SQLite {
             return dbConnection
         }
     }
-    
+
     deinit {
         let dbConnection = pointer
         Self.dbQueue.async {
@@ -41,7 +41,7 @@ extension SQLite {
         var _pointer: OpaquePointer?
         let result = sqlite3_prepare_v2(pointer, sql, -1, &_pointer, nil)
         guard result == SQLITE_OK,
-            let pointer = _pointer else {
+              let pointer = _pointer else {
             throw Error.failedToPrepare(.init(errorMessage: pointer.readErrorMessage(), result: result))
         }
         return .init(pointer: pointer)
@@ -59,34 +59,34 @@ extension SQLite {
 
 extension SQLite {
     var userVersion: Int32 {
-          get {
-              Self.dbQueue.sync {
-                  do {
-                      let statement = try prepareStatement(sql: "PRAGMA user_version")
-                      try statement.step()
-                      let userVersion = statement.int(at: 0)
-                      try statement.reset()
-                      try statement.finalize()
-                      return userVersion
-                  } catch let error {
-                      logger?.error(error)
-                      return 0
-                  }
-              }
-          }
-          set {
-              Self.dbQueue.sync {
-                  do {
-                      let statement = try prepareStatement(sql: "PRAGMA user_version = \(newValue)")
-                      repeat {} while try statement.step()
-                      try statement.reset()
-                      try statement.finalize()
-                  } catch let error {
-                      logger?.error(error)
-                  }
-              }
-          }
-      }
+        get {
+            Self.dbQueue.sync {
+                do {
+                    let statement = try prepareStatement(sql: "PRAGMA user_version")
+                    try statement.step()
+                    let userVersion = statement.int(at: 0)
+                    try statement.reset()
+                    try statement.finalize()
+                    return userVersion
+                } catch let error {
+                    logger?.error(error)
+                    return 0
+                }
+            }
+        }
+        set {
+            Self.dbQueue.sync {
+                do {
+                    let statement = try prepareStatement(sql: "PRAGMA user_version = \(newValue)")
+                    repeat {} while try statement.step()
+                    try statement.reset()
+                    try statement.finalize()
+                } catch let error {
+                    logger?.error(error)
+                }
+            }
+        }
+    }
 }
 
 extension SQLite {

@@ -26,6 +26,6 @@ extension ApiClient {
             completion: completion
         )
     }
-    
+
     func cancelAllOngoingRequest() {}
 }

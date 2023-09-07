@@ -64,7 +64,7 @@ public class BKTClient {
             }
         }
     }
-    
+
     private func destroy() {
         taskScheduler?.invalidate()
         taskScheduler = nil

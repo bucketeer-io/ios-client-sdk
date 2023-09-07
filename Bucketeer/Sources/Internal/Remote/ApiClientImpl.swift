@@ -115,11 +115,11 @@ final class ApiClientImpl: ApiClient {
         timeoutMillis: Int64,
         encoder: JSONEncoder = JSONEncoder(),
         completion: ((Result<(Response, URLResponse), Error>) -> Void)?) {
-            if (closed) {
-                completion?(.failure(BKTError.illegalState(message: "API Client has been closed")))
-                return
-            }
-            
+        if (closed) {
+            completion?(.failure(BKTError.illegalState(message: "API Client has been closed")))
+            return
+        }
+
         let requestId = Date().unixTimestamp
         logger?.debug(message: "[API] RequestID enqueue: \(requestId)")
         logger?.debug(message: "[API] Register events: \(requestBody)")
@@ -191,7 +191,7 @@ final class ApiClientImpl: ApiClient {
             completion?(.failure(error))
         }
     }
-    
+
     func cancelAllOngoingRequest() {
         // we access API client from the SDK queue only, so its safe
         closed = true

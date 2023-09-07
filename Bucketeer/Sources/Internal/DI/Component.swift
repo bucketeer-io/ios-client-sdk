@@ -46,7 +46,7 @@ final class ComponentImpl: Component {
     var userHolder: UserHolder {
         dataModule.userHolder
     }
-    
+
     func destroy() {
         eventInteractor.set(eventUpdateListener: nil)
         evaluationInteractor.clearUpdateListeners()
