@@ -6,11 +6,15 @@ final class SQLite {
     let pointer: OpaquePointer
     let logger: Logger?
     // access SQLite on one serial queue to prevent `database is locked` or database corrupt
-    private static let dbQueue = DispatchQueue(label: "io.bucketeer.SQLite")
+    private static let queueName = "io.bucketeer.SQLite"
+    private static let dispatchKey = DispatchSpecificKey<String>()
+    private static let dbQueue = DispatchQueue(label: queueName)
 
     init(path: String, logger: Logger?) throws {
         self.path = path
         self.logger = logger
+        // set the queue key
+        Self.dbQueue.setSpecific(key: Self.dispatchKey, value: Self.queueName)
         pointer = try Self.dbQueue.sync {
             var _pointer: OpaquePointer?
             let flags = SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE | SQLITE_OPEN_FULLMUTEX
@@ -34,21 +38,37 @@ final class SQLite {
             sqlite3_close_v2(dbConnection)
         }
     }
+    
+    // note: any public method of this class `SQLite` should use the static func below to make sure it run on the `dbQueue`
+    // that will prevent the crash with error `dispatch_queue_wait_forever`
+    static func runSynchronouslyOnDBQueue<T>(block: () throws -> T) throws -> T {
+        if DispatchQueue.getSpecific(key: dispatchKey) == queueName {
+            // If we have run in the `dbQueue` already
+            // safe for run without `dbQueue.sync{}`
+            return try block()
+        } else {
+            return try dbQueue.sync {
+                return try block()
+            }
+        }
+    }
 }
 
 extension SQLite {
     func prepareStatement(sql: String) throws -> Statement {
-        var _pointer: OpaquePointer?
-        let result = sqlite3_prepare_v2(pointer, sql, -1, &_pointer, nil)
-        guard result == SQLITE_OK,
-              let pointer = _pointer else {
-            throw Error.failedToPrepare(.init(errorMessage: pointer.readErrorMessage(), result: result))
+        try Self.runSynchronouslyOnDBQueue{
+            var _pointer: OpaquePointer?
+            let result = sqlite3_prepare_v2(pointer, sql, -1, &_pointer, nil)
+            guard result == SQLITE_OK,
+                  let pointer = _pointer else {
+                throw Error.failedToPrepare(.init(errorMessage: pointer.readErrorMessage(), result: result))
+            }
+            return .init(pointer: pointer)
         }
-        return .init(pointer: pointer)
     }
 
     func exec(query: String) throws {
-        try Self.dbQueue.sync {
+        try Self.runSynchronouslyOnDBQueue {
             let result = sqlite3_exec(pointer, query, nil, nil, nil)
             guard result == SQLITE_OK else {
                 throw Error.failedToExecute(.init(errorMessage: pointer.readErrorMessage(), result: result))
@@ -60,30 +80,30 @@ extension SQLite {
 extension SQLite {
     var userVersion: Int32 {
         get {
-            Self.dbQueue.sync {
-                do {
+            do {
+                return try Self.runSynchronouslyOnDBQueue{
                     let statement = try prepareStatement(sql: "PRAGMA user_version")
                     try statement.step()
                     let userVersion = statement.int(at: 0)
                     try statement.reset()
                     try statement.finalize()
                     return userVersion
-                } catch let error {
-                    logger?.error(error)
-                    return 0
                 }
+            } catch let error {
+                logger?.error(error)
+                return 0
             }
         }
         set {
-            Self.dbQueue.sync {
-                do {
+            do {
+                return try Self.runSynchronouslyOnDBQueue{
                     let statement = try prepareStatement(sql: "PRAGMA user_version = \(newValue)")
                     repeat {} while try statement.step()
                     try statement.reset()
                     try statement.finalize()
-                } catch let error {
-                    logger?.error(error)
                 }
+            } catch let error {
+                logger?.error(error)
             }
         }
     }
@@ -91,7 +111,7 @@ extension SQLite {
 
 extension SQLite {
     func select<Entity: SQLiteEntity>(_ entity: Entity, conditions: [Condition]) throws -> [Entity.Model] {
-        try Self.dbQueue.sync {
+        try Self.runSynchronouslyOnDBQueue {
             let table = Table(entity: entity)
             let sql = table.sqlToSelect(conditions: conditions)
             let statement = try prepareStatement(sql: sql)
@@ -111,7 +131,7 @@ extension SQLite {
     }
 
     func insert<Entity: SQLiteEntity>(_ entities: [Entity]) throws {
-        try Self.dbQueue.sync {
+        try Self.runSynchronouslyOnDBQueue {
             for entity in entities {
                 let table = Table(entity: entity)
                 let sql = table.sqlToInsert()
@@ -127,7 +147,7 @@ extension SQLite {
     }
 
     func delete<Entity: SQLiteEntity>(_ entity: Entity, condition: Condition) throws {
-        try Self.dbQueue.sync {
+        try Self.runSynchronouslyOnDBQueue {
             let table = Table(entity: entity)
             let sql = table.sqlToDelete(condition: condition)
             let statement = try prepareStatement(sql: sql)
@@ -138,25 +158,31 @@ extension SQLite {
     }
 
     func startTransaction(block: () throws -> Void) throws {
-        let beginTransactionQuery = "BEGIN;"
-        let result = sqlite3_exec(pointer, beginTransactionQuery, nil, nil, nil)
-        guard result == SQLITE_OK else {
-            logger?.warn(message:"Failed to start transaction")
-            throw Error.failedToExecute(.init(errorMessage: pointer.readErrorMessage(), result: result))
-        }
-
-        do {
-            try block()
-            let commitTransactionQuery = "COMMIT;"
-            let commitResult = sqlite3_exec(pointer, commitTransactionQuery, nil, nil, nil)
-            guard commitResult == SQLITE_OK else {
-                logger?.warn(message:"Failed to commit transaction")
+        try Self.runSynchronouslyOnDBQueue{
+            // 1- begin transaction
+            let beginTransactionQuery = "BEGIN;"
+            let result = sqlite3_exec(pointer, beginTransactionQuery, nil, nil, nil)
+            guard result == SQLITE_OK else {
+                logger?.warn(message:"Failed to start transaction")
                 throw Error.failedToExecute(.init(errorMessage: pointer.readErrorMessage(), result: result))
             }
-        } catch {
-            try rollback()
-            // forward original error caused the rollback to the caller
-            throw error
+
+            do {
+                // 2- execute
+                try block()
+                // 3- commit transction
+                let commitTransactionQuery = "COMMIT;"
+                let commitResult = sqlite3_exec(pointer, commitTransactionQuery, nil, nil, nil)
+                guard commitResult == SQLITE_OK else {
+                    logger?.warn(message:"Failed to commit transaction")
+                    throw Error.failedToExecute(.init(errorMessage: pointer.readErrorMessage(), result: commitResult))
+                }
+            } catch {
+                // 4- rollback
+                try rollback()
+                // try forward the original error that caused the rollback to the caller
+                throw error
+            }
         }
     }
 

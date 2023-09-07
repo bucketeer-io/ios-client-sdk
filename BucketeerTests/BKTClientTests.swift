@@ -4,7 +4,7 @@ import XCTest
 // swiftlint:disable type_body_length file_length
 final class BKTClientTests: XCTestCase {
 
-    func testMainThreadRequired() throws {
+    func testMainThreadNotRequired() throws {
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = 4
 
@@ -19,9 +19,9 @@ final class BKTClientTests: XCTestCase {
                     user: user, completion: { _ in
                     }
                 )
-            } catch {
-                // Should catch error, because we didn't on the main thread
                 expectation.fulfill()
+            } catch {
+                XCTFail()
             }
 
             DispatchQueue.main.sync {
@@ -33,14 +33,16 @@ final class BKTClientTests: XCTestCase {
                     )
                     // Should success and fullfill
                     expectation.fulfill()
-                } catch {}
+                } catch {
+                    XCTFail()
+                }
             }
 
             do {
                 try BKTClient.destroy()
-            } catch {
-                // Should catch error, because we didn't on the main thread
                 expectation.fulfill()
+            } catch {
+                XCTFail()
             }
 
             DispatchQueue.main.sync {
@@ -48,7 +50,9 @@ final class BKTClientTests: XCTestCase {
                     try BKTClient.destroy()
                     // Should success and fullfill
                     expectation.fulfill()
-                } catch {}
+                } catch {
+                    XCTFail()
+                }
             }
         }
 
