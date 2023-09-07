@@ -77,9 +77,6 @@ public class BKTClient {
 
 extension BKTClient {
     public static func initialize(config: BKTConfig, user: BKTUser, timeoutMillis: Int64 = 5000, completion: ((BKTError?) -> Void)? = nil) throws {
-        guard Thread.isMainThread else {
-            throw BKTError.illegalState(message: "the initialize method must be called on main thread")
-        }
         concurrentQueue.sync {
             guard BKTClient.default == nil else {
                 config.logger?.warn(message: "BKTClient is already initialized. Not sure if the initial fetch has finished")
@@ -104,9 +101,6 @@ extension BKTClient {
     }
 
     public static func destroy() throws {
-        guard Thread.isMainThread else {
-            throw BKTError.illegalState(message: "the destroy method must be called on main thread")
-        }
         concurrentQueue.sync {
             BKTClient.default?.destroy()
             BKTClient.default = nil
