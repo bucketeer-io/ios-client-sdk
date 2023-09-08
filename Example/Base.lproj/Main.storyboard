@@ -29,32 +29,31 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="1Wj-gS-Kj9">
-                                <rect key="frame" x="147" y="479" width="81" height="30"/>
+                                <rect key="frame" x="147" y="464" width="81" height="30"/>
                                 <state key="normal" title="Track Event"/>
                                 <connections>
                                     <action selector="trackButtonAction:" destination="BYZ-38-t0r" eventType="touchUpInside" id="05K-qg-dCy"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Cbc-Bw-Swy">
-                                <rect key="frame" x="139" y="529" width="97" height="30"/>
+                                <rect key="frame" x="139" y="514" width="97" height="30"/>
                                 <state key="normal" title="Destroy Client"/>
                                 <connections>
                                     <action selector="destroyClient:" destination="BYZ-38-t0r" eventType="touchUpInside" id="1Ef-1a-TZx"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="COY-gG-Ynv">
-                                <rect key="frame" x="155" y="579" width="65" height="30"/>
+                                <rect key="frame" x="155" y="564" width="65" height="30"/>
                                 <state key="normal" title="Init Client"/>
                                 <connections>
                                     <action selector="initClient:" destination="BYZ-38-t0r" eventType="touchUpInside" id="1WI-4V-NGZ"/>
                                 </connections>
                             </button>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="xSt-m3-4KX">
-                                <rect key="frame" x="279" y="450" width="52" height="30"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <state key="normal" title="Crash ?"/>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="xSt-m3-4KX">
+                                <rect key="frame" x="146" y="614" width="83" height="30"/>
+                                <state key="normal" title="Switch User"/>
                                 <connections>
-                                    <action selector="testCrash:" destination="BYZ-38-t0r" eventType="touchUpInside" id="YWM-3c-fiU"/>
+                                    <action selector="switchUser:" destination="BYZ-38-t0r" eventType="touchUpInside" id="YWM-3c-fiU"/>
                                 </connections>
                             </button>
                         </subviews>
@@ -64,10 +63,12 @@
                             <constraint firstItem="Cbc-Bw-Swy" firstAttribute="top" secondItem="1Wj-gS-Kj9" secondAttribute="bottom" constant="20" id="4Nd-ed-C8z"/>
                             <constraint firstItem="ZYx-Q6-XF1" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="6vs-Ld-4wm"/>
                             <constraint firstItem="14b-lY-ZNI" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="JuB-Ek-0bV"/>
-                            <constraint firstItem="1Wj-gS-Kj9" firstAttribute="top" secondItem="ZYx-Q6-XF1" secondAttribute="bottom" constant="45" id="P8G-Fj-adC"/>
+                            <constraint firstItem="1Wj-gS-Kj9" firstAttribute="top" secondItem="ZYx-Q6-XF1" secondAttribute="bottom" constant="30" id="P8G-Fj-adC"/>
+                            <constraint firstItem="xSt-m3-4KX" firstAttribute="top" secondItem="COY-gG-Ynv" secondAttribute="bottom" constant="20" id="bqC-V4-uwZ"/>
                             <constraint firstItem="COY-gG-Ynv" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="cfI-1N-jbB"/>
                             <constraint firstItem="Cbc-Bw-Swy" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="dzZ-eV-Z2L"/>
                             <constraint firstItem="COY-gG-Ynv" firstAttribute="top" secondItem="Cbc-Bw-Swy" secondAttribute="bottom" constant="20" id="fRh-Nv-tEm"/>
+                            <constraint firstItem="xSt-m3-4KX" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="h2n-lc-XNX"/>
                             <constraint firstItem="ZYx-Q6-XF1" firstAttribute="top" secondItem="14b-lY-ZNI" secondAttribute="bottom" constant="60" id="hbX-Te-H5W"/>
                             <constraint firstItem="1Wj-gS-Kj9" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="jLJ-U2-PHy"/>
                             <constraint firstItem="14b-lY-ZNI" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="vRt-44-fFZ"/>

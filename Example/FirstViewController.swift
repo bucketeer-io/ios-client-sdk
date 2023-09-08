@@ -32,7 +32,7 @@ class FirstViewController: UIViewController {
     
     @IBAction func initClient(_ sender: Any) {
         let user = try! BKTUser.Builder()
-            .with(id: "001")
+            .with(id: "user_001")
             .with(attributes: [:])
             .build()
 
@@ -66,14 +66,15 @@ class FirstViewController: UIViewController {
         return try! builder.build()
     }
     
-    @IBAction func testCrash(_ sender: Any) {
+    @IBAction func switchUser(_ sender: Any) {
         let destroyAndInitialize: () -> Void = {
             do {
                 print("[Bucketeer] destroying ---------- ")
                 try BKTClient.destroy()
                 
+                // create new user with new userId
                 let user = try! BKTUser.Builder()
-                    .with(id: "001")
+                    .with(id: "user_002")
                     .with(attributes: [:])
                     .build()
                 let config = self.makeConfigUsingBuilder()
