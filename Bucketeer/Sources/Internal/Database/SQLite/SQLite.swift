@@ -161,7 +161,7 @@ extension SQLite {
 
     func startTransaction(block: () throws -> Void) throws {
         try Self.runSynchronouslyOnDBQueue {
-            // 1- begin transaction
+            // 1- begin
             let beginTransactionQuery = "BEGIN;"
             let result = sqlite3_exec(pointer, beginTransactionQuery, nil, nil, nil)
             guard result == SQLITE_OK else {
@@ -172,7 +172,7 @@ extension SQLite {
             do {
                 // 2- execute
                 try block()
-                // 3- commit transction
+                // 3- commit
                 let commitTransactionQuery = "COMMIT;"
                 let commitResult = sqlite3_exec(pointer, commitTransactionQuery, nil, nil, nil)
                 guard commitResult == SQLITE_OK else {
