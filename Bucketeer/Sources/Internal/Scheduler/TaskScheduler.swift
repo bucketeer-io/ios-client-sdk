@@ -25,7 +25,7 @@ final class TaskScheduler {
     }()
 
     deinit {
-        if #available(iOS 13.0, *) {
+        if #available(iOS 13.0, tvOS 13.0, *) {
             BKTBackgroundTask.unregisterAllHandler()
         }
     }

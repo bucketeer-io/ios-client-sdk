@@ -6,13 +6,15 @@ class FirstViewController: UIViewController {
     @IBOutlet weak var messageLabel: UILabel!
 
     override func viewWillAppear(_ animated: Bool) {
-        messageLabel.text = BKTClient.shared.stringVariation(featureId: "ios_test_002", defaultValue: "not found...")
+        let client = try? BKTClient.shared
+        messageLabel.text = client?.stringVariation(featureId: "ios_test_002", defaultValue: "not found...") ?? "not found..."
 
-        let colorCode = BKTClient.shared.stringVariation(featureId: "ios_test_003", defaultValue: "#999999")
+        let colorCode = client?.stringVariation(featureId: "ios_test_003", defaultValue: "#999999") ?? "#999999"
         view.backgroundColor = UIColor(hex: colorCode)
     }
     @IBAction func trackButtonAction(_ sender: Any) {
-        BKTClient.shared.track(goalId: "ios_test_002", value: 1)
+        let client = try? BKTClient.shared
+        client?.track(goalId: "ios_test_002", value: 1)
     }
 }
 

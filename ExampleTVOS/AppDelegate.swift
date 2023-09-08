@@ -9,37 +9,51 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
 
+        if #available(iOS 13.0, tvOS 13.0, *) {
+            BKTBackgroundTask.enable()
+        }
+        
         let user = try! BKTUser.Builder()
             .with(id: "001")
             .with(attributes: [:])
             .build()
+        do {
+            try BKTClient.initialize(
+                config: self.makeConfigUsingBuilder(),
+                user: user
+            ) { error in
+                if let error {
+                    print(error)
+                }
+                var client : BKTClient?
+                do {
+                    try client = BKTClient.shared
+                } catch {
+                    print(error.localizedDescription)
+                }
+                print("ios_test_001 =", client?.boolVariation(featureId: "ios_test_001", defaultValue: false) ?? false)
+                print("ios_test_002 =", client?.stringVariation(featureId: "ios_test_002", defaultValue: "002 not found...") ?? "002 not found...")
+                print("ios_test_003 =", client?.stringVariation(featureId: "ios_test_003", defaultValue: "003 not found...") ?? "003 not found...")
+                print("ios_test_004 =", client?.stringVariation(featureId: "ios_test_004", defaultValue: "004 not found...") ?? "004 not found...")
+                print("ios_test_005 =", client?.intVariation(featureId: "ios_test_005", defaultValue: 0) ?? 0)
 
-        BKTClient.initialize(
-            config: self.makeConfigUsingBuilder(),
-            user: user
-        ) { error in
-            if let error {
-                print(error)
-            }
-
-            print("ios_test_001 =", BKTClient.shared.boolVariation(featureId: "ios_test_001", defaultValue: false))
-            print("ios_test_002 =", BKTClient.shared.stringVariation(featureId: "ios_test_002", defaultValue: "002 not found..."))
-            print("ios_test_003 =", BKTClient.shared.stringVariation(featureId: "ios_test_003", defaultValue: "003 not found..."))
-            print("ios_test_004 =", BKTClient.shared.stringVariation(featureId: "ios_test_004", defaultValue: "004 not found..."))
-            print("ios_test_005 =", BKTClient.shared.intVariation(featureId: "ios_test_005", defaultValue: 0))
-
-            DispatchQueue.main.async {
-                self.setSingleViewController()
-            }
-
-            DispatchQueue.main.async {
-                let isTabMode = BKTClient.shared.boolVariation(featureId: "ios_test_001", defaultValue: false)
-                if isTabMode {
-                    self.setTabBarController()
-                } else {
+                DispatchQueue.main.async {
                     self.setSingleViewController()
                 }
+
+                DispatchQueue.main.async {
+                    let isTabMode = client?.boolVariation(featureId: "ios_test_001", defaultValue: false) ?? false
+                    if isTabMode {
+                        self.setTabBarController()
+                    } else {
+                        self.setSingleViewController()
+                    }
+                }
             }
+        } catch {
+            // Handle exception when initialize the BKTClient,
+            // Usually because it required to call from the main thread
+            print(error.localizedDescription)
         }
 
         return true
