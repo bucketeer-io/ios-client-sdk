@@ -2,11 +2,12 @@
 
 ## [2.1.0](https://github.com/bucketeer-io/ios-client-sdk/compare/v2.0.2...v2.1.0) (2023-09-08)
 
+From this version, the SDK will only update the flags that have been updated on the server instead of deleting and inserting all flags every time a flag changes. This will improve response time and network traffic between the client and server.
 
 ### Features
 
 * support for background mode iOS 13+ ([#28](https://github.com/bucketeer-io/ios-client-sdk/issues/28)) ([0161cdf](https://github.com/bucketeer-io/ios-client-sdk/commit/0161cdf905c2db405743db7e572582f9429eb611))
-
+* change the API response format to improve the response time ([#19](https://github.com/bucketeer-io/ios-client-sdk/issues/19)) ([196c2c9](https://github.com/bucketeer-io/ios-client-sdk/commit/196c2c98501f5bb54548d7b9a71bf0fdf5c5fd38))
 
 ### Bug Fixes
 
@@ -14,10 +15,9 @@
 * evaluation scheduler not being reset when the request succeeds ([#37](https://github.com/bucketeer-io/ios-client-sdk/issues/37)) ([8df5ae3](https://github.com/bucketeer-io/ios-client-sdk/commit/8df5ae3955d31f74371351a055ecc66f318089e3))
 * network error being reported as internal sdk error ([#39](https://github.com/bucketeer-io/ios-client-sdk/issues/39)) ([01d6119](https://github.com/bucketeer-io/ios-client-sdk/commit/01d6119e02869adabe261d2e072ad5db0767899b))
 
-
 ### Miscellaneous
 
-* change the API response format to improve the response time ([#19](https://github.com/bucketeer-io/ios-client-sdk/issues/19)) ([196c2c9](https://github.com/bucketeer-io/ios-client-sdk/commit/196c2c98501f5bb54548d7b9a71bf0fdf5c5fd38))
+* fix lint error in the podspec ([#41](https://github.com/bucketeer-io/ios-client-sdk/issues/41)) ([99fd16a](https://github.com/bucketeer-io/ios-client-sdk/commit/99fd16a9d7cbafaa6a8817f160af0444aa3cd37d))
 
 ## [2.0.2](https://github.com/bucketeer-io/ios-client-sdk/compare/v2.0.1...v2.0.2) (2023-08-23)
 
