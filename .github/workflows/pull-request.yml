@@ -17,6 +17,13 @@ jobs:
         with:
           args: --strict
 
+  lint_pod:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Lint Pods
+        run: pod lib lint --allow-warnings
+
   build:
     runs-on: macos-latest
     steps:
