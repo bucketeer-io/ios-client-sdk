@@ -8,13 +8,15 @@ final class SQLite {
     // access SQLite on one serial queue to prevent `database is locked` or database corrupt
     private static let queueName = "io.bucketeer.SQLite"
     private static let dispatchKey = DispatchSpecificKey<String>()
-    private static let dbQueue = DispatchQueue(label: queueName)
+    private static let dbQueue : DispatchQueue = {
+        let queue = DispatchQueue(label: queueName)
+        queue.setSpecific(key: dispatchKey, value: queueName)
+        return queue
+    }()
 
     init(path: String, logger: Logger?) throws {
         self.path = path
         self.logger = logger
-        // set the queue key
-        Self.dbQueue.setSpecific(key: Self.dispatchKey, value: Self.queueName)
         pointer = try Self.dbQueue.sync {
             var _pointer: OpaquePointer?
             let flags = SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE | SQLITE_OPEN_FULLMUTEX
