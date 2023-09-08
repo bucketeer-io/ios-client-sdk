@@ -5,6 +5,12 @@ protocol Component: AnyObject {
     var userHolder: UserHolder { get }
     var evaluationInteractor: EvaluationInteractor { get }
     var eventInteractor: EventInteractor { get }
+
+    func destroy()
+}
+
+extension Component {
+    func destroy() {}
 }
 
 final class ComponentImpl: Component {
@@ -40,5 +46,11 @@ final class ComponentImpl: Component {
 
     var userHolder: UserHolder {
         dataModule.userHolder
+    }
+
+    func destroy() {
+        eventInteractor.set(eventUpdateListener: nil)
+        evaluationInteractor.clearUpdateListeners()
+        dataModule.apiClient.cancelAllOngoingRequest()
     }
 }

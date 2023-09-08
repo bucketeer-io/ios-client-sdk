@@ -8,6 +8,7 @@ struct MockSession: Session {
     var response: HTTPURLResponse?
     var error: Error?
     let networkQueue = DispatchQueue(label: "io.bucketeer.concurrentQueue.network", attributes: .concurrent)
+    var invalidateAndCancelHandler: (() -> Void)?
 
     func task(with request: URLRequest, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) {
         networkQueue.async {
@@ -16,5 +17,9 @@ struct MockSession: Session {
                 completionHandler(data, response, error)
             }
         }
+    }
+
+    func invalidateAndCancel() {
+        invalidateAndCancelHandler?()
     }
 }

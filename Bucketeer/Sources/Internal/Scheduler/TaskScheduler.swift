@@ -83,4 +83,10 @@ final class TaskScheduler {
         foregroundSchedulers.forEach({ $0.stop() })
         backgroundSchedulers.forEach({ $0.stop() })
     }
+
+    func invalidate() {
+        stop()
+        foregroundSchedulers.removeAll()
+        backgroundSchedulers.removeAll()
+    }
 }

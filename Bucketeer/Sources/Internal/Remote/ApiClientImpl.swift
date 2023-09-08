@@ -11,6 +11,7 @@ final class ApiClientImpl: ApiClient {
     private let defaultRequestTimeoutMills: Int64
     private let logger: Logger?
     private let semaphore = DispatchSemaphore(value: 0)
+    private var closed = false
 
     deinit {
         // over-signaling does not introduce new problems
@@ -23,7 +24,7 @@ final class ApiClientImpl: ApiClient {
         apiKey: String,
         featureTag: String,
         defaultRequestTimeoutMills: Int64 = ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS,
-        session: Session = URLSession.shared,
+        session: Session,
         logger: Logger?
     ) {
 
@@ -114,6 +115,11 @@ final class ApiClientImpl: ApiClient {
         timeoutMillis: Int64,
         encoder: JSONEncoder = JSONEncoder(),
         completion: ((Result<(Response, URLResponse), Error>) -> Void)?) {
+        if (closed) {
+            completion?(.failure(BKTError.illegalState(message: "API Client has been closed")))
+            return
+        }
+
         let requestId = Date().unixTimestamp
         logger?.debug(message: "[API] RequestID enqueue: \(requestId)")
         logger?.debug(message: "[API] Register events: \(requestBody)")
@@ -184,6 +190,12 @@ final class ApiClientImpl: ApiClient {
             logger?.debug(message: "[API] RequestID: \(requestId) could not request with error \(error.localizedDescription)")
             completion?(.failure(error))
         }
+    }
+
+    func cancelAllOngoingRequest() {
+        // we access API client from the SDK queue only, so its safe
+        closed = true
+        session.invalidateAndCancel()
     }
 }
 

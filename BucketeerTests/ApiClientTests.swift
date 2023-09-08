@@ -1018,5 +1018,59 @@ class ApiClientTests: XCTestCase {
         }
         wait(for: [expectation], timeout: 5)
     }
+
+    func testCancelOngoingRequest() throws {
+        let expectation = XCTestExpectation()
+        expectation.expectedFulfillmentCount = 2
+        expectation.assertForOverFulfill = true
+
+        let mockRequestBody = MockRequestBody()
+
+        let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
+        let path = "path"
+        let apiKey = "x:api-key"
+
+        let session = MockSession(
+            configuration: .default,
+            requestHandler: { _ in
+                XCTFail("should not sending the request because the client has been closed")
+            },
+            data: nil,
+            response: nil,
+            error: nil,
+            invalidateAndCancelHandler: {
+                // Should invalidateAndCancel the session
+                expectation.fulfill()
+            }
+        )
+        let api = ApiClientImpl(
+            apiEndpoint: apiEndpointURL,
+            apiKey: apiKey,
+            featureTag: "tag1",
+            session: session,
+            logger: nil
+        )
+
+        api.cancelAllOngoingRequest()
+
+        api.send(
+            requestBody: mockRequestBody,
+            path: path,
+            timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
+            switch result {
+            case .success:
+                XCTFail()
+            case .failure(let error):
+                guard
+                    let error = error as? BKTError,
+                    case .illegalState(message: "API Client has been closed") = error else {
+                    XCTFail("should be BKTError.illegalState")
+                    return
+                }
+            }
+            expectation.fulfill()
+        }
+        wait(for: [expectation], timeout: 0.1)
+    }
 }
 // swiftlint:enable type_body_length file_length

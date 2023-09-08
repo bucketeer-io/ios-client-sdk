@@ -45,18 +45,18 @@ extension SQLite {
         }
 
         struct Info: Equatable, CustomDebugStringConvertible {
-            let pointer: OpaquePointer
+            let errorMessage: String
             let result: Int32
 
             var userInfo: [String: Any] {
                 return [
-                    NSLocalizedDescriptionKey: String(cString: sqlite3_errmsg(pointer)),
+                    NSLocalizedDescriptionKey: errorMessage,
                     "SQLiteHelperErrorResult": self.result
                 ]
             }
 
             var debugDescription: String {
-                String(cString: sqlite3_errmsg(pointer))
+                errorMessage
             }
         }
     }

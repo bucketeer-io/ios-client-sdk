@@ -33,7 +33,7 @@ final class DataModuleImpl: DataModule {
         apiEndpoint: config.apiEndpoint,
         apiKey: self.config.apiKey,
         featureTag: self.config.featureTag,
-        session: URLSession.shared,
+        session: URLSession(configuration: .default),
         logger: self.config.logger
     )
     private(set) lazy var userHolder: UserHolder = UserHolder(user: self.user)

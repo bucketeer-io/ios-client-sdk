@@ -4,12 +4,11 @@ import Bucketeer
 class FirstViewController: UIViewController {
 
     @IBOutlet weak var messageLabel: UILabel!
-    var client : BKTClient?
 
     override func viewDidLoad() {
         super.viewDidLoad()
         do {
-            try client = BKTClient.shared
+            _ = try BKTClient.shared
         } catch {
             // We may have an error when we did not success initialize the client
             // Handle error
@@ -17,13 +16,14 @@ class FirstViewController: UIViewController {
     }
     
     override func viewWillAppear(_ animated: Bool) {
-
+        let client = try? BKTClient.shared
         messageLabel.text = client?.stringVariation(featureId: "ios_test_002", defaultValue: "not found...") ?? "not found..."
 
         let colorCode = client?.stringVariation(featureId: "ios_test_003", defaultValue: "#999999") ?? "#999999"
         view.backgroundColor = UIColor(hex: colorCode)
     }
     @IBAction func trackButtonAction(_ sender: Any) {
+        let client = try? BKTClient.shared
         client?.track(goalId: "ios_test_002", value: 1)
     }
     @IBAction func destroyClient(_ sender: Any) {
@@ -32,7 +32,7 @@ class FirstViewController: UIViewController {
     
     @IBAction func initClient(_ sender: Any) {
         let user = try! BKTUser.Builder()
-            .with(id: "001")
+            .with(id: "user_001")
             .with(attributes: [:])
             .build()
 
@@ -64,6 +64,49 @@ class FirstViewController: UIViewController {
             .with(logger: AppLogger())
 
         return try! builder.build()
+    }
+    
+    @IBAction func switchUser(_ sender: Any) {
+        let destroyAndInitialize: () -> Void = {
+            do {
+                print("[Bucketeer] destroying ---------- ")
+                try BKTClient.destroy()
+                
+                // create new user with new userId
+                let user = try! BKTUser.Builder()
+                    .with(id: "user_002")
+                    .with(attributes: [:])
+                    .build()
+                let config = self.makeConfigUsingBuilder()
+                
+                print("[Bucketeer] initializing ---------- ")
+                try BKTClient.initialize(config: config, user: user) { error in
+                    DispatchQueue.main.async {
+                        if let error {
+                            print("[Bucketeer] ERROR initialize ------------------", error)
+                        } else {
+                            print("[Bucketeer] OK initialize ------------------")
+                        }
+                    }
+                }
+            } catch {
+                print("[Bucketeer] ERROR trying to destroy and initialize ------------------")
+            }
+        }
+        if let client = try? BKTClient.shared {
+            client.track(goalId: "ios_test_002", value: 1)
+            print("[Bucketeer] flushing ---------- ")
+            client.flush { error in
+                if let error {
+                    print("[Bucketeer] ERROR flushing ------------------", error)
+                    return
+                }
+                print("[Bucketeer] OK flushing ------------------")
+                destroyAndInitialize()
+            }
+        } else {
+            destroyAndInitialize()
+        }
     }
 }
 
