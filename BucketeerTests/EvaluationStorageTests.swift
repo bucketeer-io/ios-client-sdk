@@ -170,8 +170,7 @@ final class EvaluationStorageTests: XCTestCase {
         }, deleteAllHandler: { userId in
             expectation.fulfill()
             XCTAssertEqual(testUserId1, userId)
-
-        }, deleteByIdsHandlder: { ids in
+        }, deleteByIdsHandlder: { _ in
             XCTFail("should not called")
         }, startTransactionHandler: { block in
             // Should use use transaction

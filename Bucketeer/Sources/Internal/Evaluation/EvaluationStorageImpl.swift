@@ -88,6 +88,8 @@ final class EvaluationStorageImpl: EvaluationStorage {
         }.map { item in
             item
         }.sorted { evaluation1, evaluation2 in
+            // Make sure the order is correct,
+            // as dictionary is unorder
             evaluation1.featureId < evaluation2.featureId
         }
         // 4. Save to database
