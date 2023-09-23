@@ -73,10 +73,10 @@ final class EvaluationStorageImpl: EvaluationStorage {
     func update(evaluations: [Evaluation], archivedFeatureIds: [String], evaluatedAt: String) throws -> Bool {
         // 1. Get current data in db
         var activeEvaluationsDict = try evaluationDao.get(userId: userId)
-            .reduce([String:Evaluation]()) { (result, evaluation) -> [String:Evaluation] in
-                var result = result
-                result[evaluation.featureId] = evaluation
-                return result
+            .reduce([String:Evaluation]()) { (input, evaluation) -> [String:Evaluation] in
+                var output = input
+                output[evaluation.featureId] = evaluation
+                return output
             }
         // 2. Update evaluation with new data
         for evaluation in evaluations {

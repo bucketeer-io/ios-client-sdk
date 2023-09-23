@@ -106,7 +106,7 @@ final class EvaluationStorageTests: XCTestCase {
         let testUserId1 = Evaluation.mock2.userId
         // This is a mock data for ensure we fixed a bug which explained here
         // https://github.com/bucketeer-io/android-client-sdk/pull/88#discussion_r1333847962
-        let mock2Updated = Evaluation(
+        let mockEvaluationForUpsert = Evaluation(
             // The upsert logic will use the feature flag id rather than the evaluation_id
             // Because the evaluation_id is based on the feature version.
             // Every time a flag changes, the version number is incremented.
@@ -138,10 +138,9 @@ final class EvaluationStorageTests: XCTestCase {
         )
         var getHandlerAccessCount = 0
         let mockDao = MockEvaluationDao(putHandler: { userId, evaluations in
-            // Should update .mock2Updated
             expectation.fulfill()
             XCTAssertEqual(testUserId1, userId)
-            XCTAssertEqual(evaluations, [mock2Updated, mockEvaluationForInsert])
+            XCTAssertEqual(evaluations, [mockEvaluationForUpsert, mockEvaluationForInsert])
         }, getHandler: { userId in
             // Should fullfill 2 times
             // 1 for init cache
@@ -163,8 +162,8 @@ final class EvaluationStorageTests: XCTestCase {
                     // This is expected call for checking the current evaluations in the database before update
                     return [.mock1, .mock2]
                 }
-            // Finally, we should expected only mock2updated in the database
-            default: return [mock2Updated, mockEvaluationForInsert]
+            // Finally, we should expected [mockEvaluationForUpsert, mockEvaluationForInsert] in the database
+            default: return [mockEvaluationForUpsert, mockEvaluationForInsert]
             }
             return []
         }, deleteAllHandler: { userId in
@@ -184,17 +183,21 @@ final class EvaluationStorageTests: XCTestCase {
             evaluationMemCacheDao: EvaluationMemCacheDao(),
             evaluationUserDefaultsDao: mockUserDefsDao
         )
-        // Should update Evaluation.mock2 & remove Evaluation.mock1
+        // Should update Evaluation.mock2, insert `mockEvaluationForInsert` & remove Evaluation.mock1
         let result = try storage.update(
-            evaluations: [mock2Updated, mockEvaluationForInsert],
+            evaluations: [mockEvaluationForUpsert, mockEvaluationForInsert],
             archivedFeatureIds: [
                 Evaluation.mock1.featureId
             ],
             evaluatedAt: "1024"
         )
         XCTAssertTrue(result, "update action should success")
-        XCTAssertEqual(storage.evaluatedAt, "1024", "should save last evaluatedAt")
-        XCTAssertEqual(try storage.get(userId: testUserId1), [mock2Updated, mockEvaluationForInsert], "Finally, we should expected [mock2Updated, mockEvaluationForInsert] in the database")
+        XCTAssertEqual(storage.evaluatedAt, "1024", "evaluatedAt should be 1024")
+        XCTAssertEqual(
+            try storage.get(userId: testUserId1),
+            [mockEvaluationForUpsert, mockEvaluationForInsert],
+            "expected [mock2Updated, mockEvaluationForInsert] in the database"
+        )
         wait(for: [expectation], timeout: 0.1)
     }
 
