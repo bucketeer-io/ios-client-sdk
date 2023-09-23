@@ -524,7 +524,6 @@ final class EvaluationInteractorTests: XCTestCase {
     }
 
     func testChangeFeatureTagWillClearUserEvaluationsId() {
-        let baseUserEvaluationsId = UserEvaluations.mock1.id
         let api = MockApiClient()
         let storage = MockEvaluationStorage()
 

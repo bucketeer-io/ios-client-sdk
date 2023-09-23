@@ -398,7 +398,7 @@ final class BKTClientTests: XCTestCase {
         client.fetchEvaluations(timeoutMillis: nil) { _ in
             let evaluation = client.evaluationDetails(featureId: "feature1")
             let expected = BKTEvaluation(
-                id: "evaluation1",
+                id: "feature1:1:user1",
                 featureId: "feature1",
                 featureVersion: 1,
                 userId: User.mock1.id,

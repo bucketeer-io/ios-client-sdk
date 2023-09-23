@@ -123,33 +123,48 @@ final class EvaluationStorageTests: XCTestCase {
                 ruleId: "rule2"
             )
         )
+        let mockEvaluationForInsert = Evaluation(
+            id: "feature8:1:user1",
+            featureId: "feature8",
+            featureVersion: 1,
+            userId: User.mock1.id,
+            variationId: "variation10",
+            variationName: "variation name10",
+            variationValue: "19",
+            reason: .init(
+                type: .rule,
+                ruleId: "rule2"
+            )
+        )
         var getHandlerAccessCount = 0
         let mockDao = MockEvaluationDao(putHandler: { userId, evaluations in
             // Should update .mock2Updated
             expectation.fulfill()
             XCTAssertEqual(testUserId1, userId)
-            XCTAssertEqual(evaluations, [mock2Updated])
+            XCTAssertEqual(evaluations, [mock2Updated, mockEvaluationForInsert])
         }, getHandler: { userId in
             // Should fullfill 2 times
             // 1 for init cache
             // 2 for prepare for update by loading the valid data from database
             expectation.fulfill()
             XCTAssertEqual(testUserId1, userId)
-            getHandlerAccessCount+=1
+            defer {
+                getHandlerAccessCount+=1
+            }
             switch getHandlerAccessCount {
-            case 0 : XCTFail("should not called")
-            case 1 :
+            case 0 :
                 if userId == testUserId1 {
                     // From the first time in the database has 2 items
+                    // This is expected call for refreshing the evaluation in-memory cache
                     return [ .mock1, .mock2]
                 }
-            case 2 :
+            case 1 :
                 if userId == testUserId1 {
-                    // .mock2 get some update
-                    return [.mock1, mock2Updated]
+                    // This is expected call for checking the current evaluations in the database before update
+                    return [.mock1, .mock2]
                 }
             // Finally, we should expected only mock2updated in the database
-            default: return [mock2Updated]
+            default: return [mock2Updated, mockEvaluationForInsert]
             }
             return []
         }, deleteAllHandler: { userId in
@@ -172,7 +187,7 @@ final class EvaluationStorageTests: XCTestCase {
         )
         // Should update Evaluation.mock2 & remove Evaluation.mock1
         let result = try storage.update(
-            evaluations: [mock2Updated],
+            evaluations: [mock2Updated, mockEvaluationForInsert],
             archivedFeatureIds: [
                 Evaluation.mock1.featureId
             ],
@@ -180,7 +195,7 @@ final class EvaluationStorageTests: XCTestCase {
         )
         XCTAssertTrue(result, "update action should success")
         XCTAssertEqual(storage.evaluatedAt, "1024", "should save last evaluatedAt")
-        XCTAssertEqual(try storage.get(userId: testUserId1), [mock2Updated], "Finally, we should expected only mock2updated in the database")
+        XCTAssertEqual(try storage.get(userId: testUserId1), [mock2Updated, mockEvaluationForInsert], "Finally, we should expected [mock2Updated, mockEvaluationForInsert] in the database")
         wait(for: [expectation], timeout: 0.1)
     }
 

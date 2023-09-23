@@ -87,6 +87,8 @@ final class EvaluationStorageImpl: EvaluationStorage {
             !archivedFeatureIds.contains(evaluation.featureId)
         }.map { item in
             item
+        }.sorted { evaluation1, evaluation2 in
+            evaluation1.featureId < evaluation2.featureId
         }
         // 4. Save to database
         try deleteAllAndInsert(userId: userId, evaluations: activeEvaluations, evaluatedAt: evaluatedAt)

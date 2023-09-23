@@ -84,7 +84,7 @@ final class EvaluationDaoTests: XCTestCase {
         // Update
         let updatedValue = "variation - updated"
         let updatedMock = Evaluation(
-            id: "evaluation1",
+            id: "feature1:1:user1",
             featureId: "feature1",
             featureVersion: 1,
             userId: User.mock1.id,
