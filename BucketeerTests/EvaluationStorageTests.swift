@@ -103,11 +103,17 @@ final class EvaluationStorageTests: XCTestCase {
         let expectation = XCTestExpectation(description: "testGetByUserId")
         expectation.expectedFulfillmentCount = 5
         expectation.assertForOverFulfill = true
-        let testUserId1 = Evaluation.mock1.userId
+        let testUserId1 = Evaluation.mock2.userId
+        // This is a mock data for ensure we fixed a bug which explained here
+        // https://github.com/bucketeer-io/android-client-sdk/pull/88#discussion_r1333847962
         let mock2Updated = Evaluation(
-            id: "evaluation2",
+            // The upsert logic will use the feature flag id rather than the evaluation_id
+            // Because the evaluation_id is based on the feature version.
+            // Every time a flag changes, the version number is incremented.
+            // See Evaluation.mock2
+            id: "feature2:2:user1",
             featureId: "feature2",
-            featureVersion: 1,
+            featureVersion: 2,
             userId: User.mock1.id,
             variationId: "variation2_updated",
             variationName: "variation name2 updated",
@@ -131,6 +137,7 @@ final class EvaluationStorageTests: XCTestCase {
             XCTAssertEqual(testUserId1, userId)
             getHandlerAccessCount+=1
             switch getHandlerAccessCount {
+            case 0 : XCTFail("should not called")
             case 1 :
                 if userId == testUserId1 {
                     // From the first time in the database has 2 items
@@ -145,12 +152,12 @@ final class EvaluationStorageTests: XCTestCase {
             default: return [mock2Updated]
             }
             return []
-        }, deleteAllHandler: { _ in
-            XCTFail("should not called")
-        }, deleteByIdsHandlder: { ids in
-            // Should delete .mock1
+        }, deleteAllHandler: { userId in
             expectation.fulfill()
-            XCTAssertEqual(ids, [Evaluation.mock1.id])
+            XCTAssertEqual(testUserId1, userId)
+
+        }, deleteByIdsHandlder: { ids in
+            XCTFail("should not called")
         }, startTransactionHandler: { block in
             // Should use use transaction
             try block()
@@ -164,7 +171,13 @@ final class EvaluationStorageTests: XCTestCase {
             evaluationUserDefaultsDao: mockUserDefsDao
         )
         // Should update Evaluation.mock2 & remove Evaluation.mock1
-        let result = try storage.update(evaluations: [mock2Updated], archivedFeatureIds: [Evaluation.mock1.featureId], evaluatedAt: "1024")
+        let result = try storage.update(
+            evaluations: [mock2Updated],
+            archivedFeatureIds: [
+                Evaluation.mock1.featureId
+            ],
+            evaluatedAt: "1024"
+        )
         XCTAssertTrue(result, "update action should success")
         XCTAssertEqual(storage.evaluatedAt, "1024", "should save last evaluatedAt")
         XCTAssertEqual(try storage.get(userId: testUserId1), [mock2Updated], "Finally, we should expected only mock2updated in the database")
