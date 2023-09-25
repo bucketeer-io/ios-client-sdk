@@ -72,7 +72,7 @@ final class EvaluationStorageImpl: EvaluationStorage {
 
     func update(evaluations: [Evaluation], archivedFeatureIds: [String], evaluatedAt: String) throws -> Bool {
         // 1. Get current data in db
-        var activeEvaluationsDict = try evaluationDao.get(userId: userId)
+        var currentEvaluationsByFeatureId = try evaluationDao.get(userId: userId)
             .reduce([String:Evaluation]()) { (input, evaluation) -> [String:Evaluation] in
                 var output = input
                 output[evaluation.featureId] = evaluation
@@ -80,10 +80,11 @@ final class EvaluationStorageImpl: EvaluationStorage {
             }
         // 2. Update evaluation with new data
         for evaluation in evaluations {
-            activeEvaluationsDict[evaluation.featureId] = evaluation
+            currentEvaluationsByFeatureId[evaluation.featureId] = evaluation
         }
+        
         // 3. Filter active
-        let activeEvaluations = activeEvaluationsDict.values.filter { evaluation in
+        let currentEvaluations = currentEvaluationsByFeatureId.values.filter { evaluation in
             !archivedFeatureIds.contains(evaluation.featureId)
         }.map { item in
             item
@@ -92,8 +93,9 @@ final class EvaluationStorageImpl: EvaluationStorage {
             // as dictionary is unorder
             evaluation1.featureId < evaluation2.featureId
         }
+
         // 4. Save to database
-        try deleteAllAndInsert(userId: userId, evaluations: activeEvaluations, evaluatedAt: evaluatedAt)
+        try deleteAllAndInsert(userId: userId, evaluations: currentEvaluations, evaluatedAt: evaluatedAt)
         return evaluations.count > 0 || archivedFeatureIds.count > 0
     }
 
