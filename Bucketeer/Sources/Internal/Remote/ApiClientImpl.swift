@@ -92,7 +92,6 @@ final class ApiClientImpl: ApiClient {
             return keys.last ?? keys[0]
         })
 
-        let timeoutMillisValue = defaultRequestTimeoutMills
         send(
             requestBody: requestBody,
             path: "register_events",
@@ -103,7 +102,7 @@ final class ApiClientImpl: ApiClient {
                 case .success((let response, _)):
                     completion?(.success(response))
                 case .failure(let error):
-                    completion?(.failure(.init(error: error).copyWith(timeoutMillis: timeoutMillisValue)))
+                    completion?(.failure(.init(error: error).copyWith(timeoutMillis: defaultRequestTimeoutMills)))
                 }
             }
         )
