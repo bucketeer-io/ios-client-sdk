@@ -5,7 +5,7 @@ extension Evaluation {
 
     /// id: evaluation1 - user: user1, value: string
     static let mock1 = Evaluation(
-        id: "evaluation1",
+        id: "feature1:1:user1",
         featureId: "feature1",
         featureVersion: 1,
         userId: User.mock1.id,
@@ -19,9 +19,9 @@ extension Evaluation {
     )
 
     static let mock1Updated = Evaluation(
-        id: "evaluation1_updated",
+        id: "feature1:2:user1",
         featureId: "feature1",
-        featureVersion: 1,
+        featureVersion: 2,
         userId: User.mock1.id,
         variationId: "variation1",
         variationName: "variation name1",
@@ -34,7 +34,7 @@ extension Evaluation {
 
     /// id: evaluation2 - user: user1, value: int
     static let mock2 = Evaluation(
-        id: "evaluation2",
+        id: "feature2:1:user1",
         featureId: "feature2",
         featureVersion: 1,
         userId: User.mock1.id,
@@ -49,7 +49,7 @@ extension Evaluation {
 
     /// id: evaluation3 - user: user2, value: double
     static let mock3 = Evaluation(
-        id: "evaluation3",
+        id: "feature3:1:user2",
         featureId: "feature3",
         featureVersion: 1,
         userId: User.mock2.id,
@@ -64,7 +64,7 @@ extension Evaluation {
 
     /// id: evaluation4 - user: user2, value: bool
     static let mock4 = Evaluation(
-        id: "evaluation4",
+        id: "feature4:1:user2",
         featureId: "feature4",
         featureVersion: 1,
         userId: User.mock2.id,
@@ -79,7 +79,7 @@ extension Evaluation {
 
     /// id: evaluation5 - user: user2, value: json
     static let mock5 = Evaluation(
-        id: "evaluation5",
+        id: "feature5:1:user2",
         featureId: "feature5",
         featureVersion: 1,
         userId: User.mock2.id,

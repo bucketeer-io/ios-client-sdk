@@ -65,36 +65,32 @@ final class EvaluationStorageImpl: EvaluationStorage {
             try evaluationDao.deleteAll(userId: userId)
             try evaluationDao.put(userId: userId, evaluations: evaluations)
         }
-        // Update cache directly after we have force update
+        // Update cache directly
         evaluationMemCacheDao.set(key: userId, value: evaluations)
         self.evaluatedAt = evaluatedAt
     }
 
     func update(evaluations: [Evaluation], archivedFeatureIds: [String], evaluatedAt: String) throws -> Bool {
-        var activeEvaluations = [Evaluation]()
-        var archivedEvaluationIds = [String]()
-        try evaluationDao.startTransaction {
-            // 1. Update evaluation with new data
-            try evaluationDao.put(userId: userId, evaluations: evaluations)
-            // 2. Get current data in db
-            let evaluationsInDb = try evaluationDao.get(userId: userId)
-            // 3. Filter active & archived
-            for evaluation in evaluationsInDb {
-                if archivedFeatureIds.contains(evaluation.featureId) {
-                    archivedEvaluationIds.append(evaluation.id)
-                } else {
-                    activeEvaluations.append(evaluation)
-                }
+        // 1. Get current data in db
+        var currentEvaluationsByFeatureId = try evaluationDao.get(userId: userId)
+            .reduce([String:Evaluation]()) { (input, evaluation) -> [String:Evaluation] in
+                var output = input
+                output[evaluation.featureId] = evaluation
+                return output
             }
-            // 4. Remove all the evaluations which have the same id in the list archivedEvaluationIds
-            if (archivedEvaluationIds.count > 0) {
-                try evaluationDao.deleteByIds(archivedEvaluationIds)
-            }
+        // 2. Update evaluation with new data
+        for evaluation in evaluations {
+            currentEvaluationsByFeatureId[evaluation.featureId] = evaluation
         }
-        self.evaluatedAt = evaluatedAt
-        // 5. Save a new cache
-        evaluationMemCacheDao.set(key: userId, value: activeEvaluations)
-        return evaluations.count > 0 || archivedEvaluationIds.count > 0
+        // 3. Filter active
+        let currentEvaluations = currentEvaluationsByFeatureId.values.filter { evaluation in
+            !archivedFeatureIds.contains(evaluation.featureId)
+        }.map { item in
+            item
+        }
+        // 4. Save to database
+        try deleteAllAndInsert(userId: userId, evaluations: currentEvaluations, evaluatedAt: evaluatedAt)
+        return evaluations.count > 0 || archivedFeatureIds.count > 0
     }
 
     // getBy will return the data from the cache to speed up the response time
