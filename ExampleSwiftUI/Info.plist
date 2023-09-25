@@ -11,5 +11,9 @@
 	<array>
 		<string>processing</string>
 	</array>
+	<key>API_ENDPOINT</key>
+	<string>$(API_ENDPOINT)</string>
+	<key>API_KEY</key>
+	<string>$(API_KEY)</string>
 </dict>
 </plist>

@@ -21,10 +21,7 @@ xcuserdata/
 *.moved-aside
 *.xccheckout
 *.xcscmblueprint
-Example/environment.plist
-ExampleTVOS/environment.plist
-BucketeerTests/environment.plist
-Bucketeer2Tests/environment.plist
+environment.xcconfig
 
 ## Obj-C/Swift specific
 *.hmap

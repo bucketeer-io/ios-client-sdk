@@ -8,6 +8,10 @@ on:
       - Bucketeer/Sources/Internal/Utils/Version.swift
       - Bucketeer.podspec
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -28,6 +32,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
+
       - name: Build
         run: make build
 
@@ -35,6 +40,12 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
+
+      - name: Setup environment
+        env:
+          CI: true
+        run: make environment-setup
+
       - name: Build example
         run: make build-example
 
@@ -42,6 +53,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
+
       - name: Build for testing
         run: make build-for-testing
 

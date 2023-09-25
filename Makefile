@@ -43,7 +43,7 @@ ALL_TEST_WITHOUT_BUILDING=$(XCODEBUILD) $(OPTIONS) $(DESTINATION) \
 	test-without-building
 BUILD_EXAMPLE=$(XCODEBUILD) $(EXAMPLE_OPTIONS) $(DESTINATION) \
 	-configuration $(CONFIGURATION) \
-	build API_ENDPOINT=$(API_ENDPOINT) API_KEY=$(API_KEY)
+	build
 
 .PHONY: clean
 clean:
@@ -81,6 +81,10 @@ all-test-without-building:
 build-example:
 	$(BUILD_EXAMPLE)
 
+.PHONY: environment-setup
+environment-setup:
+	./hack/environment-setup.sh
+
 .PHONY: sort-proj
 sort-proj:
-	./scripts/sort-Xcode-project-file $(APP_NAME).xcodeproj
+	./hack/sort-Xcode-project-file $(APP_NAME).xcodeproj
