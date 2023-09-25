@@ -82,7 +82,7 @@ final class EvaluationStorageImpl: EvaluationStorage {
         for evaluation in evaluations {
             currentEvaluationsByFeatureId[evaluation.featureId] = evaluation
         }
-        
+
         // 3. Filter active
         let currentEvaluations = currentEvaluationsByFeatureId.values.filter { evaluation in
             !archivedFeatureIds.contains(evaluation.featureId)
