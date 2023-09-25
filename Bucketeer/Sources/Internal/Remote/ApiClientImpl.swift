@@ -97,12 +97,12 @@ final class ApiClientImpl: ApiClient {
             path: "register_events",
             timeoutMillis: defaultRequestTimeoutMills,
             encoder: encoder,
-            completion: { (result: Result<(RegisterEventsResponse, URLResponse), Error>) in
+            completion: { [self] (result: Result<(RegisterEventsResponse, URLResponse), Error>) in
                 switch result {
                 case .success((let response, _)):
                     completion?(.success(response))
                 case .failure(let error):
-                    completion?(.failure(.init(error: error)))
+                    completion?(.failure(.init(error: error).copyWith(timeoutMillis: defaultRequestTimeoutMills)))
                 }
             }
         )
