@@ -140,7 +140,7 @@ final class EvaluationStorageTests: XCTestCase {
         let mockDao = MockEvaluationDao(putHandler: { userId, evaluations in
             expectation.fulfill()
             XCTAssertEqual(testUserId1, userId)
-            XCTAssertEqual(evaluations, [mockEvaluationForUpsert, mockEvaluationForInsert])
+            XCTAssertEqual(Set(evaluations), Set([mockEvaluationForUpsert, mockEvaluationForInsert]))
         }, getHandler: { userId in
             // Should fullfill 2 times
             // 1 for init cache
@@ -194,8 +194,8 @@ final class EvaluationStorageTests: XCTestCase {
         XCTAssertTrue(result, "update action should success")
         XCTAssertEqual(storage.evaluatedAt, "1024", "evaluatedAt should be 1024")
         XCTAssertEqual(
-            try storage.get(userId: testUserId1),
-            [mockEvaluationForUpsert, mockEvaluationForInsert],
+            Set(try storage.get(userId: testUserId1)),
+            Set([mockEvaluationForUpsert, mockEvaluationForInsert]),
             "expected [mock2Updated, mockEvaluationForInsert] in the database"
         )
         wait(for: [expectation], timeout: 0.1)

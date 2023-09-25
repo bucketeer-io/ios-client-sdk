@@ -82,18 +82,12 @@ final class EvaluationStorageImpl: EvaluationStorage {
         for evaluation in evaluations {
             currentEvaluationsByFeatureId[evaluation.featureId] = evaluation
         }
-
         // 3. Filter active
         let currentEvaluations = currentEvaluationsByFeatureId.values.filter { evaluation in
             !archivedFeatureIds.contains(evaluation.featureId)
         }.map { item in
             item
-        }.sorted { evaluation1, evaluation2 in
-            // Make sure the order is correct,
-            // as dictionary is unorder
-            evaluation1.featureId < evaluation2.featureId
         }
-
         // 4. Save to database
         try deleteAllAndInsert(userId: userId, evaluations: currentEvaluations, evaluatedAt: evaluatedAt)
         return evaluations.count > 0 || archivedFeatureIds.count > 0
