@@ -49,8 +49,10 @@ final class ApiClientImpl: ApiClient {
             user: user,
             userEvaluationsId: userEvaluationsId,
             sourceId: .ios,
-            userEvaluationCondition: UserEvaluationCondition(evaluatedAt: condition.evaluatedAt,
-                                                             userAttributesUpdated: condition.userAttributesUpdated),
+            userEvaluationCondition: UserEvaluationCondition(
+                evaluatedAt: condition.evaluatedAt,
+                userAttributesUpdated: condition.userAttributesUpdated
+            ),
             sdkVersion: Version.current
         )
         let featureTag = self.featureTag
