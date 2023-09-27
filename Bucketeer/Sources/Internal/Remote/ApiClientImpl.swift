@@ -49,8 +49,11 @@ final class ApiClientImpl: ApiClient {
             user: user,
             userEvaluationsId: userEvaluationsId,
             sourceId: .ios,
-            userEvaluationCondition: UserEvaluationCondition(evaluatedAt: condition.evaluatedAt,
-                                                             userAttributesUpdated: condition.userAttributesUpdated)
+            userEvaluationCondition: UserEvaluationCondition(
+                evaluatedAt: condition.evaluatedAt,
+                userAttributesUpdated: condition.userAttributesUpdated
+            ),
+            sdkVersion: Version.current
         )
         let featureTag = self.featureTag
         let timeoutMillisValue = timeoutMillis ?? defaultRequestTimeoutMills
@@ -78,7 +81,8 @@ final class ApiClientImpl: ApiClient {
 
     func registerEvents(events: [Event], completion: ((Result<RegisterEventsResponse, BKTError>) -> Void)?) {
         let requestBody = RegisterEventsRequestBody(
-            events: events
+            events: events,
+            sdkVersion: Version.current
         )
         logger?.debug(message: "[API] Register events: \(requestBody)")
         let encoder = JSONEncoder()

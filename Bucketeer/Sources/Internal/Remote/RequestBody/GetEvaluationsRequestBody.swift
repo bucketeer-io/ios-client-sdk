@@ -6,4 +6,5 @@ struct GetEvaluationsRequestBody: Codable {
     let userEvaluationsId: String
     let sourceId: SourceID
     let userEvaluationCondition: UserEvaluationCondition
+    let sdkVersion: String
 }

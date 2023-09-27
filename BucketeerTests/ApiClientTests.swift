@@ -37,6 +37,7 @@ class ApiClientTests: XCTestCase {
                 let jsonString = String(data: data, encoding: .utf8) ?? ""
                 let expected = """
 {
+  "sdkVersion" : "\(Version.current)",
   "sourceId" : 2,
   "tag" : "tag1",
   "user" : {
@@ -114,6 +115,7 @@ class ApiClientTests: XCTestCase {
                 let jsonString = String(data: data, encoding: .utf8) ?? ""
                 let expected = """
 {
+  "sdkVersion" : "\(Version.current)",
   "sourceId" : 2,
   "tag" : "tag1",
   "user" : {
@@ -247,7 +249,8 @@ class ApiClientTests: XCTestCase {
       "id" : "evaluation_event1",
       "type" : 3
     }
-  ]
+  ],
+  "sdkVersion" : "\(Version.current)"
 }
 """
                 XCTAssertEqual(jsonString, expected)
@@ -356,7 +359,8 @@ class ApiClientTests: XCTestCase {
       "id" : "evaluation_event1",
       "type" : 3
     }
-  ]
+  ],
+  "sdkVersion" : "\(Version.current)"
 }
 """
                 XCTAssertEqual(jsonString, expected)
