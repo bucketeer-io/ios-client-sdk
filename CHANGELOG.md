@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.1.1](https://github.com/bucketeer-io/ios-client-sdk/compare/v2.1.0...v2.1.1) (2023-10-02)
+
+
+### Bug Fixes
+
+* missing timeout value in the timeout error event ([#45](https://github.com/bucketeer-io/ios-client-sdk/issues/45)) ([5a19b80](https://github.com/bucketeer-io/ios-client-sdk/commit/5a19b802e56ff0653266c17c54ce5a91dd1c2bd7))
+
+
+### Miscellaneous
+
+* add sdk_version to the network requests ([#48](https://github.com/bucketeer-io/ios-client-sdk/issues/48)) ([8c29c18](https://github.com/bucketeer-io/ios-client-sdk/commit/8c29c183d416251e82a4bb59b3430617b9cfc1a3))
+* change to use feature_id for the active evaluations map ([#44](https://github.com/bucketeer-io/ios-client-sdk/issues/44)) ([a3b308d](https://github.com/bucketeer-io/ios-client-sdk/commit/a3b308d032be592f9fab35e29ccc0045c2a7594f))
+
+
+### Build System
+
+* change to get api credentials from xcconfig file ([#46](https://github.com/bucketeer-io/ios-client-sdk/issues/46)) ([cb76294](https://github.com/bucketeer-io/ios-client-sdk/commit/cb7629479f4afc3a7d78fef36b55e016c609914e))
+
 ## [2.1.0](https://github.com/bucketeer-io/ios-client-sdk/compare/v2.0.2...v2.1.0) (2023-09-08)
 
 From this version, the SDK will only update the flags that have been updated on the server instead of deleting and inserting all flags every time a flag changes. This will improve response time and network traffic between the client and server.
