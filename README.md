@@ -34,6 +34,15 @@ Please follow our contribution guide [here](https://docs.bucketeer.io/contributi
 
 ## Development
 
+### Setup the environment xcconfig file
+
+Execute the following Makefile to create the environment xcconfig file.<br />
+This will set the **API_ENDPOINT** and the **API_KEY** for E2E Tests and the Example App.
+
+```sh
+make environment-setup
+```
+
 ### Development with Xcode
 
 Open Xcode and import `ios-client-sdk`.
@@ -75,10 +84,7 @@ make e2e-without-building
 
 ## Example App
 
-To install the app via an emulator, set the following values in the `Info.plist`.
-
-- apiEndpoint
-- apiKey
+To run the example app, you must execute the Makefile `make environment-setup` to set the **API_ENDPOINT** and the **API_KEY**.
 
 ## License
 

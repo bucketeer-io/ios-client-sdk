@@ -21,6 +21,12 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
+
+      - name: Setup environment
+        env:
+          CI: true
+        run: make environment-setup
+
       - name: Build example
         run: make build-example
 
@@ -29,6 +35,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
+
       - name: Build for testing
         run: make build-for-testing
 

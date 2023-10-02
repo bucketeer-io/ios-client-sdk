@@ -63,11 +63,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     private func makeConfigUsingBuilder() -> BKTConfig {
         let bundle = Bundle(for: type(of: self))
-        let apiKey = ProcessInfo.processInfo.environment["API_KEY"]!
-        let apiEndpoint = ProcessInfo.processInfo.environment["API_ENDPOINT"]!
         let builder = BKTConfig.Builder()
-            .with(apiKey: apiKey)
-            .with(apiEndpoint: apiEndpoint)
+            .with(apiKey: bundle.infoDictionary?["API_KEY"] as! String)
+            .with(apiEndpoint: bundle.infoDictionary?["API_ENDPOINT"] as! String)
             .with(featureTag: "ios")
             .with(pollingInterval: 150_000)
             .with(appVersion: bundle.infoDictionary?["CFBundleShortVersionString"] as! String)
@@ -78,12 +76,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     private func makeConfig() -> BKTConfig {
         let bundle = Bundle(for: type(of: self))
-        let apiKey = ProcessInfo.processInfo.environment["API_KEY"]!
-        let apiEndpoint = ProcessInfo.processInfo.environment["API_ENDPOINT"]!
-
         return try! BKTConfig(
-            apiKey: apiKey,
-            apiEndpoint: apiEndpoint,
+            apiKey: bundle.infoDictionary?["API_KEY"] as! String,
+            apiEndpoint: bundle.infoDictionary?["API_ENDPOINT"] as! String,
             featureTag: "ios",
             pollingInterval: 150_000,
             appVersion: bundle.infoDictionary?["CFBundleShortVersionString"] as! String,
