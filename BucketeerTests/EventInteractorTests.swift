@@ -4,7 +4,7 @@ import XCTest
 // swiftlint:disable type_body_length file_length
 final class EventInteractorTests: XCTestCase {
     private func eventInteractor(api: ApiClient = MockApiClient(),
-                                 dao: EventDao = MockEventDao(),
+                                 dao: EventSQLDao = MockEventSQLDao(),
                                  config: BKTConfig = BKTConfig.mock(),
                                  idGenerator: IdGenerator = MockIdGenerator(identifier: "id")
     ) -> EventInteractor {
@@ -290,7 +290,7 @@ final class EventInteractorTests: XCTestCase {
         expectation.expectedFulfillmentCount = 3
 
         let addedEvents: [Event] = [.mockEvaluation1, .mockGoal1]
-        let dao = MockEventDao()
+        let dao = MockEventSQLDao()
         try dao.add(events: addedEvents)
         let api = MockApiClient(registerEventsHandler: { events, completion in
             XCTAssertEqual(events.count, 2)
@@ -322,7 +322,7 @@ final class EventInteractorTests: XCTestCase {
         expectation.expectedFulfillmentCount = 3
 
         let addedEvents: [Event] = [.mockEvaluation1, .mockGoal1, .mockGoal2]
-        let dao = MockEventDao()
+        let dao = MockEventSQLDao()
         try dao.add(events: addedEvents)
 
         let error = BKTError.badRequest(message: "bad request")
@@ -393,7 +393,7 @@ final class EventInteractorTests: XCTestCase {
             expectation.fulfill()
         })
 
-        let dao = MockEventDao()
+        let dao = MockEventSQLDao()
         let idGenerator = MockIdGenerator(identifier: {
             count += 1
             return "mock\(count)"
@@ -479,7 +479,7 @@ final class EventInteractorTests: XCTestCase {
         expectation.expectedFulfillmentCount = 1
 
         let addedEvents: [Event] = [.mockEvaluation1, .mockGoal1]
-        let dao = MockEventDao()
+        let dao = MockEventSQLDao()
         try dao.add(events: addedEvents)
 
         let interactor = self.eventInteractor(dao: dao)
@@ -502,7 +502,7 @@ final class EventInteractorTests: XCTestCase {
         expectation.expectedFulfillmentCount = 3
 
         let addedEvents: [Event] = [.mockEvaluation1]
-        let dao = MockEventDao()
+        let dao = MockEventSQLDao()
         try dao.add(events: addedEvents)
         let api = MockApiClient(registerEventsHandler: { events, completion in
             XCTAssertEqual(events.count, 1)
@@ -535,7 +535,7 @@ final class EventInteractorTests: XCTestCase {
         expectation.expectedFulfillmentCount = 3
 
         let addedEvents: [Event] = [.mockEvaluation1, .mockGoal1]
-        let dao = MockEventDao()
+        let dao = MockEventSQLDao()
         try dao.add(events: addedEvents)
 
         XCTAssertEqual(dao.events.count, 2)
@@ -583,7 +583,7 @@ final class EventInteractorTests: XCTestCase {
 
         let addedEvents1: [Event] = [.mockEvaluation1, .mockGoal1, .mockMetricsResponseLatency1]
         let addedEvents2: [Event] = [.mockEvaluation2, .mockGoal2]
-        let dao = MockEventDao()
+        let dao = MockEventSQLDao()
         try dao.add(events: addedEvents1)
 
         XCTAssertEqual(dao.events.count, 3)

@@ -8,7 +8,7 @@ final class EvaluationStorageTests: XCTestCase {
         expectation.expectedFulfillmentCount = 1
         expectation.assertForOverFulfill = true
         let testUserId1 = Evaluation.mock1.userId
-        let mockDao = MockEvaluationDao(getHandler: { userId in
+        let mockDao = MockEvaluationSQLDao(getHandler: { userId in
             expectation.fulfill()
             XCTAssertEqual(testUserId1, userId)
             if userId == testUserId1 {
@@ -36,7 +36,7 @@ final class EvaluationStorageTests: XCTestCase {
         expectation.expectedFulfillmentCount = 1
         expectation.assertForOverFulfill = true
         let testUserId1 = Evaluation.mock1.userId
-        let mockDao = MockEvaluationDao(getHandler: { userId in
+        let mockDao = MockEvaluationSQLDao(getHandler: { userId in
             expectation.fulfill()
             XCTAssertEqual(testUserId1, userId)
             if userId == testUserId1 {
@@ -62,10 +62,12 @@ final class EvaluationStorageTests: XCTestCase {
         expectation.expectedFulfillmentCount = 4
         expectation.assertForOverFulfill = true
         let testUserId1 = Evaluation.mock1.userId
-        let mockDao = MockEvaluationDao(putHandler: { userId, evaluations in
+        let mockDao = MockEvaluationSQLDao(putHandler: { evaluations in
             // 2. put new data
             expectation.fulfill()
-            XCTAssertEqual(testUserId1, userId)
+            evaluations.forEach { evaluation in
+                XCTAssertEqual(evaluation.userId, testUserId1)
+            }
             XCTAssertEqual(evaluations, [.mock1, .mock2])
         }, getHandler: { userId in
             expectation.fulfill()
@@ -137,9 +139,11 @@ final class EvaluationStorageTests: XCTestCase {
             )
         )
         var getHandlerAccessCount = 0
-        let mockDao = MockEvaluationDao(putHandler: { userId, evaluations in
+        let mockDao = MockEvaluationSQLDao(putHandler: { evaluations in
             expectation.fulfill()
-            XCTAssertEqual(testUserId1, userId)
+            evaluations.forEach { evaluation in
+                XCTAssertEqual(evaluation.userId, testUserId1)
+            }
             XCTAssertEqual(Set(evaluations), Set([mockEvaluationForUpsert, mockEvaluationForInsert]))
         }, getHandler: { userId in
             // Should fullfill 2 times
@@ -203,7 +207,7 @@ final class EvaluationStorageTests: XCTestCase {
 
     func testGetStorageValues() throws {
         let testUserId1 = Evaluation.mock1.userId
-        let mockDao = MockEvaluationDao()
+        let mockDao = MockEvaluationSQLDao()
         let mockUserDefsDao = MockEvaluationUserDefaultsDao()
         let storage = EvaluationStorageImpl(
             userId: testUserId1,

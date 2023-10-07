@@ -23,7 +23,7 @@ final class EventDaoTests: XCTestCase {
 
     func testAddEventGoal() throws {
         let db = try SQLite(path: path, logger: nil)
-        let dao = EventDaoImpl(db: db)
+        let dao = EventDaoSQLImpl(db: db)
 
         try dao.add(event: .mockGoal1)
 
@@ -45,7 +45,7 @@ final class EventDaoTests: XCTestCase {
 
     func testAddEventEvaluation() throws {
         let db = try SQLite(path: path, logger: nil)
-        let dao = EventDaoImpl(db: db)
+        let dao = EventDaoSQLImpl(db: db)
 
         try dao.add(event: .mockEvaluation1)
 
@@ -67,7 +67,7 @@ final class EventDaoTests: XCTestCase {
 
     func testAddEventMetrics() throws {
         let db = try SQLite(path: path, logger: nil)
-        let dao = EventDaoImpl(db: db)
+        let dao = EventDaoSQLImpl(db: db)
 
         try dao.add(event: .mockMetricsResponseLatency1)
 
@@ -89,7 +89,7 @@ final class EventDaoTests: XCTestCase {
 
     func testAddEvents() throws {
         let db = try SQLite(path: path, logger: nil)
-        let dao = EventDaoImpl(db: db)
+        let dao = EventDaoSQLImpl(db: db)
 
         try dao.add(events: [.mockGoal1, .mockEvaluation1, .mockMetricsResponseLatency1, .mockEvaluation2])
 
@@ -103,7 +103,7 @@ final class EventDaoTests: XCTestCase {
 
     func testDeleteAll() throws {
         let db = try SQLite(path: path, logger: nil)
-        let dao = EventDaoImpl(db: db)
+        let dao = EventDaoSQLImpl(db: db)
         let target: [Event] = [.mockGoal1, .mockEvaluation1, .mockMetricsResponseLatency1, .mockEvaluation2]
         try dao.add(events: target)
 
@@ -116,7 +116,7 @@ final class EventDaoTests: XCTestCase {
 
     func testDeleteSomeItems() throws {
         let db = try SQLite(path: path, logger: nil)
-        let dao = EventDaoImpl(db: db)
+        let dao = EventDaoSQLImpl(db: db)
         let target: [Event] = [.mockGoal1, .mockEvaluation1, .mockMetricsResponseLatency1, .mockEvaluation2]
         try dao.add(events: target)
 

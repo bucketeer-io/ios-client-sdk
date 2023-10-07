@@ -1,6 +1,6 @@
 import Foundation
 
-protocol EventDao {
+protocol EventSQLDao {
     func add(event: Event) throws
     func add(events: [Event]) throws
     func getEvents() throws -> [Event]

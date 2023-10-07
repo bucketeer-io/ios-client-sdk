@@ -38,14 +38,14 @@ final class EvaluationStorageImpl: EvaluationStorage {
 
     private let userId: String
     // Expected SQL Dao
-    private let evaluationDao: EvaluationDao
+    private let evaluationDao: EvaluationSQLDao
     // Expected in-memory cache Dao
     private let evaluationMemCacheDao: EvaluationMemCacheDao
     private let evaluationUserDefaultsDao: EvaluationUserDefaultsDao
 
     init(
         userId: String,
-        evaluationDao: EvaluationDao,
+        evaluationDao: EvaluationSQLDao,
         evaluationMemCacheDao: EvaluationMemCacheDao,
         evaluationUserDefaultsDao: EvaluationUserDefaultsDao
     ) {
@@ -63,7 +63,7 @@ final class EvaluationStorageImpl: EvaluationStorage {
     func deleteAllAndInsert(userId: String, evaluations: [Evaluation], evaluatedAt: String) throws {
         try evaluationDao.startTransaction {
             try evaluationDao.deleteAll(userId: userId)
-            try evaluationDao.put(userId: userId, evaluations: evaluations)
+            try evaluationDao.put(evaluations: evaluations)
         }
         // Update cache directly
         evaluationMemCacheDao.set(key: userId, value: evaluations)

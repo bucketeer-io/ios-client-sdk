@@ -177,7 +177,7 @@ final class BKTClientTests: XCTestCase {
                 )))
                 expectation.fulfill()
             }),
-            eventDao: MockEventDao(addEventsHandler: { events in
+            eventSQLDao: MockEventSQLDao(addEventsHandler: { events in
                 XCTAssertEqual(events, [
                     Event(
                         id: "mock1",
@@ -252,7 +252,7 @@ final class BKTClientTests: XCTestCase {
                 handler?(.failure(error: .timeout(message: "timeout", error: NSError(), timeoutMillis: timeoutMillis ?? 0), featureTag: "feature"))
                 expectation.fulfill()
             }),
-            eventDao: MockEventDao(addEventsHandler: { events in
+            eventSQLDao: MockEventSQLDao(addEventsHandler: { events in
                 XCTAssertEqual(events.count, 1)
                 let expected = Event(
                     id: "mock1",
@@ -307,7 +307,7 @@ final class BKTClientTests: XCTestCase {
                 handler?(.success(.init(errors: [:])))
                 expectation.fulfill()
             }),
-            eventDao: MockEventDao(getEventsHandler: {
+            eventSQLDao: MockEventSQLDao(getEventsHandler: {
                 defer {
                     // It will call 2 times.
                     // 1- for prepare for flushing
@@ -336,7 +336,7 @@ final class BKTClientTests: XCTestCase {
                 handler?(.failure(.apiServer(message: "unknown")))
                 expectation.fulfill()
             }),
-            eventDao: MockEventDao(getEventsHandler: {
+            eventSQLDao: MockEventSQLDao(getEventsHandler: {
                 defer {
                     // It will call 3 times.
                     // 1- for prepare for flushing
@@ -418,7 +418,7 @@ final class BKTClientTests: XCTestCase {
         expectation.expectedFulfillmentCount = 1
         let dataModule = MockDataModule(
             userHolder: .init(user: .mock1),
-            eventDao: MockEventDao(addEventsHandler: { events in
+            eventSQLDao: MockEventSQLDao(addEventsHandler: { events in
                 XCTAssertEqual(events.count, 1)
                 XCTAssertEqual(events.first, Event(
                     id: "id",

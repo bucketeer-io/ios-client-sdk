@@ -1,12 +1,12 @@
 import Foundation
 @testable import Bucketeer
 
-final class MockEvaluationDao: EvaluationDao {
+final class MockEvaluationSQLDao: EvaluationSQLDao {
     func startTransaction(block: () throws -> Void) throws {
         try self.startTransactionHandler?(block)
     }
 
-    typealias PutHandler = ((String, [Evaluation]) throws -> Void)
+    typealias PutHandler = (([Evaluation]) throws -> Void)
     typealias GetHandler = (String) throws -> [Evaluation]
     typealias DeleteAllHandler = (String) throws -> Void
     typealias DeleteByIdsHandler = ([String]) throws -> Void
@@ -30,8 +30,8 @@ final class MockEvaluationDao: EvaluationDao {
         self.startTransactionHandler = startTransactionHandler
     }
 
-    func put(userId: String, evaluations: [Evaluation]) throws {
-        try putHandler?(userId, evaluations)
+    func put(evaluations: [Evaluation]) throws {
+        try putHandler?(evaluations)
     }
 
     func get(userId: String) throws -> [Evaluation] {
