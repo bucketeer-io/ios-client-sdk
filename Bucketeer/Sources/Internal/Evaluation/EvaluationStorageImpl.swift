@@ -1,27 +1,19 @@
 final class EvaluationStorageImpl: EvaluationStorage {
 
     var currentEvaluationsId: String {
-        get {
-            return evaluationUserDefaultsDao.currentEvaluationsId
-        }
+        return evaluationUserDefaultsDao.currentEvaluationsId
     }
 
     var featureTag: String {
-        get {
-            return evaluationUserDefaultsDao.featureTag
-        }
+        return evaluationUserDefaultsDao.featureTag
     }
 
     var evaluatedAt: String {
-        get {
-            return evaluationUserDefaultsDao.evaluatedAt
-        }
+        return evaluationUserDefaultsDao.evaluatedAt
     }
 
     var userAttributesUpdated: Bool {
-        get {
-            return evaluationUserDefaultsDao.userAttributesUpdated
-        }
+        return evaluationUserDefaultsDao.userAttributesUpdated
     }
 
     private let userId: String
