@@ -53,7 +53,6 @@ final class E2EBKTClientForceUpdateTests: XCTestCase {
         // Prefill data
         internalEvaluationStorage.setCurrentEvaluationsId(value: randomUserEvaluationId)
         try internalEvaluationStorage.deleteAllAndInsert(
-            userId: userId,
             evaluations: [tobeDeletedEvaluation],
             evaluatedAt: tooOldEvaluatedAt
         )
@@ -61,7 +60,7 @@ final class E2EBKTClientForceUpdateTests: XCTestCase {
         XCTAssertEqual(internalEvaluationStorage.evaluatedAt, tooOldEvaluatedAt)
         XCTAssertEqual(internalEvaluationStorage.currentEvaluationsId, randomUserEvaluationId)
 
-        let evaluations = try internalEvaluationStorage.get(userId: userId)
+        let evaluations = try internalEvaluationStorage.get()
         XCTAssertEqual(evaluations, [tobeDeletedEvaluation], "We should have `tobeDeletedEvaluation` on the cache")
 
         // note: we need prepare the context before initialize the BKTClient
@@ -80,7 +79,7 @@ final class E2EBKTClientForceUpdateTests: XCTestCase {
         XCTAssertNotEqual(evaluationStorage.evaluatedAt, tooOldEvaluatedAt)
         XCTAssertNotEqual(evaluationStorage.currentEvaluationsId, randomUserEvaluationId)
 
-        let currentEvaluations = try evaluationStorage.get(userId: userId)
+        let currentEvaluations = try evaluationStorage.get()
         XCTAssertEqual(currentEvaluations.isEmpty, false)
         XCTAssertFalse(currentEvaluations.contains(tobeDeletedEvaluation), "we should not have `tobeDeletedEvaluation` in the cache")
     }
@@ -105,7 +104,7 @@ final class E2EBKTClientForceUpdateTests: XCTestCase {
         XCTAssertNotEqual(evaluationStorage.evaluatedAt, "0")
         XCTAssertNotEqual(evaluationStorage.currentEvaluationsId, "")
 
-        let currentEvaluations = try evaluationStorage.get(userId: USER_ID)
+        let currentEvaluations = try evaluationStorage.get()
         XCTAssertEqual(currentEvaluations.isEmpty, false)
 
         let tobeDeletedEvaluation = Evaluation(
@@ -123,7 +122,7 @@ final class E2EBKTClientForceUpdateTests: XCTestCase {
         )
 
         try evaluationStorage.update(evaluations: [tobeDeletedEvaluation], archivedFeatureIds: [], evaluatedAt: "1")
-        let currentEvaluationsWithFakeData = try evaluationStorage.get(userId: USER_ID)
+        let currentEvaluationsWithFakeData = try evaluationStorage.get()
         XCTAssertEqual(currentEvaluationsWithFakeData.count, currentEvaluations.count + 1)
         XCTAssertEqual(currentEvaluationsWithFakeData.contains(tobeDeletedEvaluation), true)
 
@@ -148,7 +147,7 @@ final class E2EBKTClientForceUpdateTests: XCTestCase {
         XCTAssertNotEqual(evaluationStorageWithFeatureTag.currentEvaluationsId, "")
         XCTAssertNotEqual(client.component.evaluationInteractor.currentEvaluationsId, "")
 
-        let currentEvaluationsWithOutFakeData = try evaluationStorageWithFeatureTag.get(userId: USER_ID)
+        let currentEvaluationsWithOutFakeData = try evaluationStorageWithFeatureTag.get()
         // verify if `force_update` happened
         // if true , `tobeDeletedEvaluation` will no longer found in the cache
         XCTAssertEqual(currentEvaluationsWithOutFakeData.contains(tobeDeletedEvaluation), false)

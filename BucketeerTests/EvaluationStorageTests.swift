@@ -27,7 +27,7 @@ final class EvaluationStorageTests: XCTestCase {
         // Check cache
         let expected : [Evaluation] = [.mock1, .mock2]
         XCTAssertEqual(expected, cacheDao.get(key: testUserId1))
-        XCTAssertEqual(expected, try? storage.get(userId: testUserId1))
+        XCTAssertEqual(expected, try? storage.get())
         wait(for: [expectation], timeout: 0.1)
     }
 
@@ -52,7 +52,7 @@ final class EvaluationStorageTests: XCTestCase {
             evaluationUserDefaultsDao: mockUserDefsDao
         )
         // Should return first evaluation has `feature_id` == Evaluation.mock2.featureId
-        let expected = storage.getBy(userId: testUserId1, featureId: Evaluation.mock2.featureId)
+        let expected = storage.getBy(featureId: Evaluation.mock2.featureId)
         XCTAssertEqual(expected, .mock2)
         wait(for: [expectation], timeout: 0.1)
     }
@@ -94,8 +94,8 @@ final class EvaluationStorageTests: XCTestCase {
             evaluationMemCacheDao: EvaluationMemCacheDao(),
             evaluationUserDefaultsDao: mockUserDefsDao
         )
-        try storage.deleteAllAndInsert(userId: testUserId1, evaluations: [.mock1, .mock2], evaluatedAt: "1024")
-        let expected = try storage.get(userId: testUserId1)
+        try storage.deleteAllAndInsert(evaluations: [.mock1, .mock2], evaluatedAt: "1024")
+        let expected = try storage.get()
         XCTAssertEqual(expected, [.mock1, .mock2])
         XCTAssertEqual(storage.evaluatedAt, "1024", "should save last evaluatedAt")
         wait(for: [expectation], timeout: 0.1)
@@ -198,7 +198,7 @@ final class EvaluationStorageTests: XCTestCase {
         XCTAssertTrue(result, "update action should success")
         XCTAssertEqual(storage.evaluatedAt, "1024", "evaluatedAt should be 1024")
         XCTAssertEqual(
-            Set(try storage.get(userId: testUserId1)),
+            Set(try storage.get()),
             Set([mockEvaluationForUpsert, mockEvaluationForInsert]),
             "expected [mock2Updated, mockEvaluationForInsert] in the database"
         )

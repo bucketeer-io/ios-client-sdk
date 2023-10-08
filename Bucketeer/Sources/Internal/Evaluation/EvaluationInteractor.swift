@@ -84,7 +84,6 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
                     // forceUpdate: a boolean that tells the SDK to delete all the current data and save the latest evaluations from the response
                     if forceUpdate {
                         try self?.evaluationStorage.deleteAllAndInsert(
-                            userId: user.id,
                             evaluations: response.evaluations.evaluations,
                             evaluatedAt: evaluatedAt
                         )
@@ -127,7 +126,7 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
     }
 
     func getLatest(userId: String, featureId: String) -> Evaluation? {
-        return evaluationStorage.getBy(userId: userId, featureId: featureId)
+        return evaluationStorage.getBy(featureId: featureId)
     }
 
     func addUpdateListener(listener: EvaluationUpdateListener) -> String {

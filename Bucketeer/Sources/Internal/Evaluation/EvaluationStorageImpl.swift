@@ -56,11 +56,11 @@ final class EvaluationStorageImpl: EvaluationStorage {
         try? refreshCache()
     }
 
-    func get(userId: String) throws -> [Evaluation] {
+    func get() throws -> [Evaluation] {
         evaluationMemCacheDao.get(key: userId) ?? []
     }
 
-    func deleteAllAndInsert(userId: String, evaluations: [Evaluation], evaluatedAt: String) throws {
+    func deleteAllAndInsert(evaluations: [Evaluation], evaluatedAt: String) throws {
         try evaluationDao.startTransaction {
             try evaluationDao.deleteAll(userId: userId)
             try evaluationDao.put(evaluations: evaluations)
@@ -89,12 +89,12 @@ final class EvaluationStorageImpl: EvaluationStorage {
             item
         }
         // 4. Save to database
-        try deleteAllAndInsert(userId: userId, evaluations: currentEvaluations, evaluatedAt: evaluatedAt)
+        try deleteAllAndInsert(evaluations: currentEvaluations, evaluatedAt: evaluatedAt)
         return evaluations.count > 0 || archivedFeatureIds.count > 0
     }
 
     // getBy will return the data from the cache to speed up the response time
-    func getBy(userId: String, featureId: String) -> Evaluation? {
+    func getBy(featureId: String) -> Evaluation? {
         return evaluationMemCacheDao.get(key: userId)?.first { evaluation in
             evaluation.featureId == featureId
         } ?? nil
@@ -111,10 +111,6 @@ final class EvaluationStorageImpl: EvaluationStorage {
 
     func setFeatureTag(value: String) {
         featureTag = value
-    }
-
-    func setEvaluatedAt(value: String) {
-        evaluatedAt = value
     }
 
     func setUserAttributesUpdated(value: Bool) {

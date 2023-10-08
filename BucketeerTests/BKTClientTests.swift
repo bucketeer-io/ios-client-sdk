@@ -376,7 +376,8 @@ final class BKTClientTests: XCTestCase {
                 handler?(.success(.init(evaluations: .mock1, userEvaluationsId: "new")))
             }),
             evaluationStorage: MockEvaluationStorage(
-                getHandler: { _ in
+                userId: User.mock1.id,
+                getHandler: {
                     XCTFail("should not reach here")
                     return []
                 },
@@ -386,8 +387,8 @@ final class BKTClientTests: XCTestCase {
                     XCTAssertEqual(evaluatedAt, UserEvaluations.mock1.createdAt)
                     expectation.fulfill()
                     return true
-                }, getByFeatureIdHandler: { userId, featureId in
-                    if (userId == User.mock1.id && featureId == "feature1") {
+                }, getByFeatureIdHandler: { featureId in
+                    if (featureId == "feature1") {
                         expectation.fulfill()
                         return .mock1
                     }
@@ -469,7 +470,8 @@ final class BKTClientTests: XCTestCase {
                 expectation.fulfill()
             }),
             evaluationStorage: MockEvaluationStorage(
-                getHandler: { _ in
+                userId: User.mock1.id,
+                getHandler: {
                     XCTFail("Should not call")
                     return []
                 }, updateHandler: { evalutions, archivedFeatureIds, evaluedAt in
@@ -478,9 +480,8 @@ final class BKTClientTests: XCTestCase {
                     XCTAssertEqual(archivedFeatureIds, UserEvaluations.mock1.archivedFeatureIds)
                     XCTAssertEqual(evaluedAt, UserEvaluations.mock1.createdAt)
                     return true
-                }, getByFeatureIdHandler: { userId, featureId in
+                }, getByFeatureIdHandler: { featureId in
                     expectation.fulfill()
-                    XCTAssertEqual(userId, User.mock1.id)
                     XCTAssertEqual(featureId, "feature1")
                     return .mock1
                 }
@@ -507,7 +508,8 @@ final class BKTClientTests: XCTestCase {
                 expectation.fulfill()
             }),
             evaluationStorage: MockEvaluationStorage(
-                getHandler: { _ in
+                userId: User.mock1.id,
+                getHandler: {
                     XCTFail("Should not call")
                     return []
                 }, updateHandler: { evalutions, archivedFeatureIds, evaluedAt in
@@ -516,9 +518,8 @@ final class BKTClientTests: XCTestCase {
                     XCTAssertEqual(archivedFeatureIds, UserEvaluations.mock1.archivedFeatureIds)
                     XCTAssertEqual(evaluedAt, UserEvaluations.mock1.createdAt)
                     return true
-                }, getByFeatureIdHandler: { userId, featureId in
+                }, getByFeatureIdHandler: { featureId in
                     expectation.fulfill()
-                    XCTAssertEqual(userId, User.mock1.id)
                     XCTAssertEqual(featureId, "feature2")
                     return .mock2
                 }
@@ -545,7 +546,8 @@ final class BKTClientTests: XCTestCase {
                 expectation.fulfill()
             }),
             evaluationStorage: MockEvaluationStorage(
-                getHandler: { _ in
+                userId: User.mock1.id,
+                getHandler: {
                     XCTFail("Should not call")
                     return []
                 }, updateHandler: { evalutions, archivedFeatureIds, evaluedAt in
@@ -554,9 +556,8 @@ final class BKTClientTests: XCTestCase {
                     XCTAssertEqual(archivedFeatureIds, UserEvaluations.mock2.archivedFeatureIds)
                     XCTAssertEqual(evaluedAt, UserEvaluations.mock2.createdAt)
                     return true
-                }, getByFeatureIdHandler: { userId, featureId in
+                }, getByFeatureIdHandler: { featureId in
                     expectation.fulfill()
-                    XCTAssertEqual(userId, User.mock1.id)
                     XCTAssertEqual(featureId, "feature3")
                     return .mock3
                 }
@@ -583,7 +584,8 @@ final class BKTClientTests: XCTestCase {
                 expectation.fulfill()
             }),
             evaluationStorage: MockEvaluationStorage(
-                getHandler: { _ in
+                userId: User.mock1.id,
+                getHandler: {
                     XCTFail("Should not call")
                     return []
                 }, updateHandler: { evalutions, archivedFeatureIds, evaluedAt in
@@ -592,9 +594,8 @@ final class BKTClientTests: XCTestCase {
                     XCTAssertEqual(archivedFeatureIds, UserEvaluations.mock2.archivedFeatureIds)
                     XCTAssertEqual(evaluedAt, UserEvaluations.mock2.createdAt)
                     return true
-                }, getByFeatureIdHandler: { userId, featureId in
+                }, getByFeatureIdHandler: { featureId in
                     expectation.fulfill()
-                    XCTAssertEqual(userId, User.mock1.id)
                     XCTAssertEqual(featureId, "feature4")
                     return .mock4
                 }
@@ -621,7 +622,8 @@ final class BKTClientTests: XCTestCase {
                 expectation.fulfill()
             }),
             evaluationStorage: MockEvaluationStorage(
-                getHandler: { _ in
+                userId: User.mock1.id,
+                getHandler: {
                     XCTFail("Should not call")
                     return []
                 }, updateHandler: { evalutions, archivedFeatureIds, evaluedAt in
@@ -630,9 +632,8 @@ final class BKTClientTests: XCTestCase {
                     XCTAssertEqual(archivedFeatureIds, UserEvaluations.mock2.archivedFeatureIds)
                     XCTAssertEqual(evaluedAt, UserEvaluations.mock2.createdAt)
                     return true
-                }, getByFeatureIdHandler: { userId, featureId in
+                }, getByFeatureIdHandler: { featureId in
                     expectation.fulfill()
-                    XCTAssertEqual(userId, User.mock1.id)
                     XCTAssertEqual(featureId, "feature5")
                     return .mock5
                 }
