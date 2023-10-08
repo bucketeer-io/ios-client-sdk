@@ -51,8 +51,8 @@ final class E2EBKTClientForceUpdateTests: XCTestCase {
         let randomUserEvaluationId = "3227641913513702639"
         let tooOldEvaluatedAt = "1"
         // Prefill data
-        internalEvaluationStorage.setCurrentEvaluationsId(value: randomUserEvaluationId)
         try internalEvaluationStorage.deleteAllAndInsert(
+            evaluationId: randomUserEvaluationId,
             evaluations: [tobeDeletedEvaluation],
             evaluatedAt: tooOldEvaluatedAt
         )
@@ -121,10 +121,14 @@ final class E2EBKTClientForceUpdateTests: XCTestCase {
             )
         )
 
-        try evaluationStorage.update(evaluations: [tobeDeletedEvaluation], archivedFeatureIds: [], evaluatedAt: "1")
+        let randomUserEvaluationId = "322764191351370263"
+        try evaluationStorage.update(
+            evaluationId: randomUserEvaluationId,
+            evaluations: [tobeDeletedEvaluation], archivedFeatureIds: [], evaluatedAt: "1")
         let currentEvaluationsWithFakeData = try evaluationStorage.get()
         XCTAssertEqual(currentEvaluationsWithFakeData.count, currentEvaluations.count + 1)
         XCTAssertEqual(currentEvaluationsWithFakeData.contains(tobeDeletedEvaluation), true)
+        XCTAssertEqual(evaluationStorage.currentEvaluationsId, randomUserEvaluationId)
 
         // Similate feature_tag changed
         try DispatchQueue.main.sync {

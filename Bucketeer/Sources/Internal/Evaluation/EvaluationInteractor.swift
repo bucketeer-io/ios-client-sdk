@@ -45,9 +45,6 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
         get {
             return evaluationStorage.currentEvaluationsId
         }
-        set {
-            evaluationStorage.setCurrentEvaluationsId(value: newValue)
-        }
     }
 
     func fetch(user: User, timeoutMillis: Int64?, completion: ((GetEvaluationsResult) -> Void)?) {
@@ -84,6 +81,7 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
                     // forceUpdate: a boolean that tells the SDK to delete all the current data and save the latest evaluations from the response
                     if forceUpdate {
                         try self?.evaluationStorage.deleteAllAndInsert(
+                            evaluationId: newEvaluationsId,
                             evaluations: response.evaluations.evaluations,
                             evaluatedAt: evaluatedAt
                         )
@@ -91,6 +89,7 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
                         // 1. Check the evaluation list in the response and upsert them in the DB if the list is not empty
                         // 2. Check the list of the feature flags that were archived on the console and delete them from the DB
                         shouldNotifyListener = try self?.evaluationStorage.update(
+                            evaluationId: newEvaluationsId,
                             evaluations: newEvaluations,
                             archivedFeatureIds: response.evaluations.archivedFeatureIds,
                             evaluatedAt: evaluatedAt
@@ -102,10 +101,16 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
                     return
                 }
 
-                self?.onSuccessFetchEvaluation(
-                    newEvaluationsId: newEvaluationsId,
-                    shouldNotifyListener: shouldNotifyListener
-                )
+                self?.evaluationStorage.clearUserAttributesUpdated()
+                if shouldNotifyListener {
+                    // Update listeners should be called on the main thread
+                    // to avoid unintentional lock on Interactor's execution thread.
+                    DispatchQueue.main.async {
+                        self?.updateListeners.forEach({ _, listener in
+                            listener.onUpdate()
+                        })
+                    }
+                }
 
                 completion?(result)
             case .failure:
@@ -149,25 +154,8 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
         // 2- Clear the userEvaluationsID in the UserDefault if the featureTag changes
         let featureTag = evaluationStorage.featureTag
         if value != featureTag {
-            evaluationStorage.setCurrentEvaluationsId(value: "")
+            evaluationStorage.clearCurrentEvaluationsId()
         }
         evaluationStorage.setFeatureTag(value: value)
-    }
-
-    private func onSuccessFetchEvaluation(
-        newEvaluationsId: String,
-        shouldNotifyListener: Bool
-    ) {
-        self.currentEvaluationsId = newEvaluationsId
-        evaluationStorage.clearUserAttributesUpdated()
-        if shouldNotifyListener {
-            // Update listeners should be called on the main thread
-            // to avoid unintentional lock on Interactor's execution thread.
-            DispatchQueue.main.async {
-                self.updateListeners.forEach({ _, listener in
-                    listener.onUpdate()
-                })
-            }
-        }
     }
 }

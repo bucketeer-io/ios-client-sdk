@@ -29,23 +29,23 @@ final class EvaluationInteractorTests: XCTestCase {
         let storage = MockEvaluationStorage(
             userId: User.mock1.id,
             updateHandler: { evaluations, archivedFeatureIds, evaluatedAt in
-            testFetchInitialLoadExpectation.fulfill()
-            XCTAssertEqual(evaluations, [.mock1, .mock2])
-            XCTAssertEqual(archivedFeatureIds, [])
-            XCTAssertEqual(evaluatedAt, UserEvaluations.mock1.createdAt)
-            return true
-        }, deleteAllAndInsertHandler: { _ in
-            XCTFail("`deleteAllAndInsertHandler` should not called ")
-        }, getByFeatureIdHandler: { featureId in
-            testFetchInitialLoadExpectation.fulfill()
-            if featureId == Evaluation.mock1.featureId {
-                return .mock1
-            }
-            if featureId == Evaluation.mock2.featureId {
-                return .mock2
-            }
-            return nil
-        })
+                testFetchInitialLoadExpectation.fulfill()
+                XCTAssertEqual(evaluations, [.mock1, .mock2])
+                XCTAssertEqual(archivedFeatureIds, [])
+                XCTAssertEqual(evaluatedAt, UserEvaluations.mock1.createdAt)
+                return true
+            }, deleteAllAndInsertHandler: { _ in
+                XCTFail("`deleteAllAndInsertHandler` should not called ")
+            }, getByFeatureIdHandler: { featureId in
+                testFetchInitialLoadExpectation.fulfill()
+                if featureId == Evaluation.mock1.featureId {
+                    return .mock1
+                }
+                if featureId == Evaluation.mock2.featureId {
+                    return .mock2
+                }
+                return nil
+            })
 
         let idGenerator = MockIdGenerator(identifier: "")
         let config = BKTConfig.mock1
@@ -162,36 +162,36 @@ final class EvaluationInteractorTests: XCTestCase {
         let storage = MockEvaluationStorage(
             userId: User.mock1.id,
             updateHandler: { evaluations, archivedFeatureIds, evaluatedAt in
-            if (updateHandlerCount == 0) {
-                XCTAssertEqual(evaluations, [.mock1, .mock2])
-                XCTAssertEqual(archivedFeatureIds, [])
-                XCTAssertEqual(evaluatedAt, UserEvaluations.mock1.createdAt)
-            } else if (updateHandlerCount == 1) {
-                XCTAssertEqual(evaluations, [.mock1Updated, .mock2])
-                XCTAssertEqual(archivedFeatureIds, [])
-                XCTAssertEqual(evaluatedAt, UserEvaluations.mock1Upsert.createdAt)
-            } else {
-                XCTFail("should not call")
-            }
-            updateHandlerCount+=1
-            expectation.fulfill()
-            return true
-        }, deleteAllAndInsertHandler: { _ in
-            XCTFail("`deleteAllAndInsertHandler` should not called ")
-        }, getByFeatureIdHandler: { featureId in
-            expectation.fulfill()
-            // Mock logic to check after 2 fetch evaluation request
-            // Expectation is it should return the updated evaluation
-            if featureId == Evaluation.mock1.featureId {
-                // Should return .mock1Updated as mock1 has updated
-                return .mock1Updated
-            }
-            if featureId == Evaluation.mock2.featureId {
-                // Didn't changes
-                return .mock2
-            }
-            return nil
-        })
+                if (updateHandlerCount == 0) {
+                    XCTAssertEqual(evaluations, [.mock1, .mock2])
+                    XCTAssertEqual(archivedFeatureIds, [])
+                    XCTAssertEqual(evaluatedAt, UserEvaluations.mock1.createdAt)
+                } else if (updateHandlerCount == 1) {
+                    XCTAssertEqual(evaluations, [.mock1Updated, .mock2])
+                    XCTAssertEqual(archivedFeatureIds, [])
+                    XCTAssertEqual(evaluatedAt, UserEvaluations.mock1Upsert.createdAt)
+                } else {
+                    XCTFail("should not call")
+                }
+                updateHandlerCount+=1
+                expectation.fulfill()
+                return true
+            }, deleteAllAndInsertHandler: { _ in
+                XCTFail("`deleteAllAndInsertHandler` should not called ")
+            }, getByFeatureIdHandler: { featureId in
+                expectation.fulfill()
+                // Mock logic to check after 2 fetch evaluation request
+                // Expectation is it should return the updated evaluation
+                if featureId == Evaluation.mock1.featureId {
+                    // Should return .mock1Updated as mock1 has updated
+                    return .mock1Updated
+                }
+                if featureId == Evaluation.mock2.featureId {
+                    // Didn't changes
+                    return .mock2
+                }
+                return nil
+            })
 
         let idGenerator = MockIdGenerator(identifier: "")
         let config = BKTConfig.mock1
@@ -250,27 +250,27 @@ final class EvaluationInteractorTests: XCTestCase {
         let storage = MockEvaluationStorage(
             userId: User.mock1.id,
             updateHandler: { evaluations, archivedFeatureIds, evaluatedAt in
-            XCTAssertEqual(evaluations, [.mock1, .mock2])
-            XCTAssertEqual(archivedFeatureIds, [])
-            XCTAssertEqual(evaluatedAt, UserEvaluations.mock1.createdAt)
-            expectation.fulfill()
-            return true
-        }, deleteAllAndInsertHandler: { _ in
-            XCTFail("`deleteAllAndInsertHandler` should not called ")
-        }, getByFeatureIdHandler: { featureId in
-            expectation.fulfill()
-            // Mock logic to check after 2 fetch evaluation request
-            // Expectation is it should return the updated evaluation
-            if featureId == Evaluation.mock1.featureId {
-                // Should return .mock1Updated as mock1 has updated
-                return .mock1
-            }
-            if featureId == Evaluation.mock2.featureId {
-                // Didn't changes
-                return .mock2
-            }
-            return nil
-        })
+                XCTAssertEqual(evaluations, [.mock1, .mock2])
+                XCTAssertEqual(archivedFeatureIds, [])
+                XCTAssertEqual(evaluatedAt, UserEvaluations.mock1.createdAt)
+                expectation.fulfill()
+                return true
+            }, deleteAllAndInsertHandler: { _ in
+                XCTFail("`deleteAllAndInsertHandler` should not called ")
+            }, getByFeatureIdHandler: { featureId in
+                expectation.fulfill()
+                // Mock logic to check after 2 fetch evaluation request
+                // Expectation is it should return the updated evaluation
+                if featureId == Evaluation.mock1.featureId {
+                    // Should return .mock1Updated as mock1 has updated
+                    return .mock1
+                }
+                if featureId == Evaluation.mock2.featureId {
+                    // Didn't changes
+                    return .mock2
+                }
+                return nil
+            })
 
         let idGenerator = MockIdGenerator(identifier: "")
         let config = BKTConfig.mock1
@@ -330,8 +330,8 @@ final class EvaluationInteractorTests: XCTestCase {
         let storage = MockEvaluationStorage(
             userId: User.mock1.id,
             deleteAllAndInsertHandler: { _ in
-            throw NSError(domain: "db", code: 100, userInfo: [:])
-        })
+                throw NSError(domain: "db", code: 100, userInfo: [:])
+            })
 
         let idGenerator = MockIdGenerator(identifier: "")
         let config = BKTConfig.mock1
@@ -376,10 +376,10 @@ final class EvaluationInteractorTests: XCTestCase {
                     return .mock2
                 }
                 return nil
-        }, refreshCacheHandler: {
-            // 2 times
-            expectation.fulfill()
-        })
+            }, refreshCacheHandler: {
+                // 2 times
+                expectation.fulfill()
+            })
 
         let idGenerator = MockIdGenerator(identifier: "")
         let config = BKTConfig.mock1
@@ -424,7 +424,7 @@ final class EvaluationInteractorTests: XCTestCase {
                     return .mock2
                 }
                 return nil
-        })
+            })
         let idGenerator = MockIdGenerator(identifier: "")
         let config = BKTConfig.mock1
         let interactor = EvaluationInteractorImpl(

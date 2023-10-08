@@ -72,16 +72,22 @@ final class MockEvaluationStorage: EvaluationStorage {
         return try getHandler?() ?? []
     }
 
-    func deleteAllAndInsert(evaluations: [Bucketeer.Evaluation], evaluatedAt: String) throws {
+    func deleteAllAndInsert(
+        evaluationId: String,
+        evaluations: [Bucketeer.Evaluation], evaluatedAt: String) throws {
         try deleteAllAndInsertHandler?(evaluations)
         // Mock save evaluatedAt
         evaluationUserDefaultsDao.evaluatedAt = evaluatedAt
+        evaluationUserDefaultsDao.currentEvaluationsId = evaluationId
     }
 
-    func update(evaluations: [Evaluation], archivedFeatureIds: [String], evaluatedAt: String) throws -> Bool {
+    func update(
+        evaluationId: String,
+        evaluations: [Evaluation], archivedFeatureIds: [String], evaluatedAt: String) throws -> Bool {
         let result = try updateHandler?(evaluations, archivedFeatureIds, evaluatedAt) ?? false
         // Mock save evaluatedAt
         evaluationUserDefaultsDao.evaluatedAt = evaluatedAt
+        evaluationUserDefaultsDao.currentEvaluationsId = evaluationId
         return result
     }
 
@@ -108,13 +114,16 @@ final class MockEvaluationStorage: EvaluationStorage {
     private func setUserAttributesUpdated(value: Bool) {
         userAttributesUpdated = value
     }
-    
+
     func setUserAttributesUpdated() {
         setUserAttributesUpdated(value: true)
     }
-    
+
     func clearUserAttributesUpdated() {
         setUserAttributesUpdated(value: false)
     }
-    
+
+    func clearCurrentEvaluationsId() {
+        currentEvaluationsId = ""
+    }
 }

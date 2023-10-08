@@ -26,7 +26,7 @@ final class EvaluationStorageImpl: EvaluationStorage {
 
     private let userId: String
     // Expected SQL Dao
-    private let evaluationDao: EvaluationSQLDao
+    private let evaluationSQLDao: EvaluationSQLDao
     // Expected in-memory cache Dao
     private let evaluationMemCacheDao: EvaluationMemCacheDao
     private let evaluationUserDefaultsDao: EvaluationUserDefaultsDao
@@ -38,7 +38,7 @@ final class EvaluationStorageImpl: EvaluationStorage {
         evaluationUserDefaultsDao: EvaluationUserDefaultsDao
     ) {
         self.userId = userId
-        self.evaluationDao = evaluationDao
+        self.evaluationSQLDao = evaluationDao
         self.evaluationUserDefaultsDao = evaluationUserDefaultsDao
         self.evaluationMemCacheDao = evaluationMemCacheDao
         try? refreshCache()
@@ -48,19 +48,28 @@ final class EvaluationStorageImpl: EvaluationStorage {
         evaluationMemCacheDao.get(key: userId) ?? []
     }
 
-    func deleteAllAndInsert(evaluations: [Evaluation], evaluatedAt: String) throws {
-        try evaluationDao.startTransaction {
-            try evaluationDao.deleteAll(userId: userId)
-            try evaluationDao.put(evaluations: evaluations)
+    func deleteAllAndInsert(
+        evaluationId: String,
+        evaluations: [Evaluation],
+        evaluatedAt: String) throws {
+        try evaluationSQLDao.startTransaction {
+            try evaluationSQLDao.deleteAll(userId: userId)
+            try evaluationSQLDao.put(evaluations: evaluations)
         }
+
+        evaluationUserDefaultsDao.setEvaluatedAt(value: evaluatedAt)
+        evaluationUserDefaultsDao.setCurrentEvaluationsId(value: evaluationId)
         // Update cache directly
         evaluationMemCacheDao.set(key: userId, value: evaluations)
-        evaluationUserDefaultsDao.setEvaluatedAt(value: evaluatedAt)
     }
 
-    func update(evaluations: [Evaluation], archivedFeatureIds: [String], evaluatedAt: String) throws -> Bool {
+    func update(
+        evaluationId: String ,
+        evaluations: [Evaluation],
+        archivedFeatureIds: [String],
+        evaluatedAt: String) throws -> Bool {
         // 1. Get current data in db
-        var currentEvaluationsByFeatureId = try evaluationDao.get(userId: userId)
+        var currentEvaluationsByFeatureId = try evaluationSQLDao.get(userId: userId)
             .reduce([String:Evaluation]()) { (input, evaluation) -> [String:Evaluation] in
                 var output = input
                 output[evaluation.featureId] = evaluation
@@ -77,7 +86,10 @@ final class EvaluationStorageImpl: EvaluationStorage {
             item
         }
         // 4. Save to database
-        try deleteAllAndInsert(evaluations: currentEvaluations, evaluatedAt: evaluatedAt)
+        try deleteAllAndInsert(
+            evaluationId: evaluationId ,
+            evaluations: currentEvaluations,
+            evaluatedAt: evaluatedAt)
         return evaluations.count > 0 || archivedFeatureIds.count > 0
     }
 
@@ -89,12 +101,12 @@ final class EvaluationStorageImpl: EvaluationStorage {
     }
 
     func refreshCache() throws {
-        let evaluationsInDb = try evaluationDao.get(userId: userId)
+        let evaluationsInDb = try evaluationSQLDao.get(userId: userId)
         evaluationMemCacheDao.set(key: userId, value: evaluationsInDb)
     }
 
-    func setCurrentEvaluationsId(value: String) {
-        evaluationUserDefaultsDao.setCurrentEvaluationsId(value: value)
+    func clearCurrentEvaluationsId() {
+        evaluationUserDefaultsDao.setCurrentEvaluationsId(value: "")
     }
 
     func setFeatureTag(value: String) {
@@ -104,7 +116,7 @@ final class EvaluationStorageImpl: EvaluationStorage {
     func setUserAttributesUpdated() {
         evaluationUserDefaultsDao.setUserAttributesUpdated(value: true)
     }
-    
+
     func clearUserAttributesUpdated() {
         evaluationUserDefaultsDao.setUserAttributesUpdated(value: false)
     }

@@ -98,13 +98,13 @@ final class BKTClientTests: XCTestCase {
         let client = BKTClient(dataModule: dataModule, dispatchQueue: .global())
         client.fetchEvaluations(timeoutMillis: nil) { error in
             XCTAssertEqual(error, nil)
-            XCTAssertEqual(client.component.evaluationInteractor.currentEvaluationsId, "id")
+            XCTAssertEqual(dataModule.evaluationStorage.currentEvaluationsId, "id")
             let attributes: [String: String] = ["key": "updated"]
             // `UpdateUserAttributesWillResetEvaluationId` ~ It was old requirement, but now it should be
             // updateUserAttributes will not clear `userEvaluationsID`
             // `userEvaluationsID` only clear if the featureTag changes
             client.updateUserAttributes(attributes: attributes)
-            XCTAssertEqual(client.component.evaluationInteractor.currentEvaluationsId, "id")
+            XCTAssertEqual(dataModule.evaluationStorage.currentEvaluationsId, "id")
             expectation.fulfill()
         }
 
@@ -140,7 +140,7 @@ final class BKTClientTests: XCTestCase {
         let client = BKTClient(dataModule: dataModule, dispatchQueue: .global())
         client.fetchEvaluations(timeoutMillis: nil) { error in
             XCTAssertEqual(error, nil)
-            XCTAssertEqual(client.component.evaluationInteractor.currentEvaluationsId, "id")
+            XCTAssertEqual(dataModule.evaluationStorage.currentEvaluationsId, "id")
             let attributes: [String: String] = ["key": "updated"]
             client.updateUserAttributes(attributes: attributes)
             // mark the next request ready

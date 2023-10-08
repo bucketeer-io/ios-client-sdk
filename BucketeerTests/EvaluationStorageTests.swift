@@ -94,10 +94,11 @@ final class EvaluationStorageTests: XCTestCase {
             evaluationMemCacheDao: EvaluationMemCacheDao(),
             evaluationUserDefaultsDao: mockUserDefsDao
         )
-        try storage.deleteAllAndInsert(evaluations: [.mock1, .mock2], evaluatedAt: "1024")
+        try storage.deleteAllAndInsert(evaluationId:"evaluationId_1", evaluations: [.mock1, .mock2], evaluatedAt: "1024")
         let expected = try storage.get()
         XCTAssertEqual(expected, [.mock1, .mock2])
         XCTAssertEqual(storage.evaluatedAt, "1024", "should save last evaluatedAt")
+        XCTAssertEqual(storage.currentEvaluationsId, "evaluationId_1")
         wait(for: [expectation], timeout: 0.1)
     }
 
@@ -189,6 +190,7 @@ final class EvaluationStorageTests: XCTestCase {
         )
         // Should update Evaluation.mock2, insert `mockEvaluationForInsert` & remove Evaluation.mock1
         let result = try storage.update(
+            evaluationId: "evaluationId_2",
             evaluations: [mockEvaluationForUpsert, mockEvaluationForInsert],
             archivedFeatureIds: [
                 Evaluation.mock1.featureId
@@ -202,6 +204,7 @@ final class EvaluationStorageTests: XCTestCase {
             Set([mockEvaluationForUpsert, mockEvaluationForInsert]),
             "expected [mock2Updated, mockEvaluationForInsert] in the database"
         )
+        XCTAssertEqual(storage.currentEvaluationsId, "evaluationId_2")
         wait(for: [expectation], timeout: 0.1)
     }
 
@@ -221,17 +224,15 @@ final class EvaluationStorageTests: XCTestCase {
         XCTAssertFalse(storage.userAttributesUpdated)
         XCTAssertEqual(storage.featureTag, "")
 
-        storage.setCurrentEvaluationsId(value: "evaluationIdForTest")
         storage.setUserAttributesUpdated()
         storage.setFeatureTag(value: "featureTagForTest")
-        let result = try storage.update(evaluations: [.mock2], archivedFeatureIds: [Evaluation.mock1.featureId], evaluatedAt: "1024")
+        let result = try storage.update(evaluationId:"evaluationIdForTest", evaluations: [.mock2], archivedFeatureIds: [Evaluation.mock1.featureId], evaluatedAt: "1024")
         XCTAssertTrue(result, "update action should success")
         XCTAssertEqual(storage.evaluatedAt, "1024", "should save last evaluatedAt")
         XCTAssertEqual(storage.currentEvaluationsId, "evaluationIdForTest")
         XCTAssertTrue(storage.userAttributesUpdated)
         XCTAssertEqual(storage.featureTag, "featureTagForTest")
-        
-        
+
         storage.clearUserAttributesUpdated()
         XCTAssertFalse(storage.userAttributesUpdated)
     }
