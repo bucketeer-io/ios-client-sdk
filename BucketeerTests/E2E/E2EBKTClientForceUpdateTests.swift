@@ -149,7 +149,6 @@ final class E2EBKTClientForceUpdateTests: XCTestCase {
 
         let evaluationStorageWithFeatureTag = componentWithFeatureTag.dataModule.evaluationStorage
         XCTAssertNotEqual(evaluationStorageWithFeatureTag.currentEvaluationsId, "")
-        XCTAssertNotEqual(client.component.evaluationInteractor.currentEvaluationsId, "")
 
         let currentEvaluationsWithOutFakeData = try evaluationStorageWithFeatureTag.get()
         // verify if `force_update` happened

@@ -9,8 +9,6 @@ protocol EvaluationInteractor {
     func addUpdateListener(listener: EvaluationUpdateListener) -> String
     func removeUpdateListener(key: String)
     func clearUpdateListeners()
-
-    var currentEvaluationsId: String { get }
 }
 
 extension EvaluationInteractor {
@@ -42,9 +40,7 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
     var updateListeners: [String: EvaluationUpdateListener] = [:]
 
     var currentEvaluationsId: String {
-        get {
-            return evaluationStorage.currentEvaluationsId
-        }
+        return evaluationStorage.currentEvaluationsId
     }
 
     func fetch(user: User, timeoutMillis: Int64?, completion: ((GetEvaluationsResult) -> Void)?) {
