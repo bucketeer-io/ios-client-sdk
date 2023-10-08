@@ -31,8 +31,8 @@ final class EvaluationStorageTests: XCTestCase {
         wait(for: [expectation], timeout: 0.1)
     }
 
-    func testGetByUserIdAndFeatureId() throws {
-        let expectation = XCTestExpectation(description: "testGetByUserId")
+    func testGetByFeatureId() throws {
+        let expectation = XCTestExpectation(description: "testGetByFeatureId")
         expectation.expectedFulfillmentCount = 1
         expectation.assertForOverFulfill = true
         let testUserId1 = Evaluation.mock1.userId
@@ -58,7 +58,7 @@ final class EvaluationStorageTests: XCTestCase {
     }
 
     func testDeleteAllAndInsert() throws {
-        let expectation = XCTestExpectation(description: "testGetByUserId")
+        let expectation = XCTestExpectation(description: "testDeleteAllAndInsert")
         expectation.expectedFulfillmentCount = 4
         expectation.assertForOverFulfill = true
         let testUserId1 = Evaluation.mock1.userId
@@ -102,7 +102,7 @@ final class EvaluationStorageTests: XCTestCase {
     }
 
     func testUpdate() throws {
-        let expectation = XCTestExpectation(description: "testGetByUserId")
+        let expectation = XCTestExpectation(description: "testUpdate")
         expectation.expectedFulfillmentCount = 5
         expectation.assertForOverFulfill = true
         let testUserId1 = Evaluation.mock2.userId
@@ -221,14 +221,18 @@ final class EvaluationStorageTests: XCTestCase {
         XCTAssertFalse(storage.userAttributesUpdated)
         XCTAssertEqual(storage.featureTag, "")
 
-        storage.currentEvaluationsId = "evaluationIdForTest"
-        storage.userAttributesUpdated = true
-        storage.featureTag = "featureTagForTest"
+        storage.setCurrentEvaluationsId(value: "evaluationIdForTest")
+        storage.setUserAttributesUpdated()
+        storage.setFeatureTag(value: "featureTagForTest")
         let result = try storage.update(evaluations: [.mock2], archivedFeatureIds: [Evaluation.mock1.featureId], evaluatedAt: "1024")
         XCTAssertTrue(result, "update action should success")
         XCTAssertEqual(storage.evaluatedAt, "1024", "should save last evaluatedAt")
         XCTAssertEqual(storage.currentEvaluationsId, "evaluationIdForTest")
         XCTAssertTrue(storage.userAttributesUpdated)
         XCTAssertEqual(storage.featureTag, "featureTagForTest")
+        
+        
+        storage.clearUserAttributesUpdated()
+        XCTAssertFalse(storage.userAttributesUpdated)
     }
 }

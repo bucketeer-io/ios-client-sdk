@@ -70,7 +70,7 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
                 if currentEvaluationsId == newEvaluationsId {
                     logger?.debug(message: "Nothing to sync")
                     // Reset UserAttributesUpdated
-                    self?.evaluationStorage.setUserAttributesUpdated(value: false)
+                    self?.evaluationStorage.clearUserAttributesUpdated()
                     completion?(result)
                     return
                 }
@@ -122,7 +122,7 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
         // https://github.com/bucketeer-io/android-client-sdk/issues/69
         // userAttributesUpdated: when the user attributes change via the customAttributes interface,
         // the userAttributesUpdated field must be set to true in the next request.
-        evaluationStorage.setUserAttributesUpdated(value: true)
+        evaluationStorage.setUserAttributesUpdated()
     }
 
     func getLatest(userId: String, featureId: String) -> Evaluation? {
@@ -159,7 +159,7 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
         shouldNotifyListener: Bool
     ) {
         self.currentEvaluationsId = newEvaluationsId
-        evaluationStorage.setUserAttributesUpdated(value: false)
+        evaluationStorage.clearUserAttributesUpdated()
         if shouldNotifyListener {
             // Update listeners should be called on the main thread
             // to avoid unintentional lock on Interactor's execution thread.

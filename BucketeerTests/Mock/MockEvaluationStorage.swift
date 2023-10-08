@@ -2,6 +2,7 @@ import Foundation
 @testable import Bucketeer
 
 final class MockEvaluationStorage: EvaluationStorage {
+
     var currentEvaluationsId: String {
         get {
             return evaluationUserDefaultsDao.currentEvaluationsId
@@ -104,7 +105,16 @@ final class MockEvaluationStorage: EvaluationStorage {
         evaluatedAt = value
     }
 
-    func setUserAttributesUpdated(value: Bool) {
+    private func setUserAttributesUpdated(value: Bool) {
         userAttributesUpdated = value
     }
+    
+    func setUserAttributesUpdated() {
+        setUserAttributesUpdated(value: true)
+    }
+    
+    func clearUserAttributesUpdated() {
+        setUserAttributesUpdated(value: false)
+    }
+    
 }

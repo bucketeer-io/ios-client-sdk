@@ -17,5 +17,6 @@ protocol EvaluationStorage {
 
     func setCurrentEvaluationsId(value: String)
     func setFeatureTag(value: String)
-    func setUserAttributesUpdated(value: Bool)
+    func setUserAttributesUpdated()
+    func clearUserAttributesUpdated()
 }

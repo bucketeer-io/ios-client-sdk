@@ -4,17 +4,11 @@ final class EvaluationStorageImpl: EvaluationStorage {
         get {
             return evaluationUserDefaultsDao.currentEvaluationsId
         }
-        set {
-            evaluationUserDefaultsDao.setCurrentEvaluationsId(value: newValue)
-        }
     }
 
     var featureTag: String {
         get {
             return evaluationUserDefaultsDao.featureTag
-        }
-        set {
-            evaluationUserDefaultsDao.setFeatureTag(value: newValue)
         }
     }
 
@@ -22,17 +16,11 @@ final class EvaluationStorageImpl: EvaluationStorage {
         get {
             return evaluationUserDefaultsDao.evaluatedAt
         }
-        set {
-            evaluationUserDefaultsDao.setEvaluatedAt(value: newValue)
-        }
     }
 
     var userAttributesUpdated: Bool {
         get {
             return evaluationUserDefaultsDao.userAttributesUpdated
-        }
-        set {
-            evaluationUserDefaultsDao.setUserAttributesUpdated(value: newValue)
         }
     }
 
@@ -67,7 +55,7 @@ final class EvaluationStorageImpl: EvaluationStorage {
         }
         // Update cache directly
         evaluationMemCacheDao.set(key: userId, value: evaluations)
-        self.evaluatedAt = evaluatedAt
+        evaluationUserDefaultsDao.setEvaluatedAt(value: evaluatedAt)
     }
 
     func update(evaluations: [Evaluation], archivedFeatureIds: [String], evaluatedAt: String) throws -> Bool {
@@ -106,14 +94,18 @@ final class EvaluationStorageImpl: EvaluationStorage {
     }
 
     func setCurrentEvaluationsId(value: String) {
-        currentEvaluationsId = value
+        evaluationUserDefaultsDao.setCurrentEvaluationsId(value: value)
     }
 
     func setFeatureTag(value: String) {
-        featureTag = value
+        evaluationUserDefaultsDao.setFeatureTag(value: value)
     }
 
-    func setUserAttributesUpdated(value: Bool) {
-        userAttributesUpdated = value
+    func setUserAttributesUpdated() {
+        evaluationUserDefaultsDao.setUserAttributesUpdated(value: true)
+    }
+    
+    func clearUserAttributesUpdated() {
+        evaluationUserDefaultsDao.setUserAttributesUpdated(value: false)
     }
 }
