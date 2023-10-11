@@ -146,9 +146,6 @@ final class EvaluationInteractorTests: XCTestCase {
                     completion?(.success(response))
                 } else {
                     // second request
-                    var userEvaluations = UserEvaluations.mock1
-                    userEvaluations.evaluations = [.mock1Updated, .mock2]
-                    userEvaluations.id = baseUserEvaluationsId_updated
                     let response = GetEvaluationsResponse(
                         evaluations: .mock1Upsert,
                         userEvaluationsId: baseUserEvaluationsId_updated
