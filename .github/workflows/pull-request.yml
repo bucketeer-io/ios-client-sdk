@@ -21,6 +21,22 @@ jobs:
         with:
           args: --strict
 
+  install-mint:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build
+        run: make install-mint
+
+  bootstrap-mint:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build
+        run: make bootstrap-mint
+
   lint_pod:
     runs-on: macos-latest
     steps:

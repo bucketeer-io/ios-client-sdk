@@ -76,3 +76,6 @@ fastlane/.env
 
 # proto
 proto_output
+
+# mint
+mint/
