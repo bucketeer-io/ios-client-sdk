@@ -13,14 +13,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: norio-nomura/action-swiftlint@9f4dcd7fd46b4e75d7935cf2f4df406d5cae3684 # v3.2.1
-        with:
-          args: --strict
-
   install-mint:
     runs-on: macos-latest
     steps:
@@ -36,6 +28,14 @@ jobs:
 
       - name: Build
         run: make bootstrap-mint
+
+  lint_swift:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build
+        run: make run-lint
 
   lint_pod:
     runs-on: macos-latest

@@ -839,6 +839,7 @@
 				0065C3BA28C7BB76002D92A2 /* Sources */,
 				0065C3BB28C7BB76002D92A2 /* Frameworks */,
 				0065C3BC28C7BB76002D92A2 /* Resources */,
+				9BC3E3082AE91D7700849EB8 /* Run Script(linter) */,
 			);
 			buildRules = (
 			);
@@ -1053,6 +1054,27 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		9BC3E3082AE91D7700849EB8 /* Run Script(linter) */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Run Script(linter)";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make run-lint\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		0065C3BA28C7BB76002D92A2 /* Sources */ = {
