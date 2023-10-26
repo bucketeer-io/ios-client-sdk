@@ -226,7 +226,12 @@ final class EvaluationStorageTests: XCTestCase {
 
         storage.setUserAttributesUpdated()
         storage.setFeatureTag(value: "featureTagForTest")
-        let result = try storage.update(evaluationId:"evaluationIdForTest", evaluations: [.mock2], archivedFeatureIds: [Evaluation.mock1.featureId], evaluatedAt: "1024")
+        let result = try storage.update(
+            evaluationId:"evaluationIdForTest",
+            evaluations: [.mock2],
+            archivedFeatureIds: [Evaluation.mock1.featureId],
+            evaluatedAt: "1024"
+        )
         XCTAssertTrue(result, "update action should success")
         XCTAssertEqual(storage.evaluatedAt, "1024", "should save last evaluatedAt")
         XCTAssertEqual(storage.currentEvaluationsId, "evaluationIdForTest")
