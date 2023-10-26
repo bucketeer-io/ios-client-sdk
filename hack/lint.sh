@@ -3,16 +3,14 @@
 source ./hack/mint.sh
 
 function run() {
-    PROJECT_DIR=$(xcodebuild -showBuildSettings | grep "PROJECT_DIR = .*" | sed "s/PROJECT_DIR = //g" | sed "s/ //g")
-    echo "PROJECT_DIR=$PROJECT_DIR"
+    command_output=$(mint which swiftlint 2>&1)
+    exit_status=$?
 
-    SWIFTLINT_FILE_PATH="$PROJECT_DIR/$MINT_LINK_PATH_AT_INSTALL/swiftlint"
-
-    if [ ! -e $SWIFTLINT_FILE_PATH ]; then
-        echo "swiftlint: not found."
+    if [ $exit_status -ne 0 ]; then
+        echo "swiftlint not found. $command_output"
         mint_bootstrap
     fi
-    $SWIFTLINT_FILE_PATH
+    mint run swiftlint --strict
 }
 
 if [ ${#@} -eq 1 ]; then
