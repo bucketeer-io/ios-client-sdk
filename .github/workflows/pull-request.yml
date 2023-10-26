@@ -18,23 +18,28 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Build
+      - name: Install mint
         run: make install-mint
 
   bootstrap-mint:
     runs-on: macos-latest
+    needs: install-mint
     steps:
       - uses: actions/checkout@v3
 
-      - name: Build
+      - name: Bootstrap mint
+        env:
+          CI: true
+
         run: make bootstrap-mint
 
   lint_swift:
+    needs: bootstrap-mint
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
 
-      - name: Build
+      - name: Lint swift
         run: make run-lint
 
   lint_pod:
@@ -46,6 +51,7 @@ jobs:
 
   build:
     runs-on: macos-latest
+    needs: bootstrap-mint
     steps:
       - uses: actions/checkout@v3
 
@@ -54,6 +60,7 @@ jobs:
 
   build-example:
     runs-on: macos-latest
+    needs: bootstrap-mint
     steps:
       - uses: actions/checkout@v3
 
@@ -67,6 +74,7 @@ jobs:
 
   test:
     runs-on: macos-latest
+    needs: bootstrap-mint
     steps:
       - uses: actions/checkout@v3
 
