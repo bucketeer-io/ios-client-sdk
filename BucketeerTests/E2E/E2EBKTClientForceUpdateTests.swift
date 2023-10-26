@@ -33,13 +33,13 @@ final class E2EBKTClientForceUpdateTests: XCTestCase {
         let user = try BKTUser.Builder().with(id: USER_ID).build()
 
         let internalDataModule = try DataModuleImpl(user: user.toUser(), config: config)
-        var internalEvaluationStorage = internalDataModule.evaluationStorage
+        let internalEvaluationStorage = internalDataModule.evaluationStorage
         let userId = USER_ID
         let tobeDeletedEvaluation = Evaluation(
             id: "evaluation1",
             featureId: "feature1",
             featureVersion: 1,
-            userId: USER_ID,
+            userId: userId,
             variationId: "variation1",
             variationName: "variation name1",
             variationValue: "variation_value1",

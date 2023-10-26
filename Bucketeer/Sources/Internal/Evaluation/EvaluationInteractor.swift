@@ -19,9 +19,9 @@ extension EvaluationInteractor {
 
 final class EvaluationInteractorImpl: EvaluationInteractor {
 
-    let apiClient: ApiClient
-    let idGenerator: IdGenerator
-    let logger: Logger?
+    private let apiClient: ApiClient
+    private let idGenerator: IdGenerator
+    private let logger: Logger?
     private let evaluationStorage: EvaluationStorage
 
     init(apiClient: ApiClient,
@@ -37,7 +37,7 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
         updateFeatureTag(value: featureTag)
     }
 
-    var updateListeners: [String: EvaluationUpdateListener] = [:]
+    private var updateListeners: [String: EvaluationUpdateListener] = [:]
 
     var currentEvaluationsId: String {
         return evaluationStorage.currentEvaluationsId
