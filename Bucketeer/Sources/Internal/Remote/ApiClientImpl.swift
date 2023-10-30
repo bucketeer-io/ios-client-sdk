@@ -156,7 +156,7 @@ final class ApiClientImpl: ApiClient {
                 }
                 do {
                     guard 200..<300 ~= urlResponse.statusCode else {
-                        let response: ErrorResponse? = try JSONDecoder().decode(ErrorResponse.self, from: data)
+                        let response: ErrorResponse? = try? JSONDecoder().decode(ErrorResponse.self, from: data)
                         let error = ResponseError.unacceptableCode(code: urlResponse.statusCode, response: response)
                         return .failure(error)
                     }

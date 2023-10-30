@@ -53,7 +53,10 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
     func fetch(user: User, timeoutMillis: Int64?, completion: ((GetEvaluationsResult) -> Void)?) {
 
         let logger = self.logger
-        let evaluatedAt = evaluationStorage.evaluatedAt
+        var evaluatedAt = evaluationStorage.evaluatedAt
+        if (evaluatedAt == "") {
+            evaluatedAt = "0"
+        }
         let userAttributesUpdated = evaluationStorage.userAttributesUpdated
         let currentEvaluationsId = evaluationStorage.currentEvaluationsId
         let featureTag = evaluationStorage.featureTag

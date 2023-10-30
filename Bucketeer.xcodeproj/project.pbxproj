@@ -123,6 +123,7 @@
 		942AD4EF2A7EAE1200348B3E /* EvaluationStorageImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 942AD4EE2A7EAE1200348B3E /* EvaluationStorageImpl.swift */; };
 		942AD4F12A7EC06D00348B3E /* EvaluationDaoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 942AD4F02A7EC06D00348B3E /* EvaluationDaoTests.swift */; };
 		9433F2EE2A79745800436F91 /* EvaluationUserDefaultDaoTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9433F2ED2A79745800436F91 /* EvaluationUserDefaultDaoTest.swift */; };
+		944AF78E2AEF4D1400FEADF3 /* E2EMetricsEventTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 944AF78D2AEF4D1400FEADF3 /* E2EMetricsEventTests.swift */; };
 		945B9B642A7B9A7900F14934 /* E2EEventTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 945B9B632A7B9A7900F14934 /* E2EEventTests.swift */; };
 		945B9B662A7B9A8800F14934 /* E2EBKTClientForceUpdateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 945B9B652A7B9A8800F14934 /* E2EBKTClientForceUpdateTests.swift */; };
 		946540372A821A11009BF89F /* EvaluationMemCacheDao.swift in Sources */ = {isa = PBXBuildFile; fileRef = 946540362A821A11009BF89F /* EvaluationMemCacheDao.swift */; };
@@ -333,6 +334,7 @@
 		942AD4EE2A7EAE1200348B3E /* EvaluationStorageImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvaluationStorageImpl.swift; sourceTree = "<group>"; };
 		942AD4F02A7EC06D00348B3E /* EvaluationDaoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvaluationDaoTests.swift; sourceTree = "<group>"; };
 		9433F2ED2A79745800436F91 /* EvaluationUserDefaultDaoTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvaluationUserDefaultDaoTest.swift; sourceTree = "<group>"; };
+		944AF78D2AEF4D1400FEADF3 /* E2EMetricsEventTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = E2EMetricsEventTests.swift; sourceTree = "<group>"; };
 		945B9B632A7B9A7900F14934 /* E2EEventTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = E2EEventTests.swift; sourceTree = "<group>"; };
 		945B9B652A7B9A8800F14934 /* E2EBKTClientForceUpdateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = E2EBKTClientForceUpdateTests.swift; sourceTree = "<group>"; };
 		946540362A821A11009BF89F /* EvaluationMemCacheDao.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvaluationMemCacheDao.swift; sourceTree = "<group>"; };
@@ -515,6 +517,7 @@
 			children = (
 				00664C0528F9340700AB4995 /* E2EEvaluationTests.swift */,
 				945B9B632A7B9A7900F14934 /* E2EEventTests.swift */,
+				944AF78D2AEF4D1400FEADF3 /* E2EMetricsEventTests.swift */,
 				945B9B652A7B9A8800F14934 /* E2EBKTClientForceUpdateTests.swift */,
 				00664C0828FAE79100AB4995 /* E2ETestHelpers.swift */,
 			);
@@ -1146,6 +1149,7 @@
 				00664C0928FAE79100AB4995 /* E2ETestHelpers.swift in Sources */,
 				942AD4F12A7EC06D00348B3E /* EvaluationDaoTests.swift in Sources */,
 				9340CA0928D9D1DD00E690CC /* EvaluationStorageTests.swift in Sources */,
+				944AF78E2AEF4D1400FEADF3 /* E2EMetricsEventTests.swift in Sources */,
 				934889C728EB0ADB007BA05C /* EvaluationForegroundTaskTests.swift in Sources */,
 				006E85C328DED24500B5D90D /* EvaluationInteractorTests.swift in Sources */,
 				935D9AB028F5B0DB007775F5 /* EvaluationTests.swift in Sources */,

@@ -63,7 +63,9 @@ final class EvaluationStorageImpl: EvaluationStorage {
     func deleteAllAndInsert(userId: String, evaluations: [Evaluation], evaluatedAt: String) throws {
         try evaluationDao.startTransaction {
             try evaluationDao.deleteAll(userId: userId)
-            try evaluationDao.put(userId: userId, evaluations: evaluations)
+            if evaluations.count > 0 {
+                try evaluationDao.put(userId: userId, evaluations: evaluations)
+            }
         }
         // Update cache directly
         evaluationMemCacheDao.set(key: userId, value: evaluations)
