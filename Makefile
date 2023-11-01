@@ -24,22 +24,22 @@ BUILD=$(XCODEBUILD) $(OPTIONS) $(DESTINATION) \
 	-configuration $(CONFIGURATION) \
 	build
 BUILD_FOR_TESTING=$(XCODEBUILD) $(OPTIONS) $(DESTINATION) \
-	-configuration Test \
+	-configuration $(CONFIGURATION) \
 	build-for-testing
 TEST_WITHOUT_BUILDING=$(XCODEBUILD) $(OPTIONS) $(DESTINATION) \
-	-configuration Test \
+	-configuration $(CONFIGURATION) \
 	-skip-testing:BucketeerTests/E2EBKTClientForceUpdateTests \
 	-skip-testing:BucketeerTests/E2EEvaluationTests \
 	-skip-testing:BucketeerTests/E2EEventTests \
 	test-without-building
 E2E_WITHOUT_BUILDING=$(XCODEBUILD) $(OPTIONS) $(DESTINATION) \
-	-configuration Test \
+	-configuration $(CONFIGURATION) \
 	-only-testing:BucketeerTests/E2EBKTClientForceUpdateTests \
 	-only-testing:BucketeerTests/E2EEvaluationTests \
 	-only-testing:BucketeerTests/E2EEventTests \
 	test-without-building E2E_API_ENDPOINT=$(E2E_API_ENDPOINT) E2E_API_KEY=$(E2E_API_KEY)
 ALL_TEST_WITHOUT_BUILDING=$(XCODEBUILD) $(OPTIONS) $(DESTINATION) \
-	-configuration Test \
+	-configuration $(CONFIGURATION) \
 	test-without-building
 BUILD_EXAMPLE=$(XCODEBUILD) $(EXAMPLE_OPTIONS) $(DESTINATION) \
 	-configuration $(CONFIGURATION) \
