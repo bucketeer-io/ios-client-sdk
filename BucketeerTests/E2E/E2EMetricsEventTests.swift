@@ -115,7 +115,6 @@ final class E2EMetricsEventTests: XCTestCase {
             return
         }
         let events : [Event] = try component.dataModule.eventDao.getEvents()
-        // It includes the Latency and ResponseSize metrics
         XCTAssertEqual(events.count, 1)
         XCTAssertTrue(events.contains { event in
             if case .metrics = event.type,
