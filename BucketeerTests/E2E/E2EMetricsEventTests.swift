@@ -76,7 +76,7 @@ final class E2EMetricsEventTests: XCTestCase {
         let events2 : [Event] = try component.dataModule.eventDao.getEvents()
         // It includes the Latency and ResponseSize metrics
         XCTAssertEqual(events2.count, 2)
-        }
+    }
 
     // Using a random string in the featureTag setting should not affect api request
     func testARandomStringInTheFeatureTagShouldNotAffectAPIRequest() async throws {
