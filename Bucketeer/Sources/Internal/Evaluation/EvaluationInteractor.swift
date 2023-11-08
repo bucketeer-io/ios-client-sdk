@@ -54,9 +54,6 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
 
         let logger = self.logger
         var evaluatedAt = evaluationStorage.evaluatedAt
-        if (evaluatedAt == "") {
-            evaluatedAt = "0"
-        }
         let userAttributesUpdated = evaluationStorage.userAttributesUpdated
         let currentEvaluationsId = evaluationStorage.currentEvaluationsId
         let featureTag = evaluationStorage.featureTag
