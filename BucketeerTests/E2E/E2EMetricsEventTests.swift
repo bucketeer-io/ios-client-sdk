@@ -9,9 +9,9 @@ final class E2EMetricsEventTests: XCTestCase {
 
     override func tearDown() async throws {
         try await super.tearDown()
-
+        try BKTClient.destroy()
         UserDefaults.standard.removeObject(forKey: "bucketeer_user_evaluations_id")
-        try FileManager.default.removeItem(at: .database)
+        try? FileManager.default.removeItem(at: .database)
     }
 
     // Metrics Event Tests
@@ -75,8 +75,8 @@ final class E2EMetricsEventTests: XCTestCase {
 
         let events2 : [Event] = try component.dataModule.eventDao.getEvents()
         // It includes the Latency and ResponseSize metrics
-        XCTAssertEqual(events2.count, 1)
-    }
+        XCTAssertEqual(events2.count, 2)
+        }
 
     // Using a random string in the featureTag setting should not affect api request
     func testARandomStringInTheFeatureTagShouldNotAffectAPIRequest() async throws {
