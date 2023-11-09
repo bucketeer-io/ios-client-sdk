@@ -562,6 +562,7 @@ class ApiClientTests: XCTestCase {
   "value" : "body"
 }
 """
+                XCTAssertEqual(jsonString, expected)
                 expectation.fulfill()
             },
             data: data,
@@ -621,6 +622,7 @@ class ApiClientTests: XCTestCase {
   "value" : "body"
 }
 """
+                XCTAssertEqual(jsonString, expected)
                 expectation.fulfill()
             },
             data: nil,
@@ -680,6 +682,7 @@ class ApiClientTests: XCTestCase {
   "value" : "body"
 }
 """
+                XCTAssertEqual(jsonString, expected)
                 expectation.fulfill()
             },
             data: nil,
@@ -739,6 +742,7 @@ class ApiClientTests: XCTestCase {
   "value" : "body"
 }
 """
+                XCTAssertEqual(jsonString, expected)
                 expectation.fulfill()
             },
             data: data,
@@ -799,6 +803,7 @@ class ApiClientTests: XCTestCase {
   "value" : "body"
 }
 """
+                XCTAssertEqual(jsonString, expected)
                 expectation.fulfill()
             },
             data: data,

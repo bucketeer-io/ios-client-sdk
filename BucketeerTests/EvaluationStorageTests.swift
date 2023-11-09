@@ -8,7 +8,7 @@ final class EvaluationStorageTests: XCTestCase {
         expectation.expectedFulfillmentCount = 1
         expectation.assertForOverFulfill = true
         let testUserId1 = Evaluation.mock1.userId
-        let mockDao = MockEvaluationDao(getHandler: { userId in
+        let mockDao = MockEvaluationSQLDao(getHandler: { userId in
             expectation.fulfill()
             XCTAssertEqual(testUserId1, userId)
             if userId == testUserId1 {
@@ -27,16 +27,16 @@ final class EvaluationStorageTests: XCTestCase {
         // Check cache
         let expected : [Evaluation] = [.mock1, .mock2]
         XCTAssertEqual(expected, cacheDao.get(key: testUserId1))
-        XCTAssertEqual(expected, try? storage.get(userId: testUserId1))
+        XCTAssertEqual(expected, try? storage.get())
         wait(for: [expectation], timeout: 0.1)
     }
 
-    func testGetByUserIdAndFeatureId() throws {
-        let expectation = XCTestExpectation(description: "testGetByUserId")
+    func testGetByFeatureId() throws {
+        let expectation = XCTestExpectation(description: "testGetByFeatureId")
         expectation.expectedFulfillmentCount = 1
         expectation.assertForOverFulfill = true
         let testUserId1 = Evaluation.mock1.userId
-        let mockDao = MockEvaluationDao(getHandler: { userId in
+        let mockDao = MockEvaluationSQLDao(getHandler: { userId in
             expectation.fulfill()
             XCTAssertEqual(testUserId1, userId)
             if userId == testUserId1 {
@@ -52,20 +52,22 @@ final class EvaluationStorageTests: XCTestCase {
             evaluationUserDefaultsDao: mockUserDefsDao
         )
         // Should return first evaluation has `feature_id` == Evaluation.mock2.featureId
-        let expected = storage.getBy(userId: testUserId1, featureId: Evaluation.mock2.featureId)
+        let expected = storage.getBy(featureId: Evaluation.mock2.featureId)
         XCTAssertEqual(expected, .mock2)
         wait(for: [expectation], timeout: 0.1)
     }
 
     func testDeleteAllAndInsert() throws {
-        let expectation = XCTestExpectation(description: "testGetByUserId")
+        let expectation = XCTestExpectation(description: "testDeleteAllAndInsert")
         expectation.expectedFulfillmentCount = 4
         expectation.assertForOverFulfill = true
         let testUserId1 = Evaluation.mock1.userId
-        let mockDao = MockEvaluationDao(putHandler: { userId, evaluations in
+        let mockDao = MockEvaluationSQLDao(putHandler: { evaluations in
             // 2. put new data
             expectation.fulfill()
-            XCTAssertEqual(testUserId1, userId)
+            evaluations.forEach { evaluation in
+                XCTAssertEqual(evaluation.userId, testUserId1)
+            }
             XCTAssertEqual(evaluations, [.mock1, .mock2])
         }, getHandler: { userId in
             expectation.fulfill()
@@ -92,15 +94,16 @@ final class EvaluationStorageTests: XCTestCase {
             evaluationMemCacheDao: EvaluationMemCacheDao(),
             evaluationUserDefaultsDao: mockUserDefsDao
         )
-        try storage.deleteAllAndInsert(userId: testUserId1, evaluations: [.mock1, .mock2], evaluatedAt: "1024")
-        let expected = try storage.get(userId: testUserId1)
+        try storage.deleteAllAndInsert(evaluationId:"evaluationId_1", evaluations: [.mock1, .mock2], evaluatedAt: "1024")
+        let expected = try storage.get()
         XCTAssertEqual(expected, [.mock1, .mock2])
         XCTAssertEqual(storage.evaluatedAt, "1024", "should save last evaluatedAt")
+        XCTAssertEqual(storage.currentEvaluationsId, "evaluationId_1")
         wait(for: [expectation], timeout: 0.1)
     }
 
     func testUpdate() throws {
-        let expectation = XCTestExpectation(description: "testGetByUserId")
+        let expectation = XCTestExpectation(description: "testUpdate")
         expectation.expectedFulfillmentCount = 5
         expectation.assertForOverFulfill = true
         let testUserId1 = Evaluation.mock2.userId
@@ -137,9 +140,11 @@ final class EvaluationStorageTests: XCTestCase {
             )
         )
         var getHandlerAccessCount = 0
-        let mockDao = MockEvaluationDao(putHandler: { userId, evaluations in
+        let mockDao = MockEvaluationSQLDao(putHandler: { evaluations in
             expectation.fulfill()
-            XCTAssertEqual(testUserId1, userId)
+            evaluations.forEach { evaluation in
+                XCTAssertEqual(evaluation.userId, testUserId1)
+            }
             XCTAssertEqual(Set(evaluations), Set([mockEvaluationForUpsert, mockEvaluationForInsert]))
         }, getHandler: { userId in
             // Should fullfill 2 times
@@ -185,6 +190,7 @@ final class EvaluationStorageTests: XCTestCase {
         )
         // Should update Evaluation.mock2, insert `mockEvaluationForInsert` & remove Evaluation.mock1
         let result = try storage.update(
+            evaluationId: "evaluationId_2",
             evaluations: [mockEvaluationForUpsert, mockEvaluationForInsert],
             archivedFeatureIds: [
                 Evaluation.mock1.featureId
@@ -194,16 +200,17 @@ final class EvaluationStorageTests: XCTestCase {
         XCTAssertTrue(result, "update action should success")
         XCTAssertEqual(storage.evaluatedAt, "1024", "evaluatedAt should be 1024")
         XCTAssertEqual(
-            Set(try storage.get(userId: testUserId1)),
+            Set(try storage.get()),
             Set([mockEvaluationForUpsert, mockEvaluationForInsert]),
             "expected [mock2Updated, mockEvaluationForInsert] in the database"
         )
+        XCTAssertEqual(storage.currentEvaluationsId, "evaluationId_2")
         wait(for: [expectation], timeout: 0.1)
     }
 
     func testGetStorageValues() throws {
         let testUserId1 = Evaluation.mock1.userId
-        let mockDao = MockEvaluationDao()
+        let mockDao = MockEvaluationSQLDao()
         let mockUserDefsDao = MockEvaluationUserDefaultsDao()
         let storage = EvaluationStorageImpl(
             userId: testUserId1,
@@ -217,14 +224,21 @@ final class EvaluationStorageTests: XCTestCase {
         XCTAssertFalse(storage.userAttributesUpdated)
         XCTAssertEqual(storage.featureTag, "")
 
-        storage.currentEvaluationsId = "evaluationIdForTest"
-        storage.userAttributesUpdated = true
-        storage.featureTag = "featureTagForTest"
-        let result = try storage.update(evaluations: [.mock2], archivedFeatureIds: [Evaluation.mock1.featureId], evaluatedAt: "1024")
+        storage.setUserAttributesUpdated()
+        storage.setFeatureTag(value: "featureTagForTest")
+        let result = try storage.update(
+            evaluationId:"evaluationIdForTest",
+            evaluations: [.mock2],
+            archivedFeatureIds: [Evaluation.mock1.featureId],
+            evaluatedAt: "1024"
+        )
         XCTAssertTrue(result, "update action should success")
         XCTAssertEqual(storage.evaluatedAt, "1024", "should save last evaluatedAt")
         XCTAssertEqual(storage.currentEvaluationsId, "evaluationIdForTest")
         XCTAssertTrue(storage.userAttributesUpdated)
         XCTAssertEqual(storage.featureTag, "featureTagForTest")
+
+        storage.clearUserAttributesUpdated()
+        XCTAssertFalse(storage.userAttributesUpdated)
     }
 }

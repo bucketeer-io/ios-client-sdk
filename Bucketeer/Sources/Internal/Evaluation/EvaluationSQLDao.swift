@@ -1,36 +1,12 @@
-final class EvaluationSQLDao: EvaluationDao {
+import Foundation
 
-    private let db: SQLite
-
-    init(db: SQLite) {
-        self.db = db
-    }
-
-    // noted: userId is unused, should we remove it?
-    func put(userId: String, evaluations: [Evaluation]) throws {
-        let entities = try evaluations.map {
-            try EvaluationEntity(model: $0)
-        }
-        try db.insert(entities)
-    }
-
-    func get(userId: String) throws -> [Evaluation] {
-        try db.select(EvaluationEntity(), conditions: [.equal(column: "userId", value: userId)])
-    }
-
-    func deleteAll(userId: String) throws {
-        try db.delete(EvaluationEntity(), condition: .equal(column: "userId", value: userId))
-    }
-
-    func deleteByIds(_ ids: [String]) throws {
-        for id in ids {
-            try db.delete(EvaluationEntity(), condition: .equal(column: "id", value: id))
-        }
-    }
-
-    func startTransaction(block: () throws -> Void) throws {
-        try db.startTransaction {
-            try block()
-        }
-    }
+// EvaluationSQLDao CURD
+protocol EvaluationSQLDao {
+    func put(evaluations: [Evaluation]) throws
+    func get(userId: String) throws -> [Evaluation]
+    func deleteAll(userId: String) throws
+    func deleteByIds(_ ids: [String]) throws
+    func startTransaction(block: TransactionBlock) throws
 }
+
+typealias TransactionBlock = () throws -> Void

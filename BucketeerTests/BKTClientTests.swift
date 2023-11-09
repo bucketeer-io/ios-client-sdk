@@ -98,13 +98,13 @@ final class BKTClientTests: XCTestCase {
         let client = BKTClient(dataModule: dataModule, dispatchQueue: .global())
         client.fetchEvaluations(timeoutMillis: nil) { error in
             XCTAssertEqual(error, nil)
-            XCTAssertEqual(client.component.evaluationInteractor.currentEvaluationsId, "id")
+            XCTAssertEqual(dataModule.evaluationStorage.currentEvaluationsId, "id")
             let attributes: [String: String] = ["key": "updated"]
             // `UpdateUserAttributesWillResetEvaluationId` ~ It was old requirement, but now it should be
             // updateUserAttributes will not clear `userEvaluationsID`
             // `userEvaluationsID` only clear if the featureTag changes
             client.updateUserAttributes(attributes: attributes)
-            XCTAssertEqual(client.component.evaluationInteractor.currentEvaluationsId, "id")
+            XCTAssertEqual(dataModule.evaluationStorage.currentEvaluationsId, "id")
             expectation.fulfill()
         }
 
@@ -140,7 +140,7 @@ final class BKTClientTests: XCTestCase {
         let client = BKTClient(dataModule: dataModule, dispatchQueue: .global())
         client.fetchEvaluations(timeoutMillis: nil) { error in
             XCTAssertEqual(error, nil)
-            XCTAssertEqual(client.component.evaluationInteractor.currentEvaluationsId, "id")
+            XCTAssertEqual(dataModule.evaluationStorage.currentEvaluationsId, "id")
             let attributes: [String: String] = ["key": "updated"]
             client.updateUserAttributes(attributes: attributes)
             // mark the next request ready
@@ -177,7 +177,7 @@ final class BKTClientTests: XCTestCase {
                 )))
                 expectation.fulfill()
             }),
-            eventDao: MockEventDao(addEventsHandler: { events in
+            eventSQLDao: MockEventSQLDao(addEventsHandler: { events in
                 XCTAssertEqual(events, [
                     Event(
                         id: "mock1",
@@ -252,7 +252,7 @@ final class BKTClientTests: XCTestCase {
                 handler?(.failure(error: .timeout(message: "timeout", error: NSError(), timeoutMillis: timeoutMillis ?? 0), featureTag: "feature"))
                 expectation.fulfill()
             }),
-            eventDao: MockEventDao(addEventsHandler: { events in
+            eventSQLDao: MockEventSQLDao(addEventsHandler: { events in
                 XCTAssertEqual(events.count, 1)
                 let expected = Event(
                     id: "mock1",
@@ -307,7 +307,7 @@ final class BKTClientTests: XCTestCase {
                 handler?(.success(.init(errors: [:])))
                 expectation.fulfill()
             }),
-            eventDao: MockEventDao(getEventsHandler: {
+            eventSQLDao: MockEventSQLDao(getEventsHandler: {
                 defer {
                     // It will call 2 times.
                     // 1- for prepare for flushing
@@ -336,7 +336,7 @@ final class BKTClientTests: XCTestCase {
                 handler?(.failure(.apiServer(message: "unknown")))
                 expectation.fulfill()
             }),
-            eventDao: MockEventDao(getEventsHandler: {
+            eventSQLDao: MockEventSQLDao(getEventsHandler: {
                 defer {
                     // It will call 3 times.
                     // 1- for prepare for flushing
@@ -376,7 +376,8 @@ final class BKTClientTests: XCTestCase {
                 handler?(.success(.init(evaluations: .mock1, userEvaluationsId: "new")))
             }),
             evaluationStorage: MockEvaluationStorage(
-                getHandler: { _ in
+                userId: User.mock1.id,
+                getHandler: {
                     XCTFail("should not reach here")
                     return []
                 },
@@ -386,8 +387,8 @@ final class BKTClientTests: XCTestCase {
                     XCTAssertEqual(evaluatedAt, UserEvaluations.mock1.createdAt)
                     expectation.fulfill()
                     return true
-                }, getByFeatureIdHandler: { userId, featureId in
-                    if (userId == User.mock1.id && featureId == "feature1") {
+                }, getByFeatureIdHandler: { featureId in
+                    if (featureId == "feature1") {
                         expectation.fulfill()
                         return .mock1
                     }
@@ -418,7 +419,7 @@ final class BKTClientTests: XCTestCase {
         expectation.expectedFulfillmentCount = 1
         let dataModule = MockDataModule(
             userHolder: .init(user: .mock1),
-            eventDao: MockEventDao(addEventsHandler: { events in
+            eventSQLDao: MockEventSQLDao(addEventsHandler: { events in
                 XCTAssertEqual(events.count, 1)
                 XCTAssertEqual(events.first, Event(
                     id: "id",
@@ -469,7 +470,8 @@ final class BKTClientTests: XCTestCase {
                 expectation.fulfill()
             }),
             evaluationStorage: MockEvaluationStorage(
-                getHandler: { _ in
+                userId: User.mock1.id,
+                getHandler: {
                     XCTFail("Should not call")
                     return []
                 }, updateHandler: { evalutions, archivedFeatureIds, evaluedAt in
@@ -478,9 +480,8 @@ final class BKTClientTests: XCTestCase {
                     XCTAssertEqual(archivedFeatureIds, UserEvaluations.mock1.archivedFeatureIds)
                     XCTAssertEqual(evaluedAt, UserEvaluations.mock1.createdAt)
                     return true
-                }, getByFeatureIdHandler: { userId, featureId in
+                }, getByFeatureIdHandler: { featureId in
                     expectation.fulfill()
-                    XCTAssertEqual(userId, User.mock1.id)
                     XCTAssertEqual(featureId, "feature1")
                     return .mock1
                 }
@@ -507,7 +508,8 @@ final class BKTClientTests: XCTestCase {
                 expectation.fulfill()
             }),
             evaluationStorage: MockEvaluationStorage(
-                getHandler: { _ in
+                userId: User.mock1.id,
+                getHandler: {
                     XCTFail("Should not call")
                     return []
                 }, updateHandler: { evalutions, archivedFeatureIds, evaluedAt in
@@ -516,9 +518,8 @@ final class BKTClientTests: XCTestCase {
                     XCTAssertEqual(archivedFeatureIds, UserEvaluations.mock1.archivedFeatureIds)
                     XCTAssertEqual(evaluedAt, UserEvaluations.mock1.createdAt)
                     return true
-                }, getByFeatureIdHandler: { userId, featureId in
+                }, getByFeatureIdHandler: { featureId in
                     expectation.fulfill()
-                    XCTAssertEqual(userId, User.mock1.id)
                     XCTAssertEqual(featureId, "feature2")
                     return .mock2
                 }
@@ -545,7 +546,8 @@ final class BKTClientTests: XCTestCase {
                 expectation.fulfill()
             }),
             evaluationStorage: MockEvaluationStorage(
-                getHandler: { _ in
+                userId: User.mock1.id,
+                getHandler: {
                     XCTFail("Should not call")
                     return []
                 }, updateHandler: { evalutions, archivedFeatureIds, evaluedAt in
@@ -554,9 +556,8 @@ final class BKTClientTests: XCTestCase {
                     XCTAssertEqual(archivedFeatureIds, UserEvaluations.mock2.archivedFeatureIds)
                     XCTAssertEqual(evaluedAt, UserEvaluations.mock2.createdAt)
                     return true
-                }, getByFeatureIdHandler: { userId, featureId in
+                }, getByFeatureIdHandler: { featureId in
                     expectation.fulfill()
-                    XCTAssertEqual(userId, User.mock1.id)
                     XCTAssertEqual(featureId, "feature3")
                     return .mock3
                 }
@@ -583,7 +584,8 @@ final class BKTClientTests: XCTestCase {
                 expectation.fulfill()
             }),
             evaluationStorage: MockEvaluationStorage(
-                getHandler: { _ in
+                userId: User.mock1.id,
+                getHandler: {
                     XCTFail("Should not call")
                     return []
                 }, updateHandler: { evalutions, archivedFeatureIds, evaluedAt in
@@ -592,9 +594,8 @@ final class BKTClientTests: XCTestCase {
                     XCTAssertEqual(archivedFeatureIds, UserEvaluations.mock2.archivedFeatureIds)
                     XCTAssertEqual(evaluedAt, UserEvaluations.mock2.createdAt)
                     return true
-                }, getByFeatureIdHandler: { userId, featureId in
+                }, getByFeatureIdHandler: { featureId in
                     expectation.fulfill()
-                    XCTAssertEqual(userId, User.mock1.id)
                     XCTAssertEqual(featureId, "feature4")
                     return .mock4
                 }
@@ -621,7 +622,8 @@ final class BKTClientTests: XCTestCase {
                 expectation.fulfill()
             }),
             evaluationStorage: MockEvaluationStorage(
-                getHandler: { _ in
+                userId: User.mock1.id,
+                getHandler: {
                     XCTFail("Should not call")
                     return []
                 }, updateHandler: { evalutions, archivedFeatureIds, evaluedAt in
@@ -630,9 +632,8 @@ final class BKTClientTests: XCTestCase {
                     XCTAssertEqual(archivedFeatureIds, UserEvaluations.mock2.archivedFeatureIds)
                     XCTAssertEqual(evaluedAt, UserEvaluations.mock2.createdAt)
                     return true
-                }, getByFeatureIdHandler: { userId, featureId in
+                }, getByFeatureIdHandler: { featureId in
                     expectation.fulfill()
-                    XCTAssertEqual(userId, User.mock1.id)
                     XCTAssertEqual(featureId, "feature5")
                     return .mock5
                 }

@@ -1,12 +1,19 @@
 import Foundation
 
 protocol EvaluationStorage {
-    func getBy(userId: String, featureId: String) -> Evaluation?
-    func get(userId: String) throws -> [Evaluation]
+    func getBy(featureId: String) -> Evaluation?
+    func get() throws -> [Evaluation]
     // force update
-    func deleteAllAndInsert(userId: String, evaluations: [Evaluation], evaluatedAt: String) throws
+    func deleteAllAndInsert(
+        evaluationId: String,
+        evaluations: [Evaluation],
+        evaluatedAt: String) throws
     // upsert
-    @discardableResult func update(evaluations: [Evaluation], archivedFeatureIds: [String], evaluatedAt: String) throws -> Bool
+    @discardableResult func update(
+        evaluationId: String,
+        evaluations: [Evaluation],
+        archivedFeatureIds: [String],
+        evaluatedAt: String) throws -> Bool
     func refreshCache() throws
 
     var currentEvaluationsId: String { get }
@@ -15,8 +22,8 @@ protocol EvaluationStorage {
     var evaluatedAt: String { get }
     var userAttributesUpdated: Bool { get }
 
-    func setCurrentEvaluationsId(value: String)
+    func clearCurrentEvaluationsId()
     func setFeatureTag(value: String)
-    func setEvaluatedAt(value: String)
-    func setUserAttributesUpdated(value: Bool)
+    func setUserAttributesUpdated()
+    func clearUserAttributesUpdated()
 }

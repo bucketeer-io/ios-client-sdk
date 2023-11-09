@@ -1,7 +1,7 @@
 import Foundation
 @testable import Bucketeer
 
-final class MockEventDao: EventDao {
+final class MockEventSQLDao: EventSQLDao {
     typealias AddEventsHandler = (([Event]) throws -> Void)
     typealias GetEventsHandler = () throws -> [Event]
     typealias DeleteEventsHandler = ([String]) throws -> Void

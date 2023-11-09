@@ -2,7 +2,7 @@ import XCTest
 @testable import Bucketeer
 
 @available(iOS 13, *)
-final class EvaluationDaoTests: XCTestCase {
+final class EvaluationSQLDaoTests: XCTestCase {
     let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("evaluation_test.db")
     var path: String { url.path }
 
@@ -24,16 +24,16 @@ final class EvaluationDaoTests: XCTestCase {
 
     func testGetEmpty() throws {
         let db = try SQLite(path: path, logger: nil)
-        let dao = EvaluationSQLDao(db: db)
+        let dao = EvaluationSQLDaoImpl(db: db)
         let evaluations = try dao.get(userId: "user1")
         XCTAssertTrue(evaluations.isEmpty)
     }
 
     func testGetSingleItem() throws {
         let db = try SQLite(path: path, logger: nil)
-        let dao = EvaluationSQLDao(db: db)
+        let dao = EvaluationSQLDaoImpl(db: db)
 
-        try dao.put(userId: "user1", evaluations: [.mock1])
+        try dao.put(evaluations: [.mock1])
 
         let evaluations = try dao.get(userId: "user1")
         XCTAssertEqual(evaluations.count, 1)
@@ -42,9 +42,9 @@ final class EvaluationDaoTests: XCTestCase {
 
     func testGetMultipleItems() throws {
         let db = try SQLite(path: path, logger: nil)
-        let dao = EvaluationSQLDao(db: db)
+        let dao = EvaluationSQLDaoImpl(db: db)
 
-        try dao.put(userId: "user1", evaluations: [.mock1, .mock2])
+        try dao.put(evaluations: [.mock1, .mock2])
 
         let evaluations = try dao.get(userId: "user1")
         XCTAssertEqual(evaluations.count, 2)
@@ -54,12 +54,12 @@ final class EvaluationDaoTests: XCTestCase {
 
     func testPutAsInsert() throws {
         let db = try SQLite(path: path, logger: nil)
-        let dao = EvaluationSQLDao(db: db)
-        try dao.put(userId: "user1", evaluations: [
+        let dao = EvaluationSQLDaoImpl(db: db)
+        try dao.put(evaluations: [
             .mock1,
             .mock2
         ])
-        try dao.put(userId: "user2", evaluations: [
+        try dao.put(evaluations: [
             .mock3
         ])
 
@@ -72,12 +72,12 @@ final class EvaluationDaoTests: XCTestCase {
 
     func testPutAsUpdate() throws {
         let db = try SQLite(path: path, logger: nil)
-        let dao = EvaluationSQLDao(db: db)
-        try dao.put(userId: "user1", evaluations: [
+        let dao = EvaluationSQLDaoImpl(db: db)
+        try dao.put(evaluations: [
             .mock1,
             .mock2
         ])
-        try dao.put(userId: "user2", evaluations: [
+        try dao.put(evaluations: [
             .mock3
         ])
 
@@ -96,7 +96,7 @@ final class EvaluationDaoTests: XCTestCase {
                 ruleId: "rule1"
             )
         )
-        try dao.put(userId: "user1", evaluations: [updatedMock])
+        try dao.put(evaluations: [updatedMock])
 
         var expectedEvaluation = try dao.get(userId: "user1")
         XCTAssertEqual(expectedEvaluation, [.mock2, updatedMock])
@@ -108,15 +108,15 @@ final class EvaluationDaoTests: XCTestCase {
     func testDeleteAllForUserId() throws {
         let userId1 = "user1"
         let db = try SQLite(path: path, logger: nil)
-        let dao = EvaluationSQLDao(db: db)
-        try dao.put(userId: userId1, evaluations: [
+        let dao = EvaluationSQLDaoImpl(db: db)
+        try dao.put(evaluations: [
             .mock1,
             .mock2
         ])
 
         // Put another evaluation for another user_id
         let userId2 = "user2"
-        try dao.put(userId: userId2, evaluations: [
+        try dao.put(evaluations: [
             .mock3,
             .mock4
         ])
@@ -140,12 +140,12 @@ final class EvaluationDaoTests: XCTestCase {
     func testDeleteByIds() throws {
         let userId = "user1"
         let db = try SQLite(path: path, logger: nil)
-        let dao = EvaluationSQLDao(db: db)
+        let dao = EvaluationSQLDaoImpl(db: db)
         let mocks: [Evaluation] = [
             .mock1,
             .mock2
         ]
-        try dao.put(userId: userId, evaluations: mocks)
+        try dao.put(evaluations: mocks)
 
         let evaluations = try dao.get(userId: userId)
         XCTAssertEqual(mocks, evaluations, "evaluations in the database did not match")

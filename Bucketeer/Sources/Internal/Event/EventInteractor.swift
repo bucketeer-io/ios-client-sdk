@@ -21,7 +21,7 @@ final class EventInteractorImpl: EventInteractor {
     let sdkVersion: String
     let eventsMaxBatchQueueCount: Int
     let apiClient: ApiClient
-    let eventDao: EventDao
+    let eventDao: EventSQLDao
     let clock: Clock
     let idGenerator: IdGenerator
     let logger: Logger?
@@ -36,7 +36,7 @@ final class EventInteractorImpl: EventInteractor {
         device: Device,
         eventsMaxBatchQueueCount: Int,
         apiClient: ApiClient,
-        eventDao: EventDao,
+        eventDao: EventSQLDao,
         clock: Clock,
         idGenerator: IdGenerator,
         logger: Logger?,

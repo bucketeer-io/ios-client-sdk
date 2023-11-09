@@ -76,7 +76,7 @@ extension BKTClient {
 
     func assert(expectedEventCount: Int, file: StaticString = #filePath, line: UInt = #line) {
         let component = self.component as? ComponentImpl
-        let count = try? component?.dataModule.eventDao.getEvents().count
+        let count = try? component?.dataModule.eventSQLDao.getEvents().count
         XCTAssertEqual(expectedEventCount, count, file: file, line: line)
     }
 }
