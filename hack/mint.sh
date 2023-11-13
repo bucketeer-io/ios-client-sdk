@@ -15,7 +15,7 @@ function bootstrap_mint() {
     result_search_mint=$(brew list | grep mint 2>&1)
     exit_status=$?
 
-    if [ $exit_status -ne 0 ] || [result_search_mint=""]; then
+    if [ $exit_status -ne 0 ] || [ $result_search_mint = "" ]; then
         echo "mint doesn't install. $command_output"
         install_mint
     fi
