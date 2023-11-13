@@ -1072,7 +1072,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#Workaround: Add Homebrew Path for M1 Mac.\nif [ $(uname -m) = \"arm64\" ]; then\n  export PATH=\"/opt/homebrew/bin:/opt/homebrew/sbin:${PATH+:$PATH}\";\nfi\n\n# Mintでrswiftを実行\nif which mint >/dev/null; then\n  make run-lint\nelse\n  echo \"Warning: Mint is installed. Please run make install-mint.\"\nfi\n";
+			shellScript = "#Workaround: Add Homebrew Path for M1 Mac.\nif [ $(uname -m) = \"arm64\" ]; then\n  export PATH=\"/opt/homebrew/bin:/opt/homebrew/sbin:${PATH+:$PATH}\";\nfi\n\nif which mint >/dev/null; then\n  make run-lint\nelse\n  echo \"Warning: Mint is installed. Please run make install-mint.\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
