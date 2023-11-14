@@ -70,24 +70,16 @@ jobs:
 
   build:
     runs-on: macos-latest
-    needs: install-mint
     steps:
       - uses: actions/checkout@v3
 
-      - name: Cache Mint packages
-        uses: actions/cache@v3
-        with:
-          path: .mint
-          key: ${{ runner.os }}-mint-${{ hashFiles('**/Mintfile') }}
-          restore-keys: |
-            ${{ runner.os }}-mint-
-
       - name: Build
+        env:
+          CI: true
         run: make build
 
   build-example:
     runs-on: macos-latest
-    needs: install-mint
     steps:
       - uses: actions/checkout@v3
 
@@ -96,32 +88,19 @@ jobs:
           CI: true
         run: make environment-setup
 
-      - name: Cache Mint packages
-        uses: actions/cache@v3
-        with:
-          path: .mint
-          key: ${{ runner.os }}-mint-${{ hashFiles('**/Mintfile') }}
-          restore-keys: |
-            ${{ runner.os }}-mint-
-
       - name: Build example
+        env:
+          CI: true
         run: make build-example
 
   test:
     runs-on: macos-latest
-    needs: install-mint
     steps:
       - uses: actions/checkout@v3
 
-      - name: Cache Mint packages
-        uses: actions/cache@v3
-        with:
-          path: .mint
-          key: ${{ runner.os }}-mint-${{ hashFiles('**/Mintfile') }}
-          restore-keys: |
-            ${{ runner.os }}-mint-
-
       - name: Build for testing
+        env:
+          CI: true
         run: make build-for-testing
 
       - name: Unit Test
