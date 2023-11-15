@@ -16,7 +16,7 @@ function bootstrap_mint() {
     exit_status=$?
 
     if [ $exit_status -ne 0 ] || [ $result_search_mint = "" ]; then
-        echo "mint doesn't install. $command_output"
+        echo "Mint is not installed. $command_output"
         install_mint
     fi
 
@@ -24,7 +24,7 @@ function bootstrap_mint() {
     exit_status=$?
 
     if [ $exit_status -ne 0 ]; then
-        echo "mint bootstrap was error. $command_output"
+        echo "Mint bootstrap has failed. $command_output"
         exit 1
     fi
 }

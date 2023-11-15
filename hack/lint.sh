@@ -15,7 +15,7 @@ function run() {
     exit_status=$?
 
     if [ $exit_status -ne 0 ]; then
-        echo "swiftlint not found. $command_output"
+        echo "SwiftLint didn't find. $command_output"
         bootstrap_mint
     fi
     mint run swiftlint --strict
