@@ -34,6 +34,20 @@ Please follow our contribution guide [here](https://docs.bucketeer.io/contributi
 
 ## Development
 
+### Setup the library management
+This　project use [mint](https://github.com/yonaskolb/Mint) for library management.
+
+#### Install
+```sh
+make install-mint
+```
+※You need [homebrew](https://brew.sh/) to install mint.
+
+#### Install library
+```sh
+make bootstrap-mint
+```
+
 ### Setup the environment xcconfig file
 
 Execute the following Makefile to create the environment xcconfig file.<br />

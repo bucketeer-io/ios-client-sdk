@@ -61,9 +61,17 @@ build:
 build-for-testing:
 	$(BUILD_FOR_TESTING)
 
-.PHONY: lint
-lint:
-	swiftlint --strict
+.PHONY: install-mint
+install-mint:
+	./hack/mint.sh --install
+
+.PHONY: bootstrap-mint
+bootstrap-mint:
+	./hack/mint.sh --bootstrap
+
+.PHONY: run-lint
+run-lint:
+	./hack/lint.sh --run
 
 .PHONY: test-without-building
 test-without-building:

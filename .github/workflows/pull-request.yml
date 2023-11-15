@@ -13,13 +13,53 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
+  install-mint:
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: norio-nomura/action-swiftlint@9f4dcd7fd46b4e75d7935cf2f4df406d5cae3684 # v3.2.1
+
+      - name: Install mint
+        run: |
+          brew install mint
+
+      - name: restore Mint packages
+        id: cache-restore
+        uses: actions/cache/restore@v3
         with:
-          args: --strict
+            path: .mint
+            key: ${{ runner.os }}-mint-${{ hashFiles('**/Mintfile') }}
+
+      - name: Bootstrap mint
+        env:
+          CI: true
+        run: make bootstrap-mint
+
+      - name: Cache Mint packages
+        uses: actions/cache@v3
+        with:
+          path: .mint
+          key: ${{ steps.cache-restore.outputs.cache-primary-key }}
+          restore-keys: |
+            ${{ runner.os }}-mint-
+
+  lint_swift:
+    needs: install-mint
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Cache Mint packages
+        uses: actions/cache@v3
+        with:
+          path: .mint
+          key: ${{ runner.os }}-mint-${{ hashFiles('**/Mintfile') }}
+          restore-keys: |
+            ${{ runner.os }}-mint-
+
+      - name: Lint swift
+        env:
+          CI: true
+        run: make run-lint
 
   lint_pod:
     runs-on: macos-latest
@@ -34,6 +74,8 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Build
+        env:
+          CI: true
         run: make build
 
   build-example:
@@ -47,6 +89,8 @@ jobs:
         run: make environment-setup
 
       - name: Build example
+        env:
+          CI: true
         run: make build-example
 
   test:
@@ -55,6 +99,8 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Build for testing
+        env:
+          CI: true
         run: make build-for-testing
 
       - name: Unit Test
