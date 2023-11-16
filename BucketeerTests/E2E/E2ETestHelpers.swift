@@ -37,7 +37,7 @@ extension BKTClient {
         return try await withCheckedThrowingContinuation { continuation in
             DispatchQueue.main.async {
                 do {
-                    try self.initialize(config: config, user: user) { error in
+                    try self.initialize(config: config, user: user, timeoutMillis: timeoutMillis) { error in
                         if let error = error {
                             continuation.resume(throwing: error)
                         } else {

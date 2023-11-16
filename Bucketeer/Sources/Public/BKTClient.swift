@@ -55,7 +55,7 @@ public class BKTClient {
         }
     }
 
-    private func execute(_ handler: @escaping () throws -> Void) {
+    func execute(_ handler: @escaping () throws -> Void) {
         dispatchQueue.async {
             do {
                 try handler()

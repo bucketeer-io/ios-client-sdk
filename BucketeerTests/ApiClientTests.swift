@@ -831,12 +831,11 @@ class ApiClientTests: XCTestCase {
                 XCTFail()
             case .failure(let error):
                 guard
-                    let error = error as? DecodingError,
-                    case .keyNotFound(let codingKey, _) = error else {
+                    let error = error as? ResponseError,
+                    case .unacceptableCode(let code, _) = error, code == 400 else {
                     XCTFail()
                     return
                 }
-                XCTAssertEqual(codingKey.stringValue, "error")
             }
             expectation.fulfill()
         }
