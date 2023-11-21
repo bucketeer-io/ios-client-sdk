@@ -2,7 +2,7 @@ import XCTest
 @testable import Bucketeer
 
 @available(iOS 13, *)
-final class EventDaoTests: XCTestCase {
+final class EventSQLDaoTests: XCTestCase {
     let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("event_test.db")
     var path: String { url.path }
 
@@ -23,7 +23,7 @@ final class EventDaoTests: XCTestCase {
 
     func testAddEventGoal() throws {
         let db = try SQLite(path: path, logger: nil)
-        let dao = EventDaoSQLImpl(db: db)
+        let dao = EventSQLDaoImpl(db: db)
 
         try dao.add(event: .mockGoal1)
 
@@ -45,7 +45,7 @@ final class EventDaoTests: XCTestCase {
 
     func testAddEventEvaluation() throws {
         let db = try SQLite(path: path, logger: nil)
-        let dao = EventDaoSQLImpl(db: db)
+        let dao = EventSQLDaoImpl(db: db)
 
         try dao.add(event: .mockEvaluation1)
 
@@ -67,7 +67,7 @@ final class EventDaoTests: XCTestCase {
 
     func testAddEventMetrics() throws {
         let db = try SQLite(path: path, logger: nil)
-        let dao = EventDaoSQLImpl(db: db)
+        let dao = EventSQLDaoImpl(db: db)
 
         try dao.add(event: .mockMetricsResponseLatency1)
 
@@ -89,7 +89,7 @@ final class EventDaoTests: XCTestCase {
 
     func testAddEvents() throws {
         let db = try SQLite(path: path, logger: nil)
-        let dao = EventDaoSQLImpl(db: db)
+        let dao = EventSQLDaoImpl(db: db)
 
         try dao.add(events: [.mockGoal1, .mockEvaluation1, .mockMetricsResponseLatency1, .mockEvaluation2])
 
@@ -103,7 +103,7 @@ final class EventDaoTests: XCTestCase {
 
     func testDeleteAll() throws {
         let db = try SQLite(path: path, logger: nil)
-        let dao = EventDaoSQLImpl(db: db)
+        let dao = EventSQLDaoImpl(db: db)
         let target: [Event] = [.mockGoal1, .mockEvaluation1, .mockMetricsResponseLatency1, .mockEvaluation2]
         try dao.add(events: target)
 
@@ -116,7 +116,7 @@ final class EventDaoTests: XCTestCase {
 
     func testDeleteSomeItems() throws {
         let db = try SQLite(path: path, logger: nil)
-        let dao = EventDaoSQLImpl(db: db)
+        let dao = EventSQLDaoImpl(db: db)
         let target: [Event] = [.mockGoal1, .mockEvaluation1, .mockMetricsResponseLatency1, .mockEvaluation2]
         try dao.add(events: target)
 

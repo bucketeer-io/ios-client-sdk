@@ -16,7 +16,7 @@ final class EventInteractorTests: XCTestCase {
             device: MockDevice(),
             eventsMaxBatchQueueCount: 3,
             apiClient: api,
-            eventDao: dao,
+            eventSQLDao: dao,
             clock: clock,
             idGenerator: idGenerator,
             logger: logger,

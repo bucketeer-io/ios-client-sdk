@@ -24,7 +24,7 @@ final class DataModuleImpl: DataModule {
         self.config = config
         self.sqlite = try DatabaseOpenHelper.createDatabase(logger: config.logger)
         self.evaluationDao = EvaluationSQLDaoImpl(db: sqlite)
-        self.eventSQLDao = EventDaoSQLImpl(db: sqlite)
+        self.eventSQLDao = EventSQLDaoImpl(db: sqlite)
     }
 
     private(set) lazy var clock: Clock = ClockImpl()
