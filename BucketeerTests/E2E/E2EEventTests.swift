@@ -86,11 +86,10 @@ final class E2EEventTests: XCTestCase {
                 XCTFail("could not access client.component")
                 return
             }
-            let userId = client.component.userHolder.userId
             try await withCheckedThrowingContinuation({ continuation in
                 client.execute {
                     do {
-                        try component.dataModule.evaluationStorage.deleteAllAndInsert(userId: userId, evaluations: [], evaluatedAt: "0")
+                        try component.dataModule.evaluationStorage.deleteAllAndInsert(evaluationId: "evaluationId", evaluations: [], evaluatedAt: "0")
                         continuation.resume(returning: ())
                     } catch {
                         continuation.resume(throwing: error)
