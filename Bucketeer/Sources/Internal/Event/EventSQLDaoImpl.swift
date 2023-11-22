@@ -1,6 +1,6 @@
 import Foundation
 
-final class EventDaoSQLImpl: EventSQLDao {
+final class EventSQLDaoImpl: EventSQLDao {
     private let db: SQLite
 
     init(db: SQLite) {

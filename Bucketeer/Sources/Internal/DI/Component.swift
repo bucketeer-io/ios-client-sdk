@@ -32,7 +32,7 @@ final class ComponentImpl: Component {
             device: dataModule.device,
             eventsMaxBatchQueueCount: dataModule.config.eventsMaxQueueSize,
             apiClient: dataModule.apiClient,
-            eventDao: dataModule.eventSQLDao,
+            eventSQLDao: dataModule.eventSQLDao,
             clock: dataModule.clock,
             idGenerator: dataModule.idGenerator,
             logger: dataModule.config.logger,

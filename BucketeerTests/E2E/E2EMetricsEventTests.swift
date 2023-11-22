@@ -49,7 +49,7 @@ final class E2EMetricsEventTests: XCTestCase {
             XCTFail("could not access client.component")
             return
         }
-        let events : [Event] = try component.dataModule.eventDao.getEvents()
+        let events : [Event] = try component.dataModule.eventSQLDao.getEvents()
         // It includes the Latency and ResponseSize metrics
         XCTAssertEqual(events.count, 1)
         XCTAssertTrue(events.contains { event in
@@ -73,7 +73,7 @@ final class E2EMetricsEventTests: XCTestCase {
             }
         }
 
-        let events2 : [Event] = try component.dataModule.eventDao.getEvents()
+        let events2 : [Event] = try component.dataModule.eventSQLDao.getEvents()
         // It includes the Latency and ResponseSize metrics
         XCTAssertEqual(events2.count, 2)
     }
@@ -114,7 +114,7 @@ final class E2EMetricsEventTests: XCTestCase {
             XCTFail("could not access client.component")
             return
         }
-        let events : [Event] = try component.dataModule.eventDao.getEvents()
+        let events : [Event] = try component.dataModule.eventSQLDao.getEvents()
         XCTAssertEqual(events.count, 1)
         XCTAssertTrue(events.contains { event in
             if case .metrics = event.type,
@@ -129,6 +129,6 @@ final class E2EMetricsEventTests: XCTestCase {
 
         try await client.flush()
 
-        XCTAssertEqual(try component.dataModule.eventDao.getEvents().count, 0)
+        XCTAssertEqual(try component.dataModule.eventSQLDao.getEvents().count, 0)
     }
 }

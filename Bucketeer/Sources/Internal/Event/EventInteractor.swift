@@ -21,7 +21,7 @@ final class EventInteractorImpl: EventInteractor {
     let sdkVersion: String
     let eventsMaxBatchQueueCount: Int
     let apiClient: ApiClient
-    let eventDao: EventSQLDao
+    let eventSQLDao: EventSQLDao
     let clock: Clock
     let idGenerator: IdGenerator
     let logger: Logger?
@@ -36,7 +36,7 @@ final class EventInteractorImpl: EventInteractor {
         device: Device,
         eventsMaxBatchQueueCount: Int,
         apiClient: ApiClient,
-        eventDao: EventSQLDao,
+        eventSQLDao: EventSQLDao,
         clock: Clock,
         idGenerator: IdGenerator,
         logger: Logger?,
@@ -45,7 +45,7 @@ final class EventInteractorImpl: EventInteractor {
         self.sdkVersion = sdkVersion
         self.eventsMaxBatchQueueCount = eventsMaxBatchQueueCount
         self.apiClient = apiClient
-        self.eventDao = eventDao
+        self.eventSQLDao = eventSQLDao
         self.clock = clock
         self.idGenerator = idGenerator
         self.logger = logger
@@ -63,7 +63,7 @@ final class EventInteractorImpl: EventInteractor {
     }
 
     func trackEvaluationEvent(featureTag: String, user: User, evaluation: Evaluation) throws {
-        try eventDao.add(
+        try eventSQLDao.add(
             event: .init(
                 id: idGenerator.id(),
                 event: .evaluation(.init(
@@ -86,7 +86,7 @@ final class EventInteractorImpl: EventInteractor {
     }
 
     func trackDefaultEvaluationEvent(featureTag: String, user: User, featureId: String) throws {
-        try eventDao.add(
+        try eventSQLDao.add(
             event: .init(
                 id: idGenerator.id(),
                 event: .evaluation(.init(
@@ -107,7 +107,7 @@ final class EventInteractorImpl: EventInteractor {
     }
 
     func trackGoalEvent(featureTag: String, user: User, goalId: String, value: Double) throws {
-        try eventDao.add(
+        try eventSQLDao.add(
             event: .init(
                 id: idGenerator.id(),
                 event: .goal(.init(
@@ -128,7 +128,7 @@ final class EventInteractorImpl: EventInteractor {
     }
 
     func trackFetchEvaluationsSuccess(featureTag: String, seconds: Double, sizeByte: Int64) throws {
-        try eventDao.add(
+        try eventSQLDao.add(
             events: [
                 .init(
                     id: idGenerator.id(),
@@ -204,7 +204,7 @@ final class EventInteractorImpl: EventInteractor {
 
     private func trackMetricsEvent(events: [Event]) throws {
         // We will add logic to filter duplicate metrics event here
-        let storedEvents = try eventDao.getEvents()
+        let storedEvents = try eventSQLDao.getEvents()
         let metricsEventUniqueKeys: [String] = storedEvents.filter { item in
             return item.isMetricEvent()
         }.map { item in
@@ -214,7 +214,7 @@ final class EventInteractorImpl: EventInteractor {
             return item.isMetricEvent() && !metricsEventUniqueKeys.contains(item.uniqueKey())
         }
         if newEvents.count > 0 {
-            try eventDao.add(events: newEvents)
+            try eventSQLDao.add(events: newEvents)
             updateEventsAndNotify()
         } else {
             logger?.debug(message: "no new events to add")
@@ -224,7 +224,7 @@ final class EventInteractorImpl: EventInteractor {
     func sendEvents(force: Bool, completion: ((Result<Bool, BKTError>) -> Void)?) {
         logger?.debug(message:"sendEvents called")
         do {
-            let currentEvents = try eventDao.getEvents()
+            let currentEvents = try eventSQLDao.getEvents()
             guard !currentEvents.isEmpty else {
                 logger?.debug(message: "no events to register")
                 completion?(.success(false))
@@ -253,7 +253,7 @@ final class EventInteractorImpl: EventInteractor {
                             return !error.retriable
                         })
                     do {
-                        try self?.eventDao.delete(ids: deletedIds)
+                        try self?.eventSQLDao.delete(ids: deletedIds)
                         self?.updateEventsAndNotify()
                         completion?(.success(true))
                     } catch let error {
@@ -276,7 +276,7 @@ final class EventInteractorImpl: EventInteractor {
     private func updateEventsAndNotify() {
         guard eventUpdateListener != nil else { return }
         do {
-            let events = try eventDao.getEvents()
+            let events = try eventSQLDao.getEvents()
             eventUpdateListener?.onUpdate(events: events)
         } catch let error {
             logger?.error(error)

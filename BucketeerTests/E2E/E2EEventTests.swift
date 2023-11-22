@@ -59,7 +59,7 @@ final class E2EEventTests: XCTestCase {
 
             // getVariationValue() is logging events using another dispatch queue, we need to wait a few secs
             try await Task.sleep(nanoseconds: 10_000_000)
-            let events = try component.dataModule.eventDao.getEvents()
+            let events = try component.dataModule.eventSQLDao.getEvents()
             // It includes the Latency and ResponseSize metrics
             XCTAssertEqual(events.count, 7)
             XCTAssertTrue(events.contains { event in
@@ -73,7 +73,7 @@ final class E2EEventTests: XCTestCase {
 
             try await client.flush()
 
-            XCTAssertEqual(try component.dataModule.eventDao.getEvents().count, 0)
+            XCTAssertEqual(try component.dataModule.eventSQLDao.getEvents().count, 0)
         } catch {
             XCTFail(error.localizedDescription)
         }
@@ -86,11 +86,10 @@ final class E2EEventTests: XCTestCase {
                 XCTFail("could not access client.component")
                 return
             }
-            let userId = client.component.userHolder.userId
             try await withCheckedThrowingContinuation({ continuation in
                 client.execute {
                     do {
-                        try component.dataModule.evaluationStorage.deleteAllAndInsert(userId: userId, evaluations: [], evaluatedAt: "0")
+                        try component.dataModule.evaluationStorage.deleteAllAndInsert(evaluationId: "evaluationId", evaluations: [], evaluatedAt: "0")
                         continuation.resume(returning: ())
                     } catch {
                         continuation.resume(throwing: error)
@@ -110,7 +109,7 @@ final class E2EEventTests: XCTestCase {
 
             // getVariationValue() is logging events using another dispatch queue, we need to wait a few secs
             try await Task.sleep(nanoseconds: 10_000_000)
-            let events = try component.dataModule.eventDao.getEvents()
+            let events = try component.dataModule.eventSQLDao.getEvents()
             // It includes the Latency and ResponseSize metrics
             XCTAssertEqual(events.count, 7)
             XCTAssertTrue(events.contains { event in
@@ -124,7 +123,7 @@ final class E2EEventTests: XCTestCase {
 
             try await client.flush()
 
-            XCTAssertEqual(try component.dataModule.eventDao.getEvents().count, 0)
+            XCTAssertEqual(try component.dataModule.eventSQLDao.getEvents().count, 0)
         } catch {
             XCTFail(error.localizedDescription)
         }

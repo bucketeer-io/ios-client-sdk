@@ -91,8 +91,8 @@
 		9340CA0928D9D1DD00E690CC /* EvaluationStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9340CA0828D9D1DD00E690CC /* EvaluationStorageTests.swift */; };
 		9340CA1928DA0F6200E690CC /* EventSQLDao.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9340CA1628DA0F6200E690CC /* EventSQLDao.swift */; };
 		9340CA1A28DA0F6200E690CC /* EventEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9340CA1728DA0F6200E690CC /* EventEntity.swift */; };
-		9340CA1B28DA0F6200E690CC /* EventDaoSQLImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9340CA1828DA0F6200E690CC /* EventDaoSQLImpl.swift */; };
-		9340CA1F28DA106200E690CC /* EventDaoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9340CA1E28DA106200E690CC /* EventDaoTests.swift */; };
+		9340CA1B28DA0F6200E690CC /* EventSQLDaoImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9340CA1828DA0F6200E690CC /* EventSQLDaoImpl.swift */; };
+		9340CA1F28DA106200E690CC /* EventSQLDaoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9340CA1E28DA106200E690CC /* EventSQLDaoTests.swift */; };
 		9340CA2C28DAEA1500E690CC /* MigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9340CA2B28DAEA1500E690CC /* MigrationTests.swift */; };
 		9340CA5928E1CD2600E690CC /* UserHolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9340CA5828E1CD2600E690CC /* UserHolder.swift */; };
 		9340CA5B28E1CE7200E690CC /* BKTUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9340CA5A28E1CE7200E690CC /* BKTUser.swift */; };
@@ -301,8 +301,8 @@
 		9340CA0828D9D1DD00E690CC /* EvaluationStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvaluationStorageTests.swift; sourceTree = "<group>"; };
 		9340CA1628DA0F6200E690CC /* EventSQLDao.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EventSQLDao.swift; sourceTree = "<group>"; };
 		9340CA1728DA0F6200E690CC /* EventEntity.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EventEntity.swift; sourceTree = "<group>"; };
-		9340CA1828DA0F6200E690CC /* EventDaoSQLImpl.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EventDaoSQLImpl.swift; sourceTree = "<group>"; };
-		9340CA1E28DA106200E690CC /* EventDaoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventDaoTests.swift; sourceTree = "<group>"; };
+		9340CA1828DA0F6200E690CC /* EventSQLDaoImpl.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EventSQLDaoImpl.swift; sourceTree = "<group>"; };
+		9340CA1E28DA106200E690CC /* EventSQLDaoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventSQLDaoTests.swift; sourceTree = "<group>"; };
 		9340CA2B28DAEA1500E690CC /* MigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrationTests.swift; sourceTree = "<group>"; };
 		9340CA5828E1CD2600E690CC /* UserHolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserHolder.swift; sourceTree = "<group>"; };
 		9340CA5A28E1CE7200E690CC /* BKTUser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BKTUser.swift; sourceTree = "<group>"; };
@@ -455,7 +455,7 @@
 				934889C628EB0ADB007BA05C /* EvaluationForegroundTaskTests.swift */,
 				006E85C228DED24500B5D90D /* EvaluationInteractorTests.swift */,
 				935D9AAF28F5B0DB007775F5 /* EvaluationTests.swift */,
-				9340CA1E28DA106200E690CC /* EventDaoTests.swift */,
+				9340CA1E28DA106200E690CC /* EventSQLDaoTests.swift */,
 				937DE95F28E498DF00743FDB /* EventForegroundTaskTests.swift */,
 				006E85DD28E032E800B5D90D /* EventInteractorTests.swift */,
 				0065C3F828C81A0D002D92A2 /* JSONDecodingTests.swift */,
@@ -699,7 +699,7 @@
 			isa = PBXGroup;
 			children = (
 				9340CA1628DA0F6200E690CC /* EventSQLDao.swift */,
-				9340CA1828DA0F6200E690CC /* EventDaoSQLImpl.swift */,
+				9340CA1828DA0F6200E690CC /* EventSQLDaoImpl.swift */,
 				9340CA1728DA0F6200E690CC /* EventEntity.swift */,
 				006E85CD28DEE23100B5D90D /* EventInteractor.swift */,
 			);
@@ -1118,7 +1118,7 @@
 				0065C3E328C8136D002D92A2 /* Event.swift in Sources */,
 				004CF1F32929C9E500CCC3DF /* EventBackgroundTask.swift in Sources */,
 				9340CA1928DA0F6200E690CC /* EventSQLDao.swift in Sources */,
-				9340CA1B28DA0F6200E690CC /* EventDaoSQLImpl.swift in Sources */,
+				9340CA1B28DA0F6200E690CC /* EventSQLDaoImpl.swift in Sources */,
 				946540372A821A11009BF89F /* EvaluationMemCacheDao.swift in Sources */,
 				0065C3E528C813D6002D92A2 /* EventData.swift in Sources */,
 				9340CA1A28DA0F6200E690CC /* EventEntity.swift in Sources */,
@@ -1175,7 +1175,7 @@
 				934889C728EB0ADB007BA05C /* EvaluationForegroundTaskTests.swift in Sources */,
 				006E85C328DED24500B5D90D /* EvaluationInteractorTests.swift in Sources */,
 				935D9AB028F5B0DB007775F5 /* EvaluationTests.swift in Sources */,
-				9340CA1F28DA106200E690CC /* EventDaoTests.swift in Sources */,
+				9340CA1F28DA106200E690CC /* EventSQLDaoTests.swift in Sources */,
 				937DE96028E498E000743FDB /* EventForegroundTaskTests.swift in Sources */,
 				006E85DE28E032E800B5D90D /* EventInteractorTests.swift in Sources */,
 				0065C3F928C81A0D002D92A2 /* JSONDecodingTests.swift in Sources */,
