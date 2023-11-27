@@ -1484,6 +1484,7 @@
 				INFOPLIST_FILE = ExampleTVOS/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 0.0.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = io.bucketeer.sdk.tvos.example;
@@ -1507,6 +1508,7 @@
 				INFOPLIST_FILE = ExampleTVOS/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 0.0.1;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = io.bucketeer.sdk.tvos.example;
 				PRODUCT_NAME = "$(TARGET_NAME)";
