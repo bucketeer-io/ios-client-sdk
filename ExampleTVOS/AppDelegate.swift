@@ -61,10 +61,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     private func makeConfig() -> BKTConfig {
         let bundle = Bundle(for: type(of: self))
-        let path = bundle.path(forResource: "Info", ofType: "plist")!
-        let dic = NSDictionary(contentsOfFile: path) as! [String: Any]
-        let apiKey = dic["apiKey"] as! String
-        let apiEndpoint = dic["apiEndpoint"] as! String
+        let apiKey = bundle.infoDictionary?["API_KEY"] as! String
+        let apiEndpoint = bundle.infoDictionary?["API_ENDPOINT"] as! String
 
         return try! BKTConfig(
             apiKey: apiKey,
@@ -78,11 +76,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     private func makeConfigUsingBuilder() -> BKTConfig {
         let bundle = Bundle(for: type(of: self))
-        let path = bundle.path(forResource: "Info", ofType: "plist")!
-        let dic = NSDictionary(contentsOfFile: path) as! [String: Any]
-        let apiKey = dic["apiKey"] as! String
-        let apiEndpoint = dic["apiEndpoint"] as! String
-        
+        let apiKey = bundle.infoDictionary?["API_KEY"] as! String
+        let apiEndpoint = bundle.infoDictionary?["API_ENDPOINT"] as! String
+
         let builder = BKTConfig.Builder()
             .with(apiKey: apiKey)
             .with(apiEndpoint: apiEndpoint)
