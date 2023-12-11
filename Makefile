@@ -99,6 +99,10 @@ environment-setup:
 generate-project-file:
 	./hack/xcodegen.sh --generate
 
+.PHONY: create-xcframework-zip
+create-xcframework-zip:
+	./hack/create-xcframework.sh --zip
+
 .PHONY: sort-proj
 sort-proj:
 	./hack/sort-Xcode-project-file $(APP_NAME).xcodeproj
