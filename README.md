@@ -59,6 +59,11 @@ make environment-setup
 
 ### Development with Xcode
 
+Generate .xcodeproj using [XcodeGen](https://github.com/yonaskolb/XcodeGen).
+```sh
+make generate-project-file
+```
+
 Open Xcode and import `ios-client-sdk`.
 
 ### Development with command line

@@ -95,6 +95,10 @@ build-example:
 environment-setup:
 	./hack/environment-setup.sh
 
+.PHONY: generate-project-file
+generate-project-file:
+	./hack/xcodegen.sh --generate
+
 .PHONY: sort-proj
 sort-proj:
 	./hack/sort-Xcode-project-file $(APP_NAME).xcodeproj
