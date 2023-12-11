@@ -22,6 +22,7 @@ xcuserdata/
 *.moved-aside
 *.xccheckout
 *.xcscmblueprint
+*.xcodeproj               # generate at XcodeGen
 environment.xcconfig
 
 ## Obj-C/Swift specific
