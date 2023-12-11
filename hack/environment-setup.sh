@@ -20,9 +20,18 @@ confirm_api_key () {
     API_KEY=$input
 }
 
-if [ "$CI" = "" ]; then
+if [ ${#@} -eq 1 ]; then
+    if [ "${@#"-d"}" = "" ] || [ "${@#"--dummy"}" = "" ]; then
+        echo dummy
+        DUMMY="true"
+    fi
+fi
+
+if [ "$CI" = "" ] && [ "$DUMMY" = "" ]; then
     confirm_api_endpoint
     confirm_api_key
+else
+  echo "Create with empty value."
 fi
 
 # Because the xcconfig doesn't support double slash,
