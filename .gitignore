@@ -5,7 +5,9 @@
 ## Build generated
 build/
 DerivedData/
-FrameworkBuild/       # save directory to frameworks at "create_xcframework" run
+
+# save directory to frameworks at "create_xcframework" run
+FrameworkBuild/
 
 ## Various settings
 *.pbxuser
@@ -22,8 +24,10 @@ xcuserdata/
 *.moved-aside
 *.xccheckout
 *.xcscmblueprint
-*.xcodeproj               # generate at XcodeGen
 environment.xcconfig
+
+# generate at XcodeGen
+*.xcodeproj
 
 ## Obj-C/Swift specific
 *.hmap
