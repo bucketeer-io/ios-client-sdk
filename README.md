@@ -35,7 +35,7 @@ Please follow our contribution guide [here](https://docs.bucketeer.io/contributi
 ## Development
 
 ### Setup the library management
-This　project use [mint](https://github.com/yonaskolb/Mint) for library management.
+This project use [mint](https://github.com/yonaskolb/Mint) for library management.
 
 #### Install
 ```sh
@@ -56,12 +56,23 @@ This will set the **API_ENDPOINT** and the **API_KEY** for E2E Tests and the Exa
 ```sh
 make environment-setup
 ```
+### Generate Xcode project file
 
-### Development with Xcode
+Generate `.xcodeproj` using [XcodeGen](https://github.com/yonaskolb/XcodeGen).<br />
+If `project.yml` is updated, it should be generated.
 
-Open Xcode and import `ios-client-sdk`.
+```sh
+make generate-project-file
+```
+
+### Development with Xcode 
+
+Open Xcode and import `ios-client-sdk`.<br />
+※You may need to generate [Xcode project file](https://github.com/bucketeer-io/ios-client-sdk?tab=readme-ov-file#generate-xcode-project-file).
 
 ### Development with command line
+
+※You may need to generate [Xcode project file](https://github.com/bucketeer-io/ios-client-sdk?tab=readme-ov-file#generate-xcode-project-file).
 
 Build SDK
 
@@ -98,7 +109,10 @@ make e2e-without-building
 
 ## Example App
 
-To run the example app, you must execute the Makefile `make environment-setup` to set the **API_ENDPOINT** and the **API_KEY**.
+To run the example app.
+
+You must execute the Makefile `make environment-setup` to set the **API_ENDPOINT** and the **API_KEY**.<br />
+You may need to generate [Xcode project file](https://github.com/bucketeer-io/ios-client-sdk?tab=readme-ov-file#generate-xcode-project-file).
 
 ## License
 

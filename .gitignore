@@ -6,6 +6,9 @@
 build/
 DerivedData/
 
+# save directory to frameworks at "create_xcframework" run
+FrameworkBuild/
+
 ## Various settings
 *.pbxuser
 !default.pbxuser
@@ -22,6 +25,9 @@ xcuserdata/
 *.xccheckout
 *.xcscmblueprint
 environment.xcconfig
+
+# generate at XcodeGen
+*.xcodeproj
 
 ## Obj-C/Swift specific
 *.hmap
