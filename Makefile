@@ -32,7 +32,8 @@ TEST_WITHOUT_BUILDING=$(XCODEBUILD) $(OPTIONS) $(DESTINATION) \
 	-skip-testing:BucketeerTests/E2EEvaluationTests \
 	-skip-testing:BucketeerTests/E2EEventTests \
 	-skip-testing:BucketeerTests/E2EMetricsEventTests \
-	test-without-building
+	test-without-building \
+	-enableCodeCoverage YES
 E2E_WITHOUT_BUILDING=$(XCODEBUILD) $(OPTIONS) $(DESTINATION) \
 	-configuration $(CONFIGURATION) \
 	-only-testing:BucketeerTests/E2EBKTClientForceUpdateTests \
@@ -40,6 +41,7 @@ E2E_WITHOUT_BUILDING=$(XCODEBUILD) $(OPTIONS) $(DESTINATION) \
 	-only-testing:BucketeerTests/E2EEventTests \
 	-only-testing:BucketeerTests/E2EMetricsEventTests \
 	test-without-building E2E_API_ENDPOINT=$(E2E_API_ENDPOINT) E2E_API_KEY=$(E2E_API_KEY)
+	-enableCodeCoverage YES \
 ALL_TEST_WITHOUT_BUILDING=$(XCODEBUILD) $(OPTIONS) $(DESTINATION) \
 	-configuration $(CONFIGURATION) \
 	test-without-building

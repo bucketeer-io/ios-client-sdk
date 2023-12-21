@@ -133,7 +133,7 @@ jobs:
         with:
           name: output-xcodeproj-file
           path: ./Bucketeer.xcodeproj
-  
+
       - name: Build example
         env:
           CI: true
@@ -158,3 +158,8 @@ jobs:
 
       - name: Unit Test
         run: make test-without-building
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
