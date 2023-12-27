@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.1.2](https://github.com/bucketeer-io/ios-client-sdk/compare/v2.1.1...v2.1.2) (2023-12-19)
+
+
+### Bug Fixes
+
+* could not parser error when the body is a text or empty ([#51](https://github.com/bucketeer-io/ios-client-sdk/issues/51)) ([4a5dc0d](https://github.com/bucketeer-io/ios-client-sdk/commit/4a5dc0d14fc231aba74ee21442841da46028a42e))
+
+
+### Miscellaneous
+
+* reduce unnecessary API ([#49](https://github.com/bucketeer-io/ios-client-sdk/issues/49)) ([c790e2a](https://github.com/bucketeer-io/ios-client-sdk/commit/c790e2a3b353d289fd0b2437c91b8761965daf3b))
+
+
+### Build System
+
+* change Swiftlint not running when Carthage builds ([#54](https://github.com/bucketeer-io/ios-client-sdk/issues/54)) ([29938c9](https://github.com/bucketeer-io/ios-client-sdk/commit/29938c949bf9daebb46731cf5ed430661b828a14))
+* clean up for Xcode project ([#57](https://github.com/bucketeer-io/ios-client-sdk/issues/57)) ([b59b226](https://github.com/bucketeer-io/ios-client-sdk/commit/b59b226d9725d5ea955637a4bc6c5fb1ad504c76))
+* introduce XcodeGen ([#58](https://github.com/bucketeer-io/ios-client-sdk/issues/58)) ([b6cb562](https://github.com/bucketeer-io/ios-client-sdk/commit/b6cb5629814094a0d1a2394df6e235af860bdb17))
+* remove "Test" of configuration ([#52](https://github.com/bucketeer-io/ios-client-sdk/issues/52)) ([7c77b7c](https://github.com/bucketeer-io/ios-client-sdk/commit/7c77b7c91e12a8d82b5b7e9b50559b08376d450b))
+
 ## [2.1.1](https://github.com/bucketeer-io/ios-client-sdk/compare/v2.1.0...v2.1.1) (2023-10-02)
 
 
