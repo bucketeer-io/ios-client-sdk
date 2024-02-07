@@ -136,6 +136,7 @@ jobs:
         run: make test-without-building
 
   e2e:
+    name: E2E tests
     needs: generate-xcodeProject
     uses: ./.github/workflows/e2e.yml
     secrets:
