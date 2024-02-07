@@ -16,6 +16,7 @@ function create_xcframework() {
 if [ ${#@} -eq 1 ]; then
   create_xcframework
   if [ "${@#"-z"}" = "" ] || [ "${@#"--zip"}" = "" ]; then
-    zip FrameworkBuild/Bucketeer.xcframework.zip FrameworkBuild/Bucketeer.xcframework
+    cd FrameworkBuild
+    zip -r Bucketeer.xcframework.zip Bucketeer.xcframework
   fi
 fi
