@@ -137,7 +137,7 @@ jobs:
 
   e2e:
     needs: generate-xcodeProject
-    uses: ./.github/workflows/e2e.yaml
+    uses: ./.github/workflows/e2e.yal
     secrets:
       E2E_API_ENDPOINT: ${{ secrets.E2E_API_ENDPOINT }}
       E2E_API_KEY: ${{ secrets.E2E_API_KEY }}
