@@ -139,7 +139,7 @@ jobs:
     name: E2E tests
     needs: generate-xcodeProject
     uses: ./.github/workflows/e2e.yml
-    # secrets:
-    #   E2E_API_ENDPOINT: ${{ secrets.E2E_API_ENDPOINT }}
-    #   E2E_API_KEY: ${{ secrets.E2E_API_KEY }}
+    secrets:
+      E2E_API_ENDPOINT: ${{ secrets.E2E_API_ENDPOINT }}
+      E2E_API_KEY: ${{ secrets.E2E_API_KEY }}
 
