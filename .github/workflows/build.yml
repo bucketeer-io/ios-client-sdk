@@ -111,7 +111,7 @@ jobs:
         run: make build-example
 
   test:
-    name: Unit and E2E tests
+    name: Unit tests
     needs: generate-xcodeProject
     runs-on: macos-latest
     steps:
@@ -135,8 +135,11 @@ jobs:
       - name: Unit Test
         run: make test-without-building
 
-      - name: E2E Test
-        env:
-          E2E_API_ENDPOINT: ${{ secrets.E2E_API_ENDPOINT }}
-          E2E_API_KEY: ${{ secrets.E2E_API_KEY }}
-        run: make e2e-without-building
+  e2e:
+    name: E2E tests
+    needs: generate-xcodeProject
+    uses: ./.github/workflows/e2e.yml
+    secrets:
+      E2E_API_ENDPOINT: ${{ secrets.E2E_API_ENDPOINT }}
+      E2E_API_KEY: ${{ secrets.E2E_API_KEY }}
+
