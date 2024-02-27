@@ -8,6 +8,8 @@ public enum BKTError: Error, Equatable {
     case clientClosed(message: String)
     case unavailable(message: String)
     case apiServer(message: String)
+    case redirectRequest(message: String)
+    case payloadTooLarge(message: String)
 
     // network errors
     case timeout(message: String, error: Error, timeoutMillis: Int64)
@@ -57,6 +59,8 @@ extension BKTError : LocalizedError {
             switch responseError {
             case .unacceptableCode(let code, let errorResponse):
                 switch code {
+                case 300..<400:
+                    self = .redirectRequest(message: errorResponse?.error.message ?? "RedirectRequest error")
                 case 400:
                     self = .badRequest(message: errorResponse?.error.message ?? "BadRequest error")
                 case 401:
@@ -65,6 +69,10 @@ extension BKTError : LocalizedError {
                     self = .forbidden(message: errorResponse?.error.message ?? "Forbidden error")
                 case 404:
                     self = .notFound(message: errorResponse?.error.message ?? "NotFound error")
+                case 408:
+                    self = .timeout(message: errorResponse?.error.message ?? "Request timeout error: 408", error: responseError, timeoutMillis: 0)
+                case 413:
+                    self = .payloadTooLarge(message: errorResponse?.error.message ?? "PayloadTooLarge error")
                 case 499:
                     self = .clientClosed(message: errorResponse?.error.message ?? "Client Closed Request error")
                 case 500:
@@ -133,6 +141,10 @@ extension BKTError : LocalizedError {
             return message
         case .unknown(message: let message, _):
             return message
+        case .redirectRequest(message: let message):
+            return message
+        case .payloadTooLarge(message: let message):
+            return message
         }
     }
 
@@ -148,7 +160,9 @@ extension BKTError : LocalizedError {
              .unavailable,
              .apiServer,
              .illegalArgument,
-             .illegalState:
+             .illegalState,
+             .redirectRequest,
+             .payloadTooLarge:
             return nil
 
         case .timeout(message: _, error: let error, _):
