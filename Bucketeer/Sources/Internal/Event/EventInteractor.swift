@@ -382,7 +382,21 @@ extension BKTError {
         case .illegalArgument, .illegalState:
             metricsEventData = .internalSdkError(.init(apiId: apiId, labels: labels))
             metricsEventType = .internalError
-        case .unknownServer, .unknown:
+        case .unknownServer(let message, _, let statusCode):
+            metricsEventData = .unknownError(
+                .init(
+                    apiId: apiId,
+                    labels: labels.merging(
+                        [
+                            "error_message":message,
+                            "response_status_code":"\(statusCode)"
+                        ]
+                        , uniquingKeysWith: { (first, _) in first }
+                    )
+                )
+            )
+            metricsEventType = .unknownError
+        case .unknown:
             metricsEventData = .unknownError(.init(apiId: apiId, labels: labels))
             metricsEventType = .unknownError
         }

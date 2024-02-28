@@ -21,7 +21,7 @@ public enum BKTError: Error, Equatable {
     case illegalState(message: String)
 
     // unknown errors
-    case unknownServer(message: String, error: Error)
+    case unknownServer(message: String, error: Error, statusCode: Int)
     case unknown(message: String, error: Error)
 
     public static func == (lhs: BKTError, rhs: BKTError) -> Bool {
@@ -42,9 +42,10 @@ public enum BKTError: Error, Equatable {
         case (.timeout(let m1, _, let t1), .timeout(let m2, _, let t2)):
             return t1 == t2 && m1 == m2
         case (.network(let m1, _), .network(let m2, _)),
-             (.unknownServer(let m1, _), .unknownServer(let m2, _)),
              (.unknown(let m1, _), .unknown(let m2, _)):
             return m1 == m2
+        case (.unknownServer(let m1, _, let c1), .unknownServer(let m2, _, let c2)):
+            return m1 == m2 && c1 == c2
         default:
             return false
         }
@@ -92,7 +93,7 @@ extension BKTError : LocalizedError {
                     if let errorResponse = errorResponse {
                         message = "[\(errorResponse.error.code)] \(errorResponse.error.message)"
                     }
-                    self = .unknownServer(message: "Unknown server error: \(message)", error: error)
+                    self = .unknownServer(message: "Unknown server error: \(message)", error: error, statusCode: code)
                 }
             case .unknown(let urlResponse):
                 var message: String = "no response"
@@ -145,7 +146,7 @@ extension BKTError : LocalizedError {
             return message
         case .illegalState(message: let message):
             return message
-        case .unknownServer(message: let message, _):
+        case .unknownServer(message: let message, _, _):
             return message
         case .unknown(message: let message, _):
             return message
@@ -183,7 +184,7 @@ extension BKTError : LocalizedError {
         case .network(message: _, error: let error):
             return "\(error)"
 
-        case .unknownServer(message: _, error: let error):
+        case .unknownServer(message: _, error: let error, _):
             return "\(error)"
 
         case .unknown(message: _, error: let error):
