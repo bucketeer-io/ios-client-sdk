@@ -147,6 +147,10 @@ enum EventData: Hashable {
                 try container.encode(eventData, forKey: .event)
             case .unknownError(let eventData):
                 try container.encode(eventData, forKey: .event)
+            case .redirectRequest(let eventData):
+                try container.encode(eventData, forKey: .event)
+            case .payloadTooLarge(let eventData):
+                try container.encode(eventData, forKey: .event)
             }
             if let protobufType {
                 try container.encode(protobufType, forKey: .protobufType)

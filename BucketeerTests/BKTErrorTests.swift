@@ -242,7 +242,7 @@ class BKTErrorTests: XCTestCase {
                         labels: [
                             "key": "value",
                             "error_message": "unknownServer",
-                            "response_status_code": "450"
+                            "response_code": "450"
                         ]
                     )
                 )

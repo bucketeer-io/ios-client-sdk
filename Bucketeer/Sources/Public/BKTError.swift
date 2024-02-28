@@ -8,7 +8,7 @@ public enum BKTError: Error, Equatable {
     case clientClosed(message: String)
     case unavailable(message: String)
     case apiServer(message: String)
-    case redirectRequest(message: String)
+    case redirectRequest(message: String, statusCode: Int)
     case payloadTooLarge(message: String)
     case invalidHttpMethod(message: String)
 
@@ -35,7 +35,6 @@ public enum BKTError: Error, Equatable {
              (.apiServer(let m1), .apiServer(let m2)),
              (.illegalArgument(let m1), .illegalArgument(let m2)),
              (.illegalState(let m1), .illegalState(let m2)),
-             (.redirectRequest(let m1), .redirectRequest(let m2)),
              (.payloadTooLarge(let m1), .payloadTooLarge(let m2)),
              (.invalidHttpMethod(let m1), .invalidHttpMethod(let m2)):
             return m1 == m2
@@ -45,6 +44,8 @@ public enum BKTError: Error, Equatable {
              (.unknown(let m1, _), .unknown(let m2, _)):
             return m1 == m2
         case (.unknownServer(let m1, _, let c1), .unknownServer(let m2, _, let c2)):
+            return m1 == m2 && c1 == c2
+        case (.redirectRequest(let m1, let c1), .redirectRequest(let m2, let c2)):
             return m1 == m2 && c1 == c2
         default:
             return false
@@ -67,7 +68,7 @@ extension BKTError : LocalizedError {
                 // Update error metrics report
                 // https://github.com/bucketeer-io/ios-client-sdk/issues/65
                 case 300..<400:
-                    self = .redirectRequest(message: errorResponse?.error.message ?? "RedirectRequest error")
+                    self = .redirectRequest(message: errorResponse?.error.message ?? "RedirectRequest error", statusCode: code)
                 case 400:
                     self = .badRequest(message: errorResponse?.error.message ?? "BadRequest error")
                 case 401:
@@ -150,7 +151,7 @@ extension BKTError : LocalizedError {
             return message
         case .unknown(message: let message, _):
             return message
-        case .redirectRequest(message: let message):
+        case .redirectRequest(message: let message, _):
             return message
         case .payloadTooLarge(message: let message):
             return message

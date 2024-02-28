@@ -17,10 +17,12 @@ enum MetricsEventData: Hashable {
     case responseSize(ResponseSize)
     case timeoutError(TimeoutError)
     case networkError(NetworkError)
+    case redirectRequest(RedirectionRequestError)
     case badRequestError(BadRequestError)
     case unauthorizedError(UnauthorizedError)
     case forbiddenError(ForbiddenError)
     case notFoundError(NotFoundError)
+    case payloadTooLarge(PayloadTooLargeError)
     case clientClosedError(ClientClosedError)
     case unavailableError(UnavailableError)
     case internalSdkError(InternalSdkError)
@@ -151,10 +153,36 @@ enum MetricsEventData: Hashable {
         }
     }
 
+    // https://github.com/bucketeer-io/ios-client-sdk/issues/65
+    // The SDK will send the response code and the error message in the labels if possible
+    // E.g. {"response_code": "xxx", "error_message": "message"}
     struct UnknownError: Codable, Hashable, MetricsEventDataProps {
         let apiId: ApiId
         let labels: [String: String]
         var protobufType: String? = "type.googleapis.com/bucketeer.event.client.UnknownErrorMetricsEvent"
+
+        func hash(into hasher: inout Hasher) {
+            hasher.combine(apiId)
+        }
+    }
+
+    // RedirectionRequestError 3xx (301, 302 & 303)
+    // The SDK will send the response code in the labels
+    // E.g. {"response_code": "302"}
+    struct RedirectionRequestError: Codable, Hashable, MetricsEventDataProps {
+        let apiId: ApiId
+        let labels: [String: String]
+        var protobufType: String? = "type.googleapis.com/bucketeer.event.client.RedirectionRequestExceptionEvent"
+
+        func hash(into hasher: inout Hasher) {
+            hasher.combine(apiId)
+        }
+    }
+
+    struct PayloadTooLargeError: Codable, Hashable, MetricsEventDataProps {
+        let apiId: ApiId
+        let labels: [String: String]
+        var protobufType: String? = "type.googleapis.com/bucketeer.event.client.PayloadTooLargeExceptionEvent"
 
         func hash(into hasher: inout Hasher) {
             hasher.combine(apiId)
