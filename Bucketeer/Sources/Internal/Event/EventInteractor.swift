@@ -346,6 +346,12 @@ extension BKTError {
                 )
             )
             metricsEventType = .timeoutError
+        case .payloadTooLarge:
+            metricsEventData = .networkError(.init(apiId: apiId, labels: labels))
+            metricsEventType = .networkError
+        case .redirectRequest:
+            metricsEventData = .badRequestError(.init(apiId: apiId, labels: labels))
+            metricsEventType = .badRequestError
         case .network:
             metricsEventData = .networkError(.init(apiId: apiId, labels: labels))
             metricsEventType = .networkError

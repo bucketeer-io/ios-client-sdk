@@ -196,6 +196,12 @@ class BKTErrorTests: XCTestCase {
             case .timeout:
                 metricsEventData = .timeoutError(.init(apiId: apiId, labels: ["key":"value", "timeout": "4.5"]))
                 metricsEventType = .timeoutError
+            case .payloadTooLarge:
+                metricsEventData = .networkError(.init(apiId: apiId, labels: labels))
+                metricsEventType = .networkError
+            case .redirectRequest:
+                metricsEventData = .networkError(.init(apiId: apiId, labels: labels))
+                metricsEventType = .networkError
             case .network:
                 metricsEventData = .networkError(.init(apiId: apiId, labels: labels))
                 metricsEventType = .networkError
