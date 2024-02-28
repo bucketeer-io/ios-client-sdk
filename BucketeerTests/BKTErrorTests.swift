@@ -34,8 +34,8 @@ class BKTErrorTests: XCTestCase {
         assertEqual(.illegalArgument(message: "1"), .illegalArgument(message: "1"))
         assertEqual(.illegalState(message: "1"), .illegalState(message: "1"))
         assertEqual(
-            .unknownServer(message: "1", error: SomeError.a),
-            .unknownServer(message: "1", error: SomeError.a)
+            .unknownServer(message: "1", error: SomeError.a, statusCode: 499),
+            .unknownServer(message: "1", error: SomeError.a, statusCode: 499)
         )
         assertEqual(
             .unknown(message: "1", error: SomeError.a),
@@ -52,8 +52,8 @@ class BKTErrorTests: XCTestCase {
             .network(message: "1", error: SomeError.b)
         )
         assertEqual(
-            .unknownServer(message: "1", error: SomeError.a),
-            .unknownServer(message: "1", error: SomeError.b)
+            .unknownServer(message: "1", error: SomeError.a, statusCode: 499),
+            .unknownServer(message: "1", error: SomeError.b, statusCode: 499)
         )
         assertEqual(
             .unknown(message: "1", error: SomeError.a),
@@ -79,8 +79,8 @@ class BKTErrorTests: XCTestCase {
         assertNotEqual(.illegalArgument(message: "1"), .illegalArgument(message: "2"))
         assertNotEqual(.illegalState(message: "1"), .illegalState(message: "2"))
         assertNotEqual(
-            .unknownServer(message: "1", error: SomeError.a),
-            .unknownServer(message: "2", error: SomeError.a)
+            .unknownServer(message: "1", error: SomeError.a, statusCode: 499),
+            .unknownServer(message: "2", error: SomeError.a, statusCode: 499)
         )
         assertNotEqual(
             .unknown(message: "1", error: SomeError.a),
@@ -125,11 +125,11 @@ class BKTErrorTests: XCTestCase {
         let errorResponse = ErrorResponse(error: .init(code: 450, message: "some error"))
         assertEqual(
             .init(error: ResponseError.unacceptableCode(code: 450, response: errorResponse)),
-            .unknownServer(message: "Unknown server error: [450] some error", error: SomeError.a)
+            .unknownServer(message: "Unknown server error: [450] some error", error: SomeError.a, statusCode: 450)
         )
         assertEqual(
             .init(error: ResponseError.unacceptableCode(code: 450, response: nil)),
-            .unknownServer(message: "Unknown server error: no error body", error: SomeError.a)
+            .unknownServer(message: "Unknown server error: no error body", error: SomeError.a, statusCode: 450)
         )
 
         assertEqual(
@@ -232,8 +232,20 @@ class BKTErrorTests: XCTestCase {
             case .illegalArgument, .illegalState:
                 metricsEventData = .internalSdkError(.init(apiId: apiId, labels: labels))
                 metricsEventType = .internalError
-            case .unknownServer, .unknown:
+            case .unknown:
                 metricsEventData = .unknownError(.init(apiId: apiId, labels: labels))
+                metricsEventType = .unknownError
+            case .unknownServer:
+                metricsEventData = .unknownError(
+                    .init(
+                        apiId: apiId,
+                        labels: [
+                            "key": "value",
+                            "error_message": "unknownServer",
+                            "response_status_code": "450"
+                        ]
+                    )
+                )
                 metricsEventType = .unknownError
             }
             let expectedEventData: EventData = .metrics(.init(
@@ -270,7 +282,7 @@ extension BKTError: CaseIterable {
         .network(message: "network", error: TestError.network),
         .illegalArgument(message: "illegalArgument"),
         .illegalState(message: "illegalState"),
-        .unknownServer(message: "unknownServer", error: TestError.unknownServer),
+        .unknownServer(message: "unknownServer", error: TestError.unknownServer, statusCode: 450),
         .unknown(message: "unknown", error: TestError.unknown)
     ]
 }
