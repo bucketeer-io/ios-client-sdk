@@ -346,6 +346,9 @@ extension BKTError {
                 )
             )
             metricsEventType = .timeoutError
+        case .invalidHttpMethod:
+            metricsEventData = .networkError(.init(apiId: apiId, labels: labels))
+            metricsEventType = .networkError
         case .payloadTooLarge:
             metricsEventData = .networkError(.init(apiId: apiId, labels: labels))
             metricsEventType = .networkError

@@ -10,6 +10,7 @@ public enum BKTError: Error, Equatable {
     case apiServer(message: String)
     case redirectRequest(message: String)
     case payloadTooLarge(message: String)
+    case invalidHttpMethod(message: String)
 
     // network errors
     case timeout(message: String, error: Error, timeoutMillis: Int64)
@@ -33,7 +34,10 @@ public enum BKTError: Error, Equatable {
              (.unavailable(let m1), .unavailable(let m2)),
              (.apiServer(let m1), .apiServer(let m2)),
              (.illegalArgument(let m1), .illegalArgument(let m2)),
-             (.illegalState(let m1), .illegalState(let m2)):
+             (.illegalState(let m1), .illegalState(let m2)),
+             (.redirectRequest(let m1), .redirectRequest(let m2)),
+             (.payloadTooLarge(let m1), .payloadTooLarge(let m2)),
+             (.invalidHttpMethod(let m1), .invalidHttpMethod(let m2)):
             return m1 == m2
         case (.timeout(let m1, _, let t1), .timeout(let m2, _, let t2)):
             return t1 == t2 && m1 == m2
@@ -59,6 +63,8 @@ extension BKTError : LocalizedError {
             switch responseError {
             case .unacceptableCode(let code, let errorResponse):
                 switch code {
+                // Update error metrics report
+                // https://github.com/bucketeer-io/ios-client-sdk/issues/65
                 case 300..<400:
                     self = .redirectRequest(message: errorResponse?.error.message ?? "RedirectRequest error")
                 case 400:
@@ -69,6 +75,8 @@ extension BKTError : LocalizedError {
                     self = .forbidden(message: errorResponse?.error.message ?? "Forbidden error")
                 case 404:
                     self = .notFound(message: errorResponse?.error.message ?? "NotFound error")
+                case 405:
+                    self = .notFound(message: errorResponse?.error.message ?? "NotFound error")
                 case 408:
                     self = .timeout(message: errorResponse?.error.message ?? "Request timeout error: 408", error: responseError, timeoutMillis: 0)
                 case 413:
@@ -77,7 +85,7 @@ extension BKTError : LocalizedError {
                     self = .clientClosed(message: errorResponse?.error.message ?? "Client Closed Request error")
                 case 500:
                     self = .apiServer(message: errorResponse?.error.message ?? "InternalServer error")
-                case 503:
+                case 502, 503, 504:
                     self = .unavailable(message: errorResponse?.error.message ?? "Unavailable error")
                 default:
                     var message: String = "no error body"
@@ -145,6 +153,8 @@ extension BKTError : LocalizedError {
             return message
         case .payloadTooLarge(message: let message):
             return message
+        case .invalidHttpMethod(message: let message):
+            return message
         }
     }
 
@@ -162,7 +172,8 @@ extension BKTError : LocalizedError {
              .illegalArgument,
              .illegalState,
              .redirectRequest,
-             .payloadTooLarge:
+             .payloadTooLarge,
+             .invalidHttpMethod:
             return nil
 
         case .timeout(message: _, error: let error, _):
