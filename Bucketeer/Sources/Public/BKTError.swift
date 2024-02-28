@@ -77,9 +77,9 @@ extension BKTError : LocalizedError {
                 case 404:
                     self = .notFound(message: errorResponse?.error.message ?? "NotFound error")
                 case 405:
-                    self = .notFound(message: errorResponse?.error.message ?? "NotFound error")
+                    self = .invalidHttpMethod(message: errorResponse?.error.message ?? "InvalidHttpMethod error")
                 case 408:
-                    self = .timeout(message: errorResponse?.error.message ?? "Request timeout error: 408", error: responseError, timeoutMillis: 0)
+                    self = .timeout(message: errorResponse?.error.message ?? "RequestTimeout error: 408", error: responseError, timeoutMillis: 0)
                 case 413:
                     self = .payloadTooLarge(message: errorResponse?.error.message ?? "PayloadTooLarge error")
                 case 499:
