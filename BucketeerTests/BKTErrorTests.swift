@@ -196,15 +196,12 @@ class BKTErrorTests: XCTestCase {
             case .timeout:
                 metricsEventData = .timeoutError(.init(apiId: apiId, labels: ["key":"value", "timeout": "4.5"]))
                 metricsEventType = .timeoutError
-            case .invalidHttpMethod:
-                metricsEventData = .networkError(.init(apiId: apiId, labels: labels))
-                metricsEventType = .networkError
             case .payloadTooLarge:
-                metricsEventData = .networkError(.init(apiId: apiId, labels: labels))
-                metricsEventType = .networkError
+                metricsEventData = .payloadTooLarge(.init(apiId: apiId, labels: labels))
+                metricsEventType = .payloadTooLarge
             case .redirectRequest:
-                metricsEventData = .networkError(.init(apiId: apiId, labels: labels))
-                metricsEventType = .networkError
+                metricsEventData = .redirectRequest(.init(apiId: apiId, labels: ["key":"value", "response_code": "302"]))
+                metricsEventType = .redirectRequest
             case .network:
                 metricsEventData = .networkError(.init(apiId: apiId, labels: labels))
                 metricsEventType = .networkError
@@ -229,7 +226,7 @@ class BKTErrorTests: XCTestCase {
             case .apiServer:
                 metricsEventData = .internalServerError(.init(apiId: apiId, labels: labels))
                 metricsEventType = .internalServerError
-            case .illegalArgument, .illegalState:
+            case .illegalArgument, .illegalState, .invalidHttpMethod:
                 metricsEventData = .internalSdkError(.init(apiId: apiId, labels: labels))
                 metricsEventType = .internalError
             case .unknown:
@@ -271,10 +268,12 @@ extension BKTError: CaseIterable {
     }
 
     public static var allCases: [BKTError] = [
+        .redirectRequest(message: "redirectRequest", statusCode: 302),
         .badRequest(message: "badRequest"),
         .unauthorized(message: "unauthorized"),
         .forbidden(message: "forbidden"),
         .notFound(message: "notFound"),
+        .payloadTooLarge(message: "payloadTooLarge"),
         .clientClosed(message: "clientClosed"),
         .unavailable(message: "unavailable"),
         .apiServer(message: "apiServer"),

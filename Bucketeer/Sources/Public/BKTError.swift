@@ -43,9 +43,8 @@ public enum BKTError: Error, Equatable {
         case (.network(let m1, _), .network(let m2, _)),
              (.unknown(let m1, _), .unknown(let m2, _)):
             return m1 == m2
-        case (.unknownServer(let m1, _, let c1), .unknownServer(let m2, _, let c2)):
-            return m1 == m2 && c1 == c2
-        case (.redirectRequest(let m1, let c1), .redirectRequest(let m2, let c2)):
+        case (.unknownServer(let m1, _, let c1), .unknownServer(let m2, _, let c2)),
+             (.redirectRequest(let m1, let c1), .redirectRequest(let m2, let c2)):
             return m1 == m2 && c1 == c2
         default:
             return false

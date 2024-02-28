@@ -352,8 +352,8 @@ extension BKTError {
             metricsEventType = .timeoutError
         case .payloadTooLarge:
             metricsEventData = .payloadTooLarge(.init(apiId: apiId, labels: labels))
-            metricsEventType = .networkError
-        case .redirectRequest(let message, let statusCode):
+            metricsEventType = .payloadTooLarge
+        case .redirectRequest(_, let statusCode):
             metricsEventData = .redirectRequest(
                 .init(
                     apiId: apiId,
@@ -365,7 +365,7 @@ extension BKTError {
                     )
                 )
             )
-            metricsEventType = .badRequestError
+            metricsEventType = .redirectRequest
         case .network:
             metricsEventData = .networkError(.init(apiId: apiId, labels: labels))
             metricsEventType = .networkError
