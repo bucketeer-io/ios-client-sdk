@@ -168,6 +168,10 @@ class BKTErrorTests: XCTestCase {
             )
         )
         assertEqual(
+            .init(error: ResponseError.unacceptableCode(code: 413, response: nil)),
+            .payloadTooLarge(message: "PayloadTooLarge error")
+        )
+        assertEqual(
             .init(error: ResponseError.unacceptableCode(code: 499, response: nil)),
             .clientClosed(message: "Client Closed Request error")
         )
