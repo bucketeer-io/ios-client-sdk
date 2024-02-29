@@ -596,7 +596,7 @@ class ApiClientTests: XCTestCase {
         }
         wait(for: [expectation], timeout: 1)
     }
-    
+
     // https://github.com/bucketeer-io/ios-client-sdk/issues/65
     func testSendSuccessButGotRedirectResponse() throws {
         let expectation = XCTestExpectation()
