@@ -350,6 +350,7 @@ extension BKTError: CaseIterable {
         .network(message: "network", error: TestError.network),
         .illegalArgument(message: "illegalArgument"),
         .illegalState(message: "illegalState"),
+        .invalidHttpMethod(message: "invalidHttpMethod"),
         .unknownServer(message: "unknownServer", error: TestError.unknownServer, statusCode: 450),
         .unknown(message: "unknown", error: TestError.unknown)
     ]
