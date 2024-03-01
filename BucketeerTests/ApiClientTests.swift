@@ -651,12 +651,12 @@ class ApiClientTests: XCTestCase {
             timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
             switch result {
             case .success((let response, _)):
-                XCTAssertEqual(response, mockResponse)
+                XCTFail("should not success")
             case .failure(let error):
                 guard
                     let error = error as? ResponseError,
                     case .unacceptableCode(let code, _) = error, code == 302 else {
-                    XCTFail()
+                    XCTFail("code should be 302")
                     return
                 }
             }
