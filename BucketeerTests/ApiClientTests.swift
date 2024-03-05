@@ -597,6 +597,74 @@ class ApiClientTests: XCTestCase {
         wait(for: [expectation], timeout: 1)
     }
 
+    // https://github.com/bucketeer-io/ios-client-sdk/issues/65
+    func testSendSuccessButGotRedirectResponse() throws {
+        let expectation = XCTestExpectation()
+        expectation.expectedFulfillmentCount = 2
+
+        let mockRequestBody = MockRequestBody()
+        let mockResponse = MockResponse()
+        let data = try JSONEncoder().encode(mockResponse)
+
+        let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
+        let path = "path"
+        let apiKey = "x:api-key"
+
+        let session = MockSession(
+            configuration: .default,
+            requestHandler: { request in
+                XCTAssertEqual(request.httpMethod, "POST")
+                XCTAssertEqual(request.url?.host, apiEndpointURL.host)
+                XCTAssertEqual(request.url?.path, "/\(path)")
+                XCTAssertEqual(request.allHTTPHeaderFields?["Authorization"], apiKey)
+                XCTAssertEqual(request.timeoutInterval, 0.1)
+                let data = request.httpBody ?? Data()
+                let jsonString = String(data: data, encoding: .utf8) ?? ""
+                let expected = """
+{
+  "value" : "body"
+}
+"""
+                XCTAssertEqual(jsonString, expected)
+                expectation.fulfill()
+            },
+            data: data,
+            response: HTTPURLResponse(
+                url: apiEndpointURL.appendingPathComponent(path),
+                statusCode: 302,
+                httpVersion: nil,
+                headerFields: nil
+            ),
+            error: nil
+        )
+        let api = ApiClientImpl(
+            apiEndpoint: apiEndpointURL,
+            apiKey: apiKey,
+            featureTag: "tag1",
+            defaultRequestTimeoutMills: 200,
+            session: session,
+            logger: nil
+        )
+        api.send(
+            requestBody: mockRequestBody,
+            path: path,
+            timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
+            switch result {
+            case .success((let response, _)):
+                XCTFail("should not success")
+            case .failure(let error):
+                guard
+                    let error = error as? ResponseError,
+                    case .unacceptableCode(let code, _) = error, code == 302 else {
+                    XCTFail("code should be 302")
+                    return
+                }
+            }
+            expectation.fulfill()
+        }
+        wait(for: [expectation], timeout: 1)
+    }
+
     func testTaskFailureWithoutError() throws {
         let expectation = XCTestExpectation()
         expectation.expectedFulfillmentCount = 2

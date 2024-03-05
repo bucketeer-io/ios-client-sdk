@@ -8,6 +8,9 @@ public enum BKTError: Error, Equatable {
     case clientClosed(message: String)
     case unavailable(message: String)
     case apiServer(message: String)
+    case redirectRequest(message: String, statusCode: Int)
+    case payloadTooLarge(message: String)
+    case invalidHttpMethod(message: String)
 
     // network errors
     case timeout(message: String, error: Error, timeoutMillis: Int64)
@@ -18,7 +21,7 @@ public enum BKTError: Error, Equatable {
     case illegalState(message: String)
 
     // unknown errors
-    case unknownServer(message: String, error: Error)
+    case unknownServer(message: String, error: Error, statusCode: Int)
     case unknown(message: String, error: Error)
 
     public static func == (lhs: BKTError, rhs: BKTError) -> Bool {
@@ -31,14 +34,18 @@ public enum BKTError: Error, Equatable {
              (.unavailable(let m1), .unavailable(let m2)),
              (.apiServer(let m1), .apiServer(let m2)),
              (.illegalArgument(let m1), .illegalArgument(let m2)),
-             (.illegalState(let m1), .illegalState(let m2)):
+             (.illegalState(let m1), .illegalState(let m2)),
+             (.payloadTooLarge(let m1), .payloadTooLarge(let m2)),
+             (.invalidHttpMethod(let m1), .invalidHttpMethod(let m2)):
             return m1 == m2
         case (.timeout(let m1, _, let t1), .timeout(let m2, _, let t2)):
             return t1 == t2 && m1 == m2
         case (.network(let m1, _), .network(let m2, _)),
-             (.unknownServer(let m1, _), .unknownServer(let m2, _)),
              (.unknown(let m1, _), .unknown(let m2, _)):
             return m1 == m2
+        case (.unknownServer(let m1, _, let c1), .unknownServer(let m2, _, let c2)),
+             (.redirectRequest(let m1, let c1), .redirectRequest(let m2, let c2)):
+            return m1 == m2 && c1 == c2
         default:
             return false
         }
@@ -57,6 +64,10 @@ extension BKTError : LocalizedError {
             switch responseError {
             case .unacceptableCode(let code, let errorResponse):
                 switch code {
+                // Update error metrics report
+                // https://github.com/bucketeer-io/ios-client-sdk/issues/65
+                case 300..<400:
+                    self = .redirectRequest(message: errorResponse?.error.message ?? "RedirectRequest error", statusCode: code)
                 case 400:
                     self = .badRequest(message: errorResponse?.error.message ?? "BadRequest error")
                 case 401:
@@ -65,18 +76,24 @@ extension BKTError : LocalizedError {
                     self = .forbidden(message: errorResponse?.error.message ?? "Forbidden error")
                 case 404:
                     self = .notFound(message: errorResponse?.error.message ?? "NotFound error")
+                case 405:
+                    self = .invalidHttpMethod(message: errorResponse?.error.message ?? "InvalidHttpMethod error")
+                case 408:
+                    self = .timeout(message: errorResponse?.error.message ?? "RequestTimeout error: 408", error: responseError, timeoutMillis: 0)
+                case 413:
+                    self = .payloadTooLarge(message: errorResponse?.error.message ?? "PayloadTooLarge error")
                 case 499:
                     self = .clientClosed(message: errorResponse?.error.message ?? "Client Closed Request error")
                 case 500:
                     self = .apiServer(message: errorResponse?.error.message ?? "InternalServer error")
-                case 503:
+                case 502, 503, 504:
                     self = .unavailable(message: errorResponse?.error.message ?? "Unavailable error")
                 default:
                     var message: String = "no error body"
                     if let errorResponse = errorResponse {
                         message = "[\(errorResponse.error.code)] \(errorResponse.error.message)"
                     }
-                    self = .unknownServer(message: "Unknown server error: \(message)", error: error)
+                    self = .unknownServer(message: "Unknown server error: \(message)", error: error, statusCode: code)
                 }
             case .unknown(let urlResponse):
                 var message: String = "no response"
@@ -129,9 +146,15 @@ extension BKTError : LocalizedError {
             return message
         case .illegalState(message: let message):
             return message
-        case .unknownServer(message: let message, _):
+        case .unknownServer(message: let message, _, _):
             return message
         case .unknown(message: let message, _):
+            return message
+        case .redirectRequest(message: let message, _):
+            return message
+        case .payloadTooLarge(message: let message):
+            return message
+        case .invalidHttpMethod(message: let message):
             return message
         }
     }
@@ -148,7 +171,10 @@ extension BKTError : LocalizedError {
              .unavailable,
              .apiServer,
              .illegalArgument,
-             .illegalState:
+             .illegalState,
+             .redirectRequest,
+             .payloadTooLarge,
+             .invalidHttpMethod:
             return nil
 
         case .timeout(message: _, error: let error, _):
@@ -158,7 +184,7 @@ extension BKTError : LocalizedError {
         case .network(message: _, error: let error):
             return "\(error)"
 
-        case .unknownServer(message: _, error: let error):
+        case .unknownServer(message: _, error: let error, _):
             return "\(error)"
 
         case .unknown(message: _, error: let error):

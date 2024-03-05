@@ -319,6 +319,10 @@ extension Event {
                 return mp.uniqueKey()
             case .unknownError(let mp):
                 return mp.uniqueKey()
+            case .redirectRequest(let mp):
+                return mp.uniqueKey()
+            case .payloadTooLarge(let mp):
+                return mp.uniqueKey()
             }
         default: return id
         }
@@ -346,6 +350,22 @@ extension BKTError {
                 )
             )
             metricsEventType = .timeoutError
+        case .payloadTooLarge:
+            metricsEventData = .payloadTooLarge(.init(apiId: apiId, labels: labels))
+            metricsEventType = .payloadTooLarge
+        case .redirectRequest(_, let statusCode):
+            metricsEventData = .redirectRequest(
+                .init(
+                    apiId: apiId,
+                    labels: labels.merging(
+                        [
+                            "response_code":"\(statusCode)"
+                        ]
+                        , uniquingKeysWith: { (first, _) in first }
+                    )
+                )
+            )
+            metricsEventType = .redirectRequest
         case .network:
             metricsEventData = .networkError(.init(apiId: apiId, labels: labels))
             metricsEventType = .networkError
@@ -370,10 +390,24 @@ extension BKTError {
         case .apiServer:
             metricsEventData = .internalServerError(.init(apiId: apiId, labels: labels))
             metricsEventType = .internalServerError
-        case .illegalArgument, .illegalState:
+        case .illegalArgument, .illegalState, .invalidHttpMethod:
             metricsEventData = .internalSdkError(.init(apiId: apiId, labels: labels))
             metricsEventType = .internalError
-        case .unknownServer, .unknown:
+        case .unknownServer(let message, _, let statusCode):
+            metricsEventData = .unknownError(
+                .init(
+                    apiId: apiId,
+                    labels: labels.merging(
+                        [
+                            "error_message":message,
+                            "response_code":"\(statusCode)"
+                        ]
+                        , uniquingKeysWith: { (first, _) in first }
+                    )
+                )
+            )
+            metricsEventType = .unknownError
+        case .unknown:
             metricsEventData = .unknownError(.init(apiId: apiId, labels: labels))
             metricsEventType = .unknownError
         }

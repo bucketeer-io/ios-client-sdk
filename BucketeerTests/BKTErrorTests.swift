@@ -1,6 +1,7 @@
 import XCTest
 @testable import Bucketeer
 
+// swiftlint:disable type_body_length
 class BKTErrorTests: XCTestCase {
     enum SomeError: Error {
         case a
@@ -34,12 +35,24 @@ class BKTErrorTests: XCTestCase {
         assertEqual(.illegalArgument(message: "1"), .illegalArgument(message: "1"))
         assertEqual(.illegalState(message: "1"), .illegalState(message: "1"))
         assertEqual(
-            .unknownServer(message: "1", error: SomeError.a),
-            .unknownServer(message: "1", error: SomeError.a)
+            .unknownServer(message: "1", error: SomeError.a, statusCode: 499),
+            .unknownServer(message: "1", error: SomeError.a, statusCode: 499)
         )
         assertEqual(
             .unknown(message: "1", error: SomeError.a),
             .unknown(message: "1", error: SomeError.a)
+        )
+        assertEqual(
+            .invalidHttpMethod(message: "1"),
+            .invalidHttpMethod(message: "1")
+        )
+        assertEqual(
+            .payloadTooLarge(message: "1"),
+            .payloadTooLarge(message: "1")
+        )
+        assertEqual(
+            .redirectRequest(message: "1", statusCode: 302),
+            .redirectRequest(message: "1", statusCode: 302)
         )
 
         // equal with diffrent error
@@ -52,8 +65,8 @@ class BKTErrorTests: XCTestCase {
             .network(message: "1", error: SomeError.b)
         )
         assertEqual(
-            .unknownServer(message: "1", error: SomeError.a),
-            .unknownServer(message: "1", error: SomeError.b)
+            .unknownServer(message: "1", error: SomeError.a, statusCode: 499),
+            .unknownServer(message: "1", error: SomeError.b, statusCode: 499)
         )
         assertEqual(
             .unknown(message: "1", error: SomeError.a),
@@ -73,18 +86,42 @@ class BKTErrorTests: XCTestCase {
             .timeout(message: "2", error: SomeError.a, timeoutMillis: 1000)
         )
         assertNotEqual(
+            .timeout(message: "1", error: SomeError.a, timeoutMillis: 1000),
+            .timeout(message: "1", error: SomeError.a, timeoutMillis: 2000)
+        )
+        assertNotEqual(
             .network(message: "1", error: SomeError.a),
             .network(message: "2", error: SomeError.a)
         )
         assertNotEqual(.illegalArgument(message: "1"), .illegalArgument(message: "2"))
         assertNotEqual(.illegalState(message: "1"), .illegalState(message: "2"))
         assertNotEqual(
-            .unknownServer(message: "1", error: SomeError.a),
-            .unknownServer(message: "2", error: SomeError.a)
+            .unknownServer(message: "1", error: SomeError.a, statusCode: 499),
+            .unknownServer(message: "2", error: SomeError.a, statusCode: 499)
+        )
+        assertNotEqual(
+            .unknownServer(message: "1", error: SomeError.a, statusCode: 499),
+            .unknownServer(message: "1", error: SomeError.a, statusCode: 490)
         )
         assertNotEqual(
             .unknown(message: "1", error: SomeError.a),
             .unknown(message: "2", error: SomeError.a)
+        )
+        assertNotEqual(
+            .invalidHttpMethod(message: "1"),
+            .invalidHttpMethod(message: "2")
+        )
+        assertNotEqual(
+            .payloadTooLarge(message: "1"),
+            .payloadTooLarge(message: "2")
+        )
+        assertNotEqual(
+            .redirectRequest(message: "1", statusCode: 302),
+            .redirectRequest(message: "2", statusCode: 302)
+        )
+        assertNotEqual(
+            .redirectRequest(message: "1", statusCode: 307),
+            .redirectRequest(message: "1", statusCode: 302)
         )
     }
 
@@ -94,6 +131,14 @@ class BKTErrorTests: XCTestCase {
     }
 
     func testInitWithResponseError() {
+        assertEqual(
+            .init(error: ResponseError.unacceptableCode(code: 300, response: nil)),
+            .redirectRequest(message: "RedirectRequest error", statusCode: 300)
+        )
+        assertEqual(
+            .init(error: ResponseError.unacceptableCode(code: 302, response: nil)),
+            .redirectRequest(message: "RedirectRequest error", statusCode: 302)
+        )
         assertEqual(
             .init(error: ResponseError.unacceptableCode(code: 400, response: nil)),
             .badRequest(message: "BadRequest error")
@@ -111,6 +156,22 @@ class BKTErrorTests: XCTestCase {
             .notFound(message: "NotFound error")
         )
         assertEqual(
+            .init(error: ResponseError.unacceptableCode(code: 405, response: nil)),
+            .invalidHttpMethod(message: "InvalidHttpMethod error")
+        )
+        assertEqual(
+            .init(error: ResponseError.unacceptableCode(code: 408, response: nil)),
+            .timeout(
+                message: "RequestTimeout error: 408",
+                error: ResponseError.unacceptableCode(code: 408, response: nil),
+                timeoutMillis: 0
+            )
+        )
+        assertEqual(
+            .init(error: ResponseError.unacceptableCode(code: 413, response: nil)),
+            .payloadTooLarge(message: "PayloadTooLarge error")
+        )
+        assertEqual(
             .init(error: ResponseError.unacceptableCode(code: 499, response: nil)),
             .clientClosed(message: "Client Closed Request error")
         )
@@ -119,17 +180,25 @@ class BKTErrorTests: XCTestCase {
             .apiServer(message: "InternalServer error")
         )
         assertEqual(
+            .init(error: ResponseError.unacceptableCode(code: 502, response: nil)),
+            .unavailable(message: "Unavailable error")
+        )
+        assertEqual(
             .init(error: ResponseError.unacceptableCode(code: 503, response: nil)),
+            .unavailable(message: "Unavailable error")
+        )
+        assertEqual(
+            .init(error: ResponseError.unacceptableCode(code: 504, response: nil)),
             .unavailable(message: "Unavailable error")
         )
         let errorResponse = ErrorResponse(error: .init(code: 450, message: "some error"))
         assertEqual(
             .init(error: ResponseError.unacceptableCode(code: 450, response: errorResponse)),
-            .unknownServer(message: "Unknown server error: [450] some error", error: SomeError.a)
+            .unknownServer(message: "Unknown server error: [450] some error", error: SomeError.a, statusCode: 450)
         )
         assertEqual(
             .init(error: ResponseError.unacceptableCode(code: 450, response: nil)),
-            .unknownServer(message: "Unknown server error: no error body", error: SomeError.a)
+            .unknownServer(message: "Unknown server error: no error body", error: SomeError.a, statusCode: 450)
         )
 
         assertEqual(
@@ -196,6 +265,12 @@ class BKTErrorTests: XCTestCase {
             case .timeout:
                 metricsEventData = .timeoutError(.init(apiId: apiId, labels: ["key":"value", "timeout": "4.5"]))
                 metricsEventType = .timeoutError
+            case .payloadTooLarge:
+                metricsEventData = .payloadTooLarge(.init(apiId: apiId, labels: labels))
+                metricsEventType = .payloadTooLarge
+            case .redirectRequest:
+                metricsEventData = .redirectRequest(.init(apiId: apiId, labels: ["key":"value", "response_code": "302"]))
+                metricsEventType = .redirectRequest
             case .network:
                 metricsEventData = .networkError(.init(apiId: apiId, labels: labels))
                 metricsEventType = .networkError
@@ -220,11 +295,23 @@ class BKTErrorTests: XCTestCase {
             case .apiServer:
                 metricsEventData = .internalServerError(.init(apiId: apiId, labels: labels))
                 metricsEventType = .internalServerError
-            case .illegalArgument, .illegalState:
+            case .illegalArgument, .illegalState, .invalidHttpMethod:
                 metricsEventData = .internalSdkError(.init(apiId: apiId, labels: labels))
                 metricsEventType = .internalError
-            case .unknownServer, .unknown:
+            case .unknown:
                 metricsEventData = .unknownError(.init(apiId: apiId, labels: labels))
+                metricsEventType = .unknownError
+            case .unknownServer:
+                metricsEventData = .unknownError(
+                    .init(
+                        apiId: apiId,
+                        labels: [
+                            "key": "value",
+                            "error_message": "unknownServer",
+                            "response_code": "450"
+                        ]
+                    )
+                )
                 metricsEventType = .unknownError
             }
             let expectedEventData: EventData = .metrics(.init(
@@ -250,10 +337,12 @@ extension BKTError: CaseIterable {
     }
 
     public static var allCases: [BKTError] = [
+        .redirectRequest(message: "redirectRequest", statusCode: 302),
         .badRequest(message: "badRequest"),
         .unauthorized(message: "unauthorized"),
         .forbidden(message: "forbidden"),
         .notFound(message: "notFound"),
+        .payloadTooLarge(message: "payloadTooLarge"),
         .clientClosed(message: "clientClosed"),
         .unavailable(message: "unavailable"),
         .apiServer(message: "apiServer"),
@@ -261,7 +350,9 @@ extension BKTError: CaseIterable {
         .network(message: "network", error: TestError.network),
         .illegalArgument(message: "illegalArgument"),
         .illegalState(message: "illegalState"),
-        .unknownServer(message: "unknownServer", error: TestError.unknownServer),
+        .invalidHttpMethod(message: "invalidHttpMethod"),
+        .unknownServer(message: "unknownServer", error: TestError.unknownServer, statusCode: 450),
         .unknown(message: "unknown", error: TestError.unknown)
     ]
 }
+// swiftlint:enable type_body_length

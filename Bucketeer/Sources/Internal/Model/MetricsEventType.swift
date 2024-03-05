@@ -14,4 +14,6 @@ enum MetricsEventType: Int, Codable, Hashable {
     case clientClosedError
     case unavailableError
     case internalServerError
+    case redirectRequest
+    case payloadTooLarge
 }

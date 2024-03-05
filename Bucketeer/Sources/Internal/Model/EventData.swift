@@ -105,6 +105,12 @@ enum EventData: Hashable {
             case .internalServerError:
                 let data = try container.decode(MetricsEventData.InternalServerError.self, forKey: .event)
                 self.event = .internalServerError(data)
+            case .redirectRequest:
+                let data = try container.decode(MetricsEventData.RedirectionRequestError.self, forKey: .event)
+                self.event = .redirectRequest(data)
+            case .payloadTooLarge:
+                let data = try container.decode(MetricsEventData.PayloadTooLargeError.self, forKey: .event)
+                self.event = .payloadTooLarge(data)
             case .unknownError:
                 let data = try container.decode(MetricsEventData.UnknownError.self, forKey: .event)
                 self.event = .unknownError(data)
@@ -146,6 +152,10 @@ enum EventData: Hashable {
             case .internalServerError(let eventData):
                 try container.encode(eventData, forKey: .event)
             case .unknownError(let eventData):
+                try container.encode(eventData, forKey: .event)
+            case .redirectRequest(let eventData):
+                try container.encode(eventData, forKey: .event)
+            case .payloadTooLarge(let eventData):
                 try container.encode(eventData, forKey: .event)
             }
             if let protobufType {
