@@ -78,9 +78,15 @@ public class BKTClient {
 extension BKTClient {
     public static func initialize(config: BKTConfig, user: BKTUser, timeoutMillis: Int64 = 5000, completion: ((BKTError?) -> Void)? = nil) throws {
         concurrentQueue.sync {
+            let initializeCompletion : (BKTError?) -> Void = { err in
+                DispatchQueue.main.async {
+                    completion?(err)
+                }
+            }
+
             guard BKTClient.default == nil else {
                 config.logger?.warn(message: "BKTClient is already initialized. Not sure if the initial fetch has finished")
-                completion?(nil)
+                initializeCompletion(nil)
                 return
             }
             do {
@@ -90,12 +96,12 @@ extension BKTClient {
                 client.scheduleTasks()
                 client.execute { [weak client] in
                     client?.refreshCache()
-                    client?.fetchEvaluations(timeoutMillis: timeoutMillis, completion: completion)
+                    client?.fetchEvaluations(timeoutMillis: timeoutMillis, completion: initializeCompletion)
                 }
                 BKTClient.default = client
             } catch let error {
                 config.logger?.error(error)
-                completion?(error as? BKTError)
+                initializeCompletion(error as? BKTError ?? BKTError.unknown(message: "unknown", error: error))
             }
         }
     }
@@ -165,21 +171,31 @@ extension BKTClient {
     }
 
     public func fetchEvaluations(timeoutMillis: Int64? = nil, completion: ((BKTError?) -> Void)? = nil) {
+        let fetchEvaluationsCompletion : (BKTError?) -> Void = { err in
+            DispatchQueue.main.async {
+                completion?(err)
+            }
+        }
         execute {
             Self.fetchEvaluationsSync(
                 component: self.component,
                 dispatchQueue: self.dispatchQueue,
                 timeoutMillis: timeoutMillis,
-                completion: completion
+                completion: fetchEvaluationsCompletion
             )
         }
     }
 
     public func flush(completion: ((BKTError?) -> Void)? = nil) {
+        let flushCompletion : (BKTError?) -> Void = { err in
+            DispatchQueue.main.async {
+                completion?(err)
+            }
+        }
         execute {
             Self.flushSync(
                 component: self.component,
-                completion: completion
+                completion: flushCompletion
             )
         }
     }
