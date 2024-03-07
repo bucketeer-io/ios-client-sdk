@@ -101,7 +101,7 @@ extension BKTClient {
                 BKTClient.default = client
             } catch let error {
                 config.logger?.error(error)
-                initializeCompletion(error as? BKTError ?? BKTError.unknown(message: "unknown", error: error))
+                initializeCompletion(error as? BKTError ?? BKTError.unknown(message: "unknown error while returning the initialize completion", error: error))
             }
         }
     }
