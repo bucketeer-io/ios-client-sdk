@@ -17,6 +17,8 @@ final class BKTClientTests: XCTestCase {
                 try BKTClient.initialize(
                     config: config,
                     user: user, completion: { _ in
+                        // should call back in a main thread
+                        XCTAssertTrue(Thread.isMainThread)
                     }
                 )
                 expectation.fulfill()
@@ -232,6 +234,9 @@ final class BKTClientTests: XCTestCase {
         )
         let client = BKTClient(dataModule: dataModule, dispatchQueue: .global())
         client.fetchEvaluations(timeoutMillis: nil) { error in
+            // should call back in a main thread
+            XCTAssertTrue(Thread.isMainThread)
+
             XCTAssertEqual(error, nil)
             expectation.fulfill()
         }
@@ -319,6 +324,9 @@ final class BKTClientTests: XCTestCase {
         )
         let client = BKTClient(dataModule: dataModule, dispatchQueue: .global())
         client.flush { error in
+            // should call back in a main thread
+            XCTAssertTrue(Thread.isMainThread)
+
             XCTAssertEqual(error, nil)
             expectation.fulfill()
         }
