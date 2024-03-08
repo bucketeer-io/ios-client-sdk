@@ -2,11 +2,13 @@ name: Pull Request
 
 on:
   pull_request:
-    paths-ignore:
-      - '*.md'
-      - '.github/**'
-      - Bucketeer/Sources/Internal/Utils/Version.swift
-      - Bucketeer.podspec
+    paths:
+      - "*"
+      - "!*.md"
+      - "!.github/**"
+      - ".github/workflows/pull-request.yml"
+      - "!Bucketeer/Sources/Internal/Utils/Version.swift"
+      - "!Bucketeer.podspec"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -14,7 +16,7 @@ concurrency:
 
 jobs:
   install-mint:
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v3
 
@@ -44,7 +46,7 @@ jobs:
 
   lint_swift:
     needs: install-mint
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v3
 
@@ -62,7 +64,7 @@ jobs:
         run: make run-lint
 
   lint_pod:
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v3
       - name: Lint Pods
@@ -70,7 +72,7 @@ jobs:
 
   generate-xcodeProject:
     needs: install-mint
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v3
 
@@ -101,7 +103,7 @@ jobs:
 
   build:
     needs: generate-xcodeProject
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v3
 
@@ -118,7 +120,7 @@ jobs:
 
   build-example:
     needs: generate-xcodeProject
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v3
 
@@ -141,7 +143,7 @@ jobs:
 
   test:
     needs: generate-xcodeProject
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v3
 

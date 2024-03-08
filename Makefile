@@ -8,7 +8,8 @@ XCODEBUILD=xcodebuild
 
 OPTIONS=\
 	-project $(APP_NAME).xcodeproj \
-	-scheme $(SCHEME)
+	-scheme $(SCHEME) \
+	-CODE_SIGNING_ALLOWED=NO
 
 EXAMPLE_OPTIONS=\
 	-project $(APP_NAME).xcodeproj \

@@ -11,7 +11,7 @@ on:
 jobs:
   e2e:
     name: E2E tests
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v3
 

@@ -11,7 +11,7 @@ on:
 
 jobs:
   install-mint:
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v3
 
@@ -41,7 +41,7 @@ jobs:
 
   generate-xcodeProject:
     needs: install-mint
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v3
 
@@ -72,7 +72,7 @@ jobs:
 
   build:
     needs: generate-xcodeProject
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v3
 
@@ -89,7 +89,7 @@ jobs:
 
   build-example:
     needs: generate-xcodeProject
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v3
 
@@ -113,7 +113,7 @@ jobs:
   test:
     name: Unit tests
     needs: generate-xcodeProject
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v3
 
