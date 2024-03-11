@@ -1149,17 +1149,28 @@ class ApiClientTests: XCTestCase {
         wait(for: [expectation], timeout: 0.1)
     }
 
-    func testTaskFailWithUnacceptableCodeAndEmptyResponse() throws {
+    func testTaskFailWithUnacceptableCode() throws {
+        let mockDataReponse = try JSONEncoder().encode(MockResponse())
         let cases = [
+            ResponseCase(statusCode:300, data: Data("".utf8), name: "Case: empty string"),
+            ResponseCase(statusCode:300, data: Data("okay".utf8), name: "Case: random string"),
+            ResponseCase(statusCode:300, data: nil, name: "Case: nil"),
+            ResponseCase(statusCode:300, data: mockDataReponse, name: "Case: vaild JSON"),
+
             ResponseCase(statusCode:400, data: Data("".utf8), name: "Case: empty string"),
             ResponseCase(statusCode:400, data: Data("okay".utf8), name: "Case: random string"),
             ResponseCase(statusCode:400, data: nil, name: "Case: nil"),
+            ResponseCase(statusCode:400, data: mockDataReponse, name: "Case: vaild JSON"),
+
             ResponseCase(statusCode:500, data: Data("".utf8), name: "Case: empty string"),
             ResponseCase(statusCode:500, data: Data("okay".utf8), name: "Case: random string"),
             ResponseCase(statusCode:500, data: nil, name: "Case: nil"),
+            ResponseCase(statusCode:500, data: mockDataReponse, name: "Case: vaild JSON"),
+
             ResponseCase(statusCode:499, data: Data("".utf8), name: "Case: empty string for the unknown server error"),
             ResponseCase(statusCode:499, data: Data("okay".utf8), name: "Case: random string for the unknown server error"),
-            ResponseCase(statusCode:499, data: nil, name: "Case: nil for the unknown server error")
+            ResponseCase(statusCode:499, data: nil, name: "Case: nil for the unknown server error"),
+            ResponseCase(statusCode:499, data: mockDataReponse, name: "Case: vaild JSON for the unknown server error")
         ]
 
         var expectations = [XCTestExpectation]()
@@ -1231,11 +1242,23 @@ class ApiClientTests: XCTestCase {
         wait(for: expectations, timeout: 2)
     }
 
-    func testTaskSuccessWithEmptyResponse() throws {
+    func testTaskSuccessWithAcceptableCode() throws {
+        let mockDataReponse = try JSONEncoder().encode(MockResponse())
         let cases = [
             ResponseCase(statusCode:200, data: Data("".utf8), name: "Case: empty string"),
+            ResponseCase(statusCode:200, data: Data("okay".utf8), name: "Case: random string"),
+            ResponseCase(statusCode:200, data: nil, name: "Case: nil"),
+            ResponseCase(statusCode:200, data: mockDataReponse, name: "Case: vaild JSON"),
+
+            ResponseCase(statusCode:201, data: Data("".utf8), name: "Case: empty string"),
             ResponseCase(statusCode:201, data: Data("okay".utf8), name: "Case: random string"),
-            ResponseCase(statusCode:200, data: nil, name: "Case: nil")
+            ResponseCase(statusCode:201, data: nil, name: "Case: nil"),
+            ResponseCase(statusCode:201, data: mockDataReponse, name: "Case: vaild JSON"),
+
+            ResponseCase(statusCode:204, data: Data("".utf8), name: "Case: empty string"),
+            ResponseCase(statusCode:204, data: Data("okay".utf8), name: "Case: random string"),
+            ResponseCase(statusCode:204, data: nil, name: "Case: nil"),
+            ResponseCase(statusCode:204, data: mockDataReponse, name: "Case: vaild JSON")
         ]
 
         var expectations = [XCTestExpectation]()
@@ -1293,7 +1316,7 @@ class ApiClientTests: XCTestCase {
                 case .success((_, _)):
                     expectation.fulfill()
                 case .failure(let error):
-                    XCTFail("should success - case: \(testCase.name)")
+                    XCTFail("should success - case: \(testCase.name) - status code \(testCase.statusCode) - error \(error)")
                 }
                 expectation.fulfill()
             }
