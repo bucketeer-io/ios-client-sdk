@@ -650,7 +650,7 @@ class ApiClientTests: XCTestCase {
             path: path,
             timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
             switch result {
-            case .success((let response, _)):
+            case .success((_, _)):
                 XCTFail("should not success")
             case .failure(let error):
                 guard
@@ -1148,5 +1148,161 @@ class ApiClientTests: XCTestCase {
         }
         wait(for: [expectation], timeout: 0.1)
     }
+
+    func testTaskFailWithUnacceptableCodeAndEmptyResponse() throws {
+        let cases = [
+            ResponseCase(statusCode:400, data: Data("".utf8), name: "Case: empty string"),
+            ResponseCase(statusCode:400, data: Data("okay".utf8), name: "Case: random string"),
+            ResponseCase(statusCode:400, data: nil, name: "Case: Nil"),
+            ResponseCase(statusCode:500, data: Data("".utf8), name: "Case: empty string"),
+            ResponseCase(statusCode:500, data: Data("okay".utf8), name: "Case: random string"),
+            ResponseCase(statusCode:500, data: nil, name: "Case: Nil")
+        ]
+
+        var expectations = [XCTestExpectation]()
+        for testCase in cases {
+            let expectation = XCTestExpectation(description: testCase.name)
+            expectation.expectedFulfillmentCount = 2
+
+            let mockRequestBody = MockRequestBody()
+            let data = testCase.data
+
+            let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
+            let path = "path"
+            let apiKey = "x:api-key"
+
+            let session = MockSession(
+                configuration: .default,
+                requestHandler: { request in
+                    XCTAssertEqual(request.httpMethod, "POST")
+                    XCTAssertEqual(request.url?.host, apiEndpointURL.host)
+                    XCTAssertEqual(request.url?.path, "/\(path)")
+                    XCTAssertEqual(request.allHTTPHeaderFields?["Authorization"], apiKey)
+                    XCTAssertEqual(request.timeoutInterval, 0.1)
+                    let data = request.httpBody ?? Data()
+                    let jsonString = String(data: data, encoding: .utf8) ?? ""
+                    let expected = """
+    {
+      "value" : "body"
+    }
+    """
+                    XCTAssertEqual(jsonString, expected)
+                    expectation.fulfill()
+                },
+                data: data,
+                response: HTTPURLResponse(
+                    url: apiEndpointURL.appendingPathComponent(path),
+                    statusCode: testCase.statusCode,
+                    httpVersion: nil,
+                    headerFields: nil
+                ),
+                error: nil
+            )
+            let api = ApiClientImpl(
+                apiEndpoint: apiEndpointURL,
+                apiKey: apiKey,
+                featureTag: "tag1",
+                defaultRequestTimeoutMills: 200,
+                session: session,
+                logger: nil
+            )
+            api.send(
+                requestBody: mockRequestBody,
+                path: path,
+                timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
+                switch result {
+                case .success((_, _)):
+                    XCTFail("should not success")
+                case .failure(let error):
+                    guard
+                        let error = error as? ResponseError,
+                        case .unacceptableCode(let code, _) = error, code == testCase.statusCode else {
+                        XCTFail("code should be \(testCase.statusCode) for case: \(testCase.name)")
+                        return
+                    }
+                }
+                expectation.fulfill()
+            }
+            expectations.append(expectation)
+        }
+        wait(for: expectations, timeout: 2)
+    }
+
+    func testTaskSuccessWithEmptyResponse() throws {
+        let cases = [
+            ResponseCase(statusCode:200, data: Data("".utf8), name: "Case: empty string"),
+            ResponseCase(statusCode:201, data: Data("okay".utf8), name: "Case: random string"),
+            ResponseCase(statusCode:200, data: nil, name: "Case: Nil")
+        ]
+
+        var expectations = [XCTestExpectation]()
+        cases.forEach { testCase in
+            let expectation = XCTestExpectation(description: testCase.name)
+            expectation.expectedFulfillmentCount = 2
+
+            let mockRequestBody = MockRequestBody()
+            let data = testCase.data
+
+            let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
+            let path = "path"
+            let apiKey = "x:api-key"
+
+            let session = MockSession(
+                configuration: .default,
+                requestHandler: { request in
+                    XCTAssertEqual(request.httpMethod, "POST")
+                    XCTAssertEqual(request.url?.host, apiEndpointURL.host)
+                    XCTAssertEqual(request.url?.path, "/\(path)")
+                    XCTAssertEqual(request.allHTTPHeaderFields?["Authorization"], apiKey)
+                    XCTAssertEqual(request.timeoutInterval, 0.1)
+                    let data = request.httpBody ?? Data()
+                    let jsonString = String(data: data, encoding: .utf8) ?? ""
+                    let expected = """
+    {
+      "value" : "body"
+    }
+    """
+                    XCTAssertEqual(jsonString, expected)
+                    expectation.fulfill()
+                },
+                data: data,
+                response: HTTPURLResponse(
+                    url: apiEndpointURL.appendingPathComponent(path),
+                    statusCode: testCase.statusCode,
+                    httpVersion: nil,
+                    headerFields: nil
+                ),
+                error: nil
+            )
+            let api = ApiClientImpl(
+                apiEndpoint: apiEndpointURL,
+                apiKey: apiKey,
+                featureTag: "tag1",
+                defaultRequestTimeoutMills: 200,
+                session: session,
+                logger: nil
+            )
+            api.send(
+                requestBody: mockRequestBody,
+                path: path,
+                timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
+                switch result {
+                case .success((_, _)):
+                    expectation.fulfill()
+                case .failure(let error):
+                    XCTFail("should success - case: \(testCase.name)")
+                }
+                expectation.fulfill()
+            }
+            expectations.append(expectation)
+        }
+        wait(for: expectations, timeout: 2)
+    }
+}
+
+struct ResponseCase {
+    let statusCode: Int
+    let data: Data?
+    let name: String
 }
 // swiftlint:enable type_body_length file_length
