@@ -1153,10 +1153,13 @@ class ApiClientTests: XCTestCase {
         let cases = [
             ResponseCase(statusCode:400, data: Data("".utf8), name: "Case: empty string"),
             ResponseCase(statusCode:400, data: Data("okay".utf8), name: "Case: random string"),
-            ResponseCase(statusCode:400, data: nil, name: "Case: Nil"),
+            ResponseCase(statusCode:400, data: nil, name: "Case: nil"),
             ResponseCase(statusCode:500, data: Data("".utf8), name: "Case: empty string"),
             ResponseCase(statusCode:500, data: Data("okay".utf8), name: "Case: random string"),
-            ResponseCase(statusCode:500, data: nil, name: "Case: Nil")
+            ResponseCase(statusCode:500, data: nil, name: "Case: nil"),
+            ResponseCase(statusCode:499, data: Data("".utf8), name: "Case: empty string for the unknown server error"),
+            ResponseCase(statusCode:499, data: Data("okay".utf8), name: "Case: random string for the unknown server error"),
+            ResponseCase(statusCode:499, data: nil, name: "Case: nil for the unknown server error")
         ]
 
         var expectations = [XCTestExpectation]()
@@ -1232,7 +1235,7 @@ class ApiClientTests: XCTestCase {
         let cases = [
             ResponseCase(statusCode:200, data: Data("".utf8), name: "Case: empty string"),
             ResponseCase(statusCode:201, data: Data("okay".utf8), name: "Case: random string"),
-            ResponseCase(statusCode:200, data: nil, name: "Case: Nil")
+            ResponseCase(statusCode:200, data: nil, name: "Case: nil")
         ]
 
         var expectations = [XCTestExpectation]()
