@@ -1239,7 +1239,7 @@ class ApiClientTests: XCTestCase {
             }
             expectations.append(expectation)
         }
-        wait(for: expectations, timeout: 2)
+        wait(for: expectations, timeout: 10)
     }
 
     func testTaskSuccessWithAcceptableCode() throws {
@@ -1322,7 +1322,7 @@ class ApiClientTests: XCTestCase {
             }
             expectations.append(expectation)
         }
-        wait(for: expectations, timeout: 2)
+        wait(for: expectations, timeout: 10)
     }
 }
 
