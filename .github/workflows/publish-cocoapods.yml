@@ -15,17 +15,6 @@ jobs:
       - name: Install Cocoapods
         run: gem install cocoapods
 
-      # This is a workaround to ensure that we don't publish to Cocoapods before the Build and Integration tests workflow is finished.
-      - name: Wait for Build and Integration tests
-        if: ${{ ! github.event.inputs || github.event.inputs.skip_release_note == 'false' }}
-        uses: lewagon/wait-on-check-action@e106e5c43e8ca1edea6383a39a01c5ca495fd812 # v1.3.1
-        with:
-          ref: ${{ github.ref }}
-          # DO NOT CHANGE the check-name. This name is based on the workflow name defined in the build.yaml
-          check-name: "Unit and E2E tests"
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          wait-interval: 10
-
       - name: Deploy to cocoapods
         env:
           COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
