@@ -2,6 +2,7 @@ name: Upload Framework to GitHub
 
 on:
   workflow_dispatch:
+  pull_request:
   push:
     tags:
       - v*
@@ -12,15 +13,17 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Install Mint
+        uses: fabasoad/setup-mint-action@65ebd88f1c3f1491649444db403a023c71ca3e28 # 1.2.1
+
       - name: Create xcframework
         env:
           CI: true
         run: |
-            brew install mint
-            make bootstrap-mint
-            make environment-setup
-            make generate-project-file
-            make create-xcframework-zip
+          mint bootstrap --link --overwrite y 2>&1
+          make environment-setup
+          make generate-project-file
+          make create-xcframework-zip
 
       - name: Save xcframework file
         uses: actions/upload-artifact@v3
@@ -43,4 +46,5 @@ jobs:
       - name: Upload Release Framework
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${GITHUB_REF#refs/*/} ./FrameworkBuild/Bucketeer.xcframework.zip
+        run: echo "FINISHED"
+        # run: gh release upload ${GITHUB_REF#refs/*/} ./FrameworkBuild/Bucketeer.xcframework.zip
