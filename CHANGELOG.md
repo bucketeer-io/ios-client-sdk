@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.1.3](https://github.com/bucketeer-io/ios-client-sdk/compare/v2.1.2...v2.1.3) (2024-03-11)
+
+
+### Miscellaneous
+
+* unify public method completion to call on the main thread ([#71](https://github.com/bucketeer-io/ios-client-sdk/issues/71)) ([b02f90e](https://github.com/bucketeer-io/ios-client-sdk/commit/b02f90e1051693e1a5bdde930046685a0bd65373))
+* update error metrics report ([#68](https://github.com/bucketeer-io/ios-client-sdk/issues/68)) ([4092c00](https://github.com/bucketeer-io/ios-client-sdk/commit/4092c007202d71e4f646fe6a0384946db1a7e9d5))
+
 ## [2.1.2](https://github.com/bucketeer-io/ios-client-sdk/compare/v2.1.1...v2.1.2) (2023-12-19)
 
 
