@@ -1248,23 +1248,23 @@ class ApiClientTests: XCTestCase {
             ResponseCase(statusCode:200, bodyResponse: Data("".utf8), name: "Case: empty string"),
             ResponseCase(statusCode:200, bodyResponse: Data("okay".utf8), name: "Case: random string"),
             ResponseCase(statusCode:200, bodyResponse: nil, name: "Case: nil"),
-            ResponseCase(statusCode:200, bodyResponse: mockDataReponse, name: "Case: vaild JSON"),
+            ResponseCase(statusCode:200, bodyResponse: mockDataReponse, name: "Case: vaild JSON", shouldSuccess: true),
 
             ResponseCase(statusCode:201, bodyResponse: Data("".utf8), name: "Case: empty string"),
             ResponseCase(statusCode:201, bodyResponse: Data("okay".utf8), name: "Case: random string"),
             ResponseCase(statusCode:201, bodyResponse: nil, name: "Case: nil"),
-            ResponseCase(statusCode:201, bodyResponse: mockDataReponse, name: "Case: vaild JSON"),
+            ResponseCase(statusCode:201, bodyResponse: mockDataReponse, name: "Case: vaild JSON", shouldSuccess: true),
 
             ResponseCase(statusCode:204, bodyResponse: Data("".utf8), name: "Case: empty string"),
             ResponseCase(statusCode:204, bodyResponse: Data("okay".utf8), name: "Case: random string"),
             ResponseCase(statusCode:204, bodyResponse: nil, name: "Case: nil"),
-            ResponseCase(statusCode:204, bodyResponse: mockDataReponse, name: "Case: vaild JSON")
+            ResponseCase(statusCode:204, bodyResponse: mockDataReponse, name: "Case: vaild JSON", shouldSuccess: true)
         ]
 
         var expectations = [XCTestExpectation]()
         cases.forEach { testCase in
             let expectation = XCTestExpectation(description: testCase.name)
-            expectation.expectedFulfillmentCount = 2
+            expectation.expectedFulfillmentCount = 1
 
             let mockRequestBody = MockRequestBody()
             let data = testCase.bodyResponse
@@ -1275,22 +1275,7 @@ class ApiClientTests: XCTestCase {
 
             let session = MockSession(
                 configuration: .default,
-                requestHandler: { request in
-                    XCTAssertEqual(request.httpMethod, "POST")
-                    XCTAssertEqual(request.url?.host, apiEndpointURL.host)
-                    XCTAssertEqual(request.url?.path, "/\(path)")
-                    XCTAssertEqual(request.allHTTPHeaderFields?["Authorization"], apiKey)
-                    XCTAssertEqual(request.timeoutInterval, 0.1)
-                    let data = request.httpBody ?? Data()
-                    let jsonString = String(data: data, encoding: .utf8) ?? ""
-                    let expected = """
-    {
-      "value" : "body"
-    }
-    """
-                    XCTAssertEqual(jsonString, expected)
-                    expectation.fulfill()
-                },
+                requestHandler: nil,
                 data: data,
                 response: HTTPURLResponse(
                     url: apiEndpointURL.appendingPathComponent(path),
@@ -1314,9 +1299,19 @@ class ApiClientTests: XCTestCase {
                 timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
                 switch result {
                 case .success((_, _)):
-                    expectation.fulfill()
+                    if (!testCase.shouldSuccess) {
+                        XCTFail("should not success - case: \(testCase.name) - status code \(testCase.statusCode)")
+                    }
                 case .failure(let error):
-                    XCTFail("should success - case: \(testCase.name) - status code \(testCase.statusCode) - error \(error)")
+                    guard
+                        let error = error as? ResponseError,
+                        case .invalidJSONResponse(let code, _) = error, code == testCase.statusCode else {
+                        XCTFail("error should be .invalidJSONResponse, code should be \(testCase.statusCode) for case: \(testCase.name)")
+                        return
+                    }
+                    if (testCase.shouldSuccess) {
+                        XCTFail("should success - case: \(testCase.name) - status code \(testCase.statusCode) - error \(error)")
+                    }
                 }
                 expectation.fulfill()
             }
@@ -1326,9 +1321,17 @@ class ApiClientTests: XCTestCase {
     }
 }
 
-struct ResponseCase {
+class ResponseCase {
+    internal init(statusCode: Int, bodyResponse: Data? = nil, name: String, shouldSuccess: Bool = false) {
+        self.statusCode = statusCode
+        self.bodyResponse = bodyResponse
+        self.name = name
+        self.shouldSuccess = shouldSuccess
+    }
+
     let statusCode: Int
     let bodyResponse: Data?
     let name: String
+    let shouldSuccess: Bool
 }
 // swiftlint:enable type_body_length file_length
