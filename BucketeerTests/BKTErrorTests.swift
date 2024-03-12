@@ -132,6 +132,14 @@ class BKTErrorTests: XCTestCase {
 
     func testInitWithResponseError() {
         assertEqual(
+            .init(error: ResponseError.invalidJSONResponse(code: 200, error: SomeError.a)),
+            .unknownServer(
+                message: "Unknown server error: invaild JSON response for status 200",
+                error: ResponseError.invalidJSONResponse(code: 200, error: SomeError.a),
+                statusCode: 200
+            )
+        )
+        assertEqual(
             .init(error: ResponseError.unacceptableCode(code: 300, response: nil)),
             .redirectRequest(message: "RedirectRequest error", statusCode: 300)
         )
