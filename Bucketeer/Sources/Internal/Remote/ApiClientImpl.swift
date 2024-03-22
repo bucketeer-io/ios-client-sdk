@@ -144,26 +144,35 @@ final class ApiClientImpl: ApiClient {
             // `result` shared resource between the network queue and the SDK queue
             var result : Result<(Response, URLResponse), Error>?
             let responseParser : (Data?, URLResponse?, Error?) -> Result<(Response, URLResponse), Error> = { data, urlResponse, error in
-                guard let data = data else {
+                guard let urlResponse = urlResponse as? HTTPURLResponse else {
+                    // error is not from server
                     guard let error = error else {
                         return .failure(ResponseError.unknown(urlResponse))
                     }
                     return .failure(error)
                 }
 
-                guard let urlResponse = urlResponse as? HTTPURLResponse else {
-                    return .failure(ResponseError.unknown(urlResponse))
+                let statusCode = urlResponse.statusCode
+                guard 200..<300 ~= statusCode else {
+                    // UnacceptableCode
+                    let response: ErrorResponse?
+                    if let data = data {
+                        response = try? JSONDecoder().decode(ErrorResponse.self, from: data)
+                    } else {
+                        response = nil
+                    }
+                    let error = ResponseError.unacceptableCode(code: statusCode, response: response)
+                    return .failure(error)
+                }
+                // Success code
+                guard let data = data else {
+                    return .failure(ResponseError.invalidJSONResponse(code: statusCode, error: nil))
                 }
                 do {
-                    guard 200..<300 ~= urlResponse.statusCode else {
-                        let response: ErrorResponse? = try? JSONDecoder().decode(ErrorResponse.self, from: data)
-                        let error = ResponseError.unacceptableCode(code: urlResponse.statusCode, response: response)
-                        return .failure(error)
-                    }
                     let response = try JSONDecoder().decode(Response.self, from: data)
                     return .success((response, urlResponse))
                 } catch let error {
-                    return .failure(error)
+                    return .failure(ResponseError.invalidJSONResponse(code: statusCode, error: error))
                 }
             }
 
@@ -204,6 +213,7 @@ final class ApiClientImpl: ApiClient {
 }
 
 enum ResponseError: Error {
+    case invalidJSONResponse(code: Int, error: Error?)
     case unknown(URLResponse?)
     case unacceptableCode(code: Int, response: ErrorResponse?)
 }
