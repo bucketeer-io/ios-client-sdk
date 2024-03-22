@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.4](https://github.com/bucketeer-io/ios-client-sdk/compare/v2.1.3...v2.1.4) (2024-03-22)
+
+
+### Bug Fixes
+
+* unknown error when handle invalid JSON responses ([#77](https://github.com/bucketeer-io/ios-client-sdk/issues/77)) ([ff7cec6](https://github.com/bucketeer-io/ios-client-sdk/commit/ff7cec6be5069aeaf4b1a88cab332f17fe8939ad))
+
 ## [2.1.3](https://github.com/bucketeer-io/ios-client-sdk/compare/v2.1.2...v2.1.3) (2024-03-11)
 
 
