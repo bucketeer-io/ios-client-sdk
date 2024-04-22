@@ -82,8 +82,7 @@ final class ApiClientImpl: ApiClient {
     func registerEvents(events: [Event], completion: ((Result<RegisterEventsResponse, BKTError>) -> Void)?) {
         let requestBody = RegisterEventsRequestBody(
             events: events,
-            sdkVersion: Version.current,
-            sourceId: SourceID.ios
+            sdkVersion: Version.current
         )
         logger?.debug(message: "[API] Register events: \(requestBody)")
         let encoder = JSONEncoder()
