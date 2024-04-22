@@ -9,7 +9,7 @@ struct RegisterEventsRequestBody: Codable {
         self.sdkVersion = sdkVersion
         self.sourceId = sourceId
     }
-    
+
     let events: [Event]
     let sdkVersion: String
     let sourceId: SourceID
