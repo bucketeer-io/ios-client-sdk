@@ -10,68 +10,11 @@ on:
       - main
 
 jobs:
-  install-mint:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Install mint
-        run: |
-          brew install mint
-
-      - name: restore Mint packages
-        id: cache-restore
-        uses: actions/cache/restore@v3
-        with:
-            path: .mint
-            key: ${{ runner.os }}-mint-${{ hashFiles('**/Mintfile') }}
-
-      - name: Bootstrap mint
-        env:
-          CI: true
-        run: make bootstrap-mint
-
-      - name: Cache Mint packages
-        uses: actions/cache@v3
-        with:
-          path: .mint
-          key: ${{ steps.cache-restore.outputs.cache-primary-key }}
-          restore-keys: |
-            ${{ runner.os }}-mint-
-
-  generate-xcodeProject:
-    needs: install-mint
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Cache Mint packages
-        uses: actions/cache@v3
-        with:
-          path: .mint
-          key: ${{ runner.os }}-mint-${{ hashFiles('**/Mintfile') }}
-          restore-keys: |
-            ${{ runner.os }}-mint-
-
-      - name: Generate XcodeProject
-        env:
-          CI: true
-        run: make generate-project-file
-
-      - name: Upload Xcode project file
-        uses: actions/upload-artifact@v3
-        with:
-          name: output-xcodeproj-file
-          path: ./Bucketeer.xcodeproj
-
-      - name: Upload dummy environment file
-        uses: actions/upload-artifact@v3
-        with:
-          name: output-environment-file
-          path: ./environment.xcconfig
+  generate-xcode-project:
+    uses: ./.github/workflows/generate-xcode-project.yml
 
   build:
-    needs: generate-xcodeProject
+    needs: generate-xcode-project
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
@@ -88,7 +31,7 @@ jobs:
         run: make build
 
   build-example:
-    needs: generate-xcodeProject
+    needs: generate-xcode-project
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
@@ -112,7 +55,7 @@ jobs:
 
   test:
     name: Unit tests
-    needs: generate-xcodeProject
+    needs: generate-xcode-project
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
@@ -137,9 +80,6 @@ jobs:
 
   e2e:
     name: E2E tests
-    needs: generate-xcodeProject
+    needs: generate-xcode-project
     uses: ./.github/workflows/e2e.yml
-    secrets:
-      E2E_API_ENDPOINT: ${{ secrets.E2E_API_ENDPOINT }}
-      E2E_API_KEY: ${{ secrets.E2E_API_KEY }}
-
+    secrets: inherit

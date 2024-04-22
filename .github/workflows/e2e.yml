@@ -1,15 +1,17 @@
-name: e2e
+name: E2E tests
 on:
   workflow_dispatch:
   workflow_call:
-    secrets:
-      E2E_API_ENDPOINT:
-        required: true
-      E2E_API_KEY:
-        required: true
 
 jobs:
+  generate-xcode-project:
+    if: ${{ github.event.workflow  == '.github/workflows/e2e.yml'}}
+    uses: ./.github/workflows/generate-xcode-project.yml
+
   e2e:
+    # We must ensure the xcode project file is uploaded before proceeding
+    needs: generate-xcode-project
+    if: always()
     name: E2E tests
     runs-on: macos-latest
     steps:
