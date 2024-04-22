@@ -250,7 +250,8 @@ class ApiClientTests: XCTestCase {
       "type" : 3
     }
   ],
-  "sdkVersion" : "\(Version.current)"
+  "sdkVersion" : "\(Version.current)",
+  "sourceId" : 2
 }
 """
                 XCTAssertEqual(jsonString, expected)
@@ -360,7 +361,8 @@ class ApiClientTests: XCTestCase {
       "type" : 3
     }
   ],
-  "sdkVersion" : "\(Version.current)"
+  "sdkVersion" : "\(Version.current)",
+  "sourceId" : 2
 }
 """
                 XCTAssertEqual(jsonString, expected)
