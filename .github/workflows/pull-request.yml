@@ -38,7 +38,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: .mint
-          key: ${{ runner.os }}-mint-${{ hashFiles('**/Mintfile') }}
+          key: ${{ steps.cache-restore.outputs.cache-primary-key }}
           restore-keys: |
             ${{ runner.os }}-mint-
 
