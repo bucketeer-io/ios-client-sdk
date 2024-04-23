@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.5](https://github.com/bucketeer-io/ios-client-sdk/compare/v2.1.4...v2.1.5) (2024-04-23)
+
+
+### Miscellaneous
+
+* add the source ID to the register events API request ([#84](https://github.com/bucketeer-io/ios-client-sdk/issues/84)) ([374218a](https://github.com/bucketeer-io/ios-client-sdk/commit/374218ad331bdf18edbf42110a2ecc4ff7742a06))
+
 ## [2.1.4](https://github.com/bucketeer-io/ios-client-sdk/compare/v2.1.3...v2.1.4) (2024-03-22)
 
 
