@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name     = 'Bucketeer'
-  s.version  = '2.1.4' # x-release-please-version
+  s.version  = '2.1.5' # x-release-please-version
   s.summary  = 'iOS SDK for Bucketeer'
   s.homepage = 'https://github.com/bucketeer-io/ios-client-sdk'
 
