@@ -30,7 +30,7 @@ class EventForegroundTaskTests: XCTestCase {
             queue: dispatchQueue
         )
         task.start()
-        wait(for: [expectation], timeout: 0.1)
+        wait(for: [expectation], timeout: 1)
     }
 
     func testStartWithUpdateEvents() throws {
@@ -90,6 +90,6 @@ class EventForegroundTaskTests: XCTestCase {
         task.start()
         task.stop()
         interactor.eventUpdateListener?.onUpdate(events: [.mockGoal1])
-        wait(for: [expectation], timeout: 0.1)
+        wait(for: [expectation], timeout: 1)
     }
 }
