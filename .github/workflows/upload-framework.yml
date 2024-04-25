@@ -7,38 +7,27 @@ on:
       - v*
 
 jobs:
-  create-xcframework:
-    runs-on: macos-latest
+  upload-xcframework:
+    runs-on: macos-13-xlarge
+    env:
+      MINT_PATH: ${{ github.workspace }}/mint/lib
+      MINT_LINK_PATH: ${{ github.workspace }}/mint/bin
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
+      - name: Install bootstrap mint
+        uses: irgaly/setup-mint@99eaad2ad1197ea872390322a47620da2f21fde4 # v1.4.0
+        with:
+          bootstrap: true
+          use-cache: true
 
       - name: Create xcframework
         env:
           CI: true
         run: |
-            brew install mint
-            make bootstrap-mint
             make environment-setup
-            make generate-project-file
+            mint run xcodegen generate
             make create-xcframework-zip
-
-      - name: Save xcframework file
-        uses: actions/upload-artifact@v3
-        with:
-          name: output-xcframework-file
-          path: ./FrameworkBuild/Bucketeer.xcframework.zip
-
-  upload-xcframework:
-    needs: create-xcframework
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Get xcframework file
-        uses: actions/download-artifact@v3
-        with:
-          name: output-xcframework-file
-          path: ./FrameworkBuild
 
       - name: Upload Release Framework
         env:

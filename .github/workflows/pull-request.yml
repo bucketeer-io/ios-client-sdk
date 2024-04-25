@@ -13,100 +13,39 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  install-mint:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Install mint
-        run: |
-          brew install mint
-
-      - name: restore Mint packages
-        id: cache-restore
-        uses: actions/cache/restore@v3
-        with:
-            path: .mint
-            key: ${{ runner.os }}-mint-${{ hashFiles('**/Mintfile') }}
-
-      - name: Bootstrap mint
-        env:
-          CI: true
-        run: make bootstrap-mint
-
-      - name: Cache Mint packages
-        uses: actions/cache@v3
-        with:
-          path: .mint
-          key: ${{ steps.cache-restore.outputs.cache-primary-key }}
-          restore-keys: |
-            ${{ runner.os }}-mint-
 
   lint_swift:
-    needs: install-mint
-    runs-on: macos-latest
+    runs-on: macos-13-xlarge
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Cache Mint packages
-        uses: actions/cache@v3
+      - name: Install bootstrap mint
+        uses: irgaly/setup-mint@99eaad2ad1197ea872390322a47620da2f21fde4 # v1.4.0
         with:
-          path: .mint
-          key: ${{ runner.os }}-mint-${{ hashFiles('**/Mintfile') }}
-          restore-keys: |
-            ${{ runner.os }}-mint-
+          bootstrap: true
+          use-cache: true
 
       - name: Lint swift
-        env:
-          CI: true
-        run: make run-lint
+        run: mint run swiftlint --strict
 
   lint_pod:
-    runs-on: macos-latest
+    runs-on: macos-13-xlarge
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Lint Pods
         run: pod lib lint --allow-warnings
 
-  generate-xcodeProject:
-    needs: install-mint
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Cache Mint packages
-        uses: actions/cache@v3
-        with:
-          path: .mint
-          key: ${{ runner.os }}-mint-${{ hashFiles('**/Mintfile') }}
-          restore-keys: |
-            ${{ runner.os }}-mint-
-
-      - name: Generate XcodeProject
-        env:
-          CI: true
-        run: make generate-project-file
-
-      - name: Upload Xcode project file
-        uses: actions/upload-artifact@v3
-        with:
-          name: output-xcodeproj-file
-          path: ./Bucketeer.xcodeproj
-
-      - name: Upload dummy environment file
-        uses: actions/upload-artifact@v3
-        with:
-          name: output-environment-file
-          path: ./environment.xcconfig
+  generate-xcode-project:
+    uses: ./.github/workflows/generate-xcode-project.yml
 
   build:
-    needs: generate-xcodeProject
-    runs-on: macos-latest
+    needs: generate-xcode-project
+    runs-on: macos-13-xlarge
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Download xcode project file
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: output-xcodeproj-file
           path: ./Bucketeer.xcodeproj
@@ -117,19 +56,19 @@ jobs:
         run: make build
 
   build-example:
-    needs: generate-xcodeProject
-    runs-on: macos-latest
+    needs: generate-xcode-project
+    runs-on: macos-13-xlarge
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Download environment file
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: output-environment-file
           path: ./environment.xcconfig
 
       - name: Download xcode project file
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: output-xcodeproj-file
           path: ./Bucketeer.xcodeproj
@@ -140,13 +79,13 @@ jobs:
         run: make build-example
 
   test:
-    needs: generate-xcodeProject
-    runs-on: macos-latest
+    needs: generate-xcode-project
+    runs-on: macos-13-xlarge
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Download xcode project file
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: output-xcodeproj-file
           path: ./Bucketeer.xcodeproj

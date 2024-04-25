@@ -15,12 +15,12 @@ jobs:
 
   build:
     needs: generate-xcode-project
-    runs-on: macos-latest
+    runs-on: macos-13-xlarge
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Download xcode project file
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: output-xcodeproj-file
           path: ./Bucketeer.xcodeproj
@@ -32,18 +32,18 @@ jobs:
 
   build-example:
     needs: generate-xcode-project
-    runs-on: macos-latest
+    runs-on: macos-13-xlarge
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Download xcode project file
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: output-xcodeproj-file
           path: ./Bucketeer.xcodeproj
 
       - name: Download environment file
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
             name: output-environment-file
             path: ./environment.xcconfig
@@ -56,18 +56,18 @@ jobs:
   test:
     name: Unit tests
     needs: generate-xcode-project
-    runs-on: macos-latest
+    runs-on: macos-13-xlarge
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Download xcode project file
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: output-xcodeproj-file
           path: ./Bucketeer.xcodeproj
 
       - name: Download environment file
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: output-environment-file
           path: ./environment.xcconfig
