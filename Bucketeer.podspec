@@ -17,6 +17,9 @@ Pod::Spec.new do |s|
     :git => 'https://github.com/bucketeer-io/ios-client-sdk.git',
     :tag => "v#{s.version}",
   }
+  s.resource_bundles = {
+    'BucketeerPrivacyInfo' => ['Bucketeer/PrivacyInfo.xcprivacy'],
+  }
 
   s.license = {
     :type => 'Apache License, Version 2.0',
