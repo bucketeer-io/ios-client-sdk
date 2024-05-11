@@ -17,7 +17,7 @@ let package = Package(
         .target(
             name: "Bucketeer",
             path: "./Bucketeer",
-            resources: [.copy("PrivacyInfo.xcprivacy")]),
+            resources: [.process("PrivacyInfo.xcprivacy")]),
         .testTarget(
             name: "BucketeerTests",
             dependencies: ["Bucketeer"],
