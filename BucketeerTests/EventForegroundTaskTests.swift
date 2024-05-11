@@ -45,10 +45,10 @@ class EventForegroundTaskTests: XCTestCase {
             expectation.fulfill()
         }
         let config = BKTConfig.mock(
-            eventsFlushInterval: 10,
+            eventsFlushInterval: 5000,
             eventsMaxQueueSize: 3,
-            pollingInterval: 2000,
-            backgroundPollingInterval: 1000
+            pollingInterval: 10000,
+            backgroundPollingInterval: 20000
         )
         let component = MockComponent(
             config: config,
