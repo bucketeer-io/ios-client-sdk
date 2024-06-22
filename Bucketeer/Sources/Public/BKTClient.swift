@@ -12,35 +12,9 @@ public class BKTClient {
         self.component = ComponentImpl(dataModule: dataModule)
     }
 
-    func getVariationValue<T>(featureId: String, defaultValue: T) -> T {
-        component.config.logger?.debug(message: "BKTClient.getVariation(featureId = \(featureId), defaultValue = \(defaultValue) called")
-        let raw = component.evaluationInteractor.getLatest(
-            userId: component.userHolder.userId,
-            featureId: featureId
-        )
-        let user = component.userHolder.user
-        let featureTag = component.config.featureTag
-        guard let raw = raw else {
-            execute {
-                try self.component.eventInteractor.trackDefaultEvaluationEvent(
-                    featureTag: featureTag,
-                    user: user,
-                    featureId: featureId
-                )
-            }
-            return defaultValue
-        }
-        execute {
-            try self.component.eventInteractor.trackEvaluationEvent(
-                featureTag: featureTag,
-                user: user,
-                evaluation: raw
-            )
-        }
-        return raw.getVariationValue(
-            defaultValue: defaultValue,
-            logger: component.config.logger
-        )
+    func getVariationValue<T: Equatable>(featureId: String, defaultValue: T) -> T {
+        let evaluationDetail = getVariationDetail(featureId: featureId, defaultValue: defaultValue)
+        return evaluationDetail.variationValue
     }
 
     fileprivate func scheduleTasks() {
@@ -126,6 +100,50 @@ extension BKTClient {
         }
     }
 
+    public func getVariationDetail<T:Equatable>(featureId: String, defaultValue: T) -> BKTEvaluationDetail<T> {
+        component.config.logger?.debug(message: "BKTClient.getVariation(featureId = \(featureId), defaultValue = \(defaultValue) called")
+        let raw = component.evaluationInteractor.getLatest(
+            userId: component.userHolder.userId,
+            featureId: featureId
+        )
+        let user = component.userHolder.user
+        let featureTag = component.config.featureTag
+
+        guard let raw = raw, let value: T = raw.getVariationValues(
+            logger: component.config.logger
+        ) else {
+            execute {
+                try self.component.eventInteractor.trackDefaultEvaluationEvent(
+                    featureTag: featureTag,
+                    user: user,
+                    featureId: featureId
+                )
+            }
+            return BKTEvaluationDetail.newDefaultInstance(
+                featureId: featureId,
+                userId: user.id,
+                defaultValue: defaultValue
+            )
+        }
+        execute {
+            try self.component.eventInteractor.trackEvaluationEvent(
+                featureTag: featureTag,
+                user: user,
+                evaluation: raw
+            )
+        }
+
+        return BKTEvaluationDetail(
+            featureId: featureId,
+            featureVersion: raw.featureVersion,
+            userId: raw.userId,
+            variationId: raw.variationId,
+            variationName: raw.variationName,
+            variationValue: value,
+            reason: BKTEvaluationDetail<T>.Reason(rawValue: raw.reason.type.rawValue) ?? .client
+        )
+    }
+
     public func stringVariation(featureId: String, defaultValue: String) -> String {
         return getVariationValue(featureId: featureId, defaultValue: defaultValue)
     }
@@ -200,6 +218,7 @@ extension BKTClient {
         }
     }
 
+    @available(*, deprecated, message: "getVariationDetail<T> instead")
     public func evaluationDetails(featureId: String) -> BKTEvaluation? {
         let userId = self.component.userHolder.userId
         let evaluation = self.component.evaluationInteractor.getLatest(userId: userId, featureId: featureId)
