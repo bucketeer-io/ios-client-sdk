@@ -6,101 +6,17 @@ public class BKTClient {
     let component: Component
     let dispatchQueue: DispatchQueue
     private(set) var taskScheduler: TaskScheduler?
-
+    
     init(dataModule: DataModule, dispatchQueue: DispatchQueue) {
         self.dispatchQueue = dispatchQueue
         self.component = ComponentImpl(dataModule: dataModule)
     }
-
+    
     func getVariationValue<T: Equatable>(featureId: String, defaultValue: T) -> T {
-        let evaluationDetail = getVariationDetail(featureId: featureId, defaultValue: defaultValue)
-        return evaluationDetail.variationValue
+        return getVariationDetail(featureId: featureId, defaultValue: defaultValue).variationValue
     }
-
-    fileprivate func scheduleTasks() {
-        self.taskScheduler = TaskScheduler(component: component, dispatchQueue: dispatchQueue)
-    }
-
-    func refreshCache() {
-        do {
-            try component.evaluationInteractor.refreshCache()
-        } catch let error {
-            component.config.logger?.error(error)
-        }
-    }
-
-    func execute(_ handler: @escaping () throws -> Void) {
-        dispatchQueue.async {
-            do {
-                try handler()
-            } catch let error {
-                self.component.config.logger?.error(error)
-            }
-        }
-    }
-
-    private func destroy() {
-        taskScheduler?.invalidate()
-        taskScheduler = nil
-        execute { [weak self] in
-            // must destroy in the intenal queue to prevent race condition
-            self?.component.destroy()
-        }
-    }
-}
-
-extension BKTClient {
-    public static func initialize(config: BKTConfig, user: BKTUser, timeoutMillis: Int64 = 5000, completion: ((BKTError?) -> Void)? = nil) throws {
-        concurrentQueue.sync {
-            let initializeCompletion : (BKTError?) -> Void = { err in
-                DispatchQueue.main.async {
-                    completion?(err)
-                }
-            }
-
-            guard BKTClient.default == nil else {
-                config.logger?.warn(message: "BKTClient is already initialized. Not sure if the initial fetch has finished")
-                initializeCompletion(nil)
-                return
-            }
-            do {
-                let dispatchQueue = DispatchQueue(label: "io.bucketeer.taskQueue")
-                let dataModule = try DataModuleImpl(user: user.toUser(), config: config)
-                let client = BKTClient(dataModule: dataModule, dispatchQueue: dispatchQueue)
-                client.scheduleTasks()
-                client.execute { [weak client] in
-                    client?.refreshCache()
-                    client?.fetchEvaluations(timeoutMillis: timeoutMillis, completion: initializeCompletion)
-                }
-                BKTClient.default = client
-            } catch let error {
-                config.logger?.error(error)
-                initializeCompletion(error as? BKTError ?? BKTError.unknown(message: "unknown error while returning the initialize completion", error: error))
-            }
-        }
-    }
-
-    public static func destroy() throws {
-        concurrentQueue.sync {
-            BKTClient.default?.destroy()
-            BKTClient.default = nil
-        }
-    }
-
-    // Please make sure the BKTClient is initialize before access it
-    public static var shared: BKTClient {
-        get throws {
-            // We do not want to crash the SDK's consumer app on runtime by using fatalError().
-            // So let the app has a chance to catch this exception
-            // The same behavior with the Android SDK
-            guard BKTClient.default != nil else {
-                throw BKTError.illegalState(message: "BKTClient is not initialized")
-            }
-            return BKTClient.default
-        }
-    }
-
-    public func getVariationDetail<T:Equatable>(featureId: String, defaultValue: T) -> BKTEvaluationDetail<T> {
+    
+    func getVariationDetail<T:Equatable>(featureId: String, defaultValue: T) -> BKTEvaluationDetail<T> {
         component.config.logger?.debug(message: "BKTClient.getVariation(featureId = \(featureId), defaultValue = \(defaultValue) called")
         let raw = component.evaluationInteractor.getLatest(
             userId: component.userHolder.userId,
@@ -108,7 +24,7 @@ extension BKTClient {
         )
         let user = component.userHolder.user
         let featureTag = component.config.featureTag
-
+        
         guard let raw = raw, let value: T = raw.getVariationValues(
             logger: component.config.logger
         ) else {
@@ -132,7 +48,7 @@ extension BKTClient {
                 evaluation: raw
             )
         }
-
+        
         return BKTEvaluationDetail(
             featureId: featureId,
             featureVersion: raw.featureVersion,
@@ -143,27 +59,131 @@ extension BKTClient {
             reason: BKTEvaluationDetail<T>.Reason(rawValue: raw.reason.type.rawValue) ?? .client
         )
     }
+    
+    fileprivate func scheduleTasks() {
+        self.taskScheduler = TaskScheduler(component: component, dispatchQueue: dispatchQueue)
+    }
+    
+    func refreshCache() {
+        do {
+            try component.evaluationInteractor.refreshCache()
+        } catch let error {
+            component.config.logger?.error(error)
+        }
+    }
+    
+    func execute(_ handler: @escaping () throws -> Void) {
+        dispatchQueue.async {
+            do {
+                try handler()
+            } catch let error {
+                self.component.config.logger?.error(error)
+            }
+        }
+    }
+    
+    private func destroy() {
+        taskScheduler?.invalidate()
+        taskScheduler = nil
+        execute { [weak self] in
+            // must destroy in the intenal queue to prevent race condition
+            self?.component.destroy()
+        }
+    }
+}
 
+extension BKTClient {
+    public static func initialize(config: BKTConfig, user: BKTUser, timeoutMillis: Int64 = 5000, completion: ((BKTError?) -> Void)? = nil) throws {
+        concurrentQueue.sync {
+            let initializeCompletion : (BKTError?) -> Void = { err in
+                DispatchQueue.main.async {
+                    completion?(err)
+                }
+            }
+            
+            guard BKTClient.default == nil else {
+                config.logger?.warn(message: "BKTClient is already initialized. Not sure if the initial fetch has finished")
+                initializeCompletion(nil)
+                return
+            }
+            do {
+                let dispatchQueue = DispatchQueue(label: "io.bucketeer.taskQueue")
+                let dataModule = try DataModuleImpl(user: user.toUser(), config: config)
+                let client = BKTClient(dataModule: dataModule, dispatchQueue: dispatchQueue)
+                client.scheduleTasks()
+                client.execute { [weak client] in
+                    client?.refreshCache()
+                    client?.fetchEvaluations(timeoutMillis: timeoutMillis, completion: initializeCompletion)
+                }
+                BKTClient.default = client
+            } catch let error {
+                config.logger?.error(error)
+                initializeCompletion(error as? BKTError ?? BKTError.unknown(message: "unknown error while returning the initialize completion", error: error))
+            }
+        }
+    }
+    
+    public static func destroy() throws {
+        concurrentQueue.sync {
+            BKTClient.default?.destroy()
+            BKTClient.default = nil
+        }
+    }
+    
+    // Please make sure the BKTClient is initialize before access it
+    public static var shared: BKTClient {
+        get throws {
+            // We do not want to crash the SDK's consumer app on runtime by using fatalError().
+            // So let the app has a chance to catch this exception
+            // The same behavior with the Android SDK
+            guard BKTClient.default != nil else {
+                throw BKTError.illegalState(message: "BKTClient is not initialized")
+            }
+            return BKTClient.default
+        }
+    }
+    
+    public func intEvaluationDetails(featureId: String, defaultValue: Int) -> BKTEvaluationDetail<Int> {
+        return getVariationDetail(featureId: featureId, defaultValue: defaultValue)
+    }
+    
+    public func doubleEvaluationDetails(featureId: String, defaultValue: Double) -> BKTEvaluationDetail<Double> {
+        return getVariationDetail(featureId: featureId, defaultValue: defaultValue)
+    }
+    
+    public func boolEvaluationDetails(featureId: String, defaultValue: Bool) -> BKTEvaluationDetail<Bool> {
+        return getVariationDetail(featureId: featureId, defaultValue: defaultValue)
+    }
+    
+    public func stringEvaluationDetails(featureId: String, defaultValue: String) -> BKTEvaluationDetail<String> {
+        return getVariationDetail(featureId: featureId, defaultValue: defaultValue)
+    }
+    
+    public func jsonEvaluationDetails(featureId: String, defaultValue: [String: AnyHashable])
+    -> BKTEvaluationDetail<[String: AnyHashable]> {
+        return getVariationDetail(featureId: featureId, defaultValue: defaultValue)
+    }
+    
     public func stringVariation(featureId: String, defaultValue: String) -> String {
         return getVariationValue(featureId: featureId, defaultValue: defaultValue)
     }
-
+    
     public func intVariation(featureId: String, defaultValue: Int) -> Int {
         return getVariationValue(featureId: featureId, defaultValue: defaultValue)
     }
-
+    
     public func doubleVariation(featureId: String, defaultValue: Double) -> Double {
         return getVariationValue(featureId: featureId, defaultValue: defaultValue)
     }
-
+    
     public func boolVariation(featureId: String, defaultValue: Bool) -> Bool {
         return getVariationValue(featureId: featureId, defaultValue: defaultValue)
     }
-
+    
     public func jsonVariation(featureId: String, defaultValue: [String: AnyHashable]) -> [String: AnyHashable] {
         return getVariationValue(featureId: featureId, defaultValue: defaultValue)
     }
-
+    
     public func track(goalId: String, value: Double = 0.0) {
         let user = component.userHolder.user
         let featureTag = component.config.featureTag
@@ -176,18 +196,18 @@ extension BKTClient {
             )
         }
     }
-
+    
     public func currentUser() -> BKTUser? {
         component.userHolder.user.toBKTUser()
     }
-
+    
     public func updateUserAttributes(attributes: [String: String]) {
         component.userHolder.updateAttributes { _ in
             attributes
         }
         component.evaluationInteractor.setUserAttributesUpdated()
     }
-
+    
     public func fetchEvaluations(timeoutMillis: Int64? = nil, completion: ((BKTError?) -> Void)? = nil) {
         let fetchEvaluationsCompletion : (BKTError?) -> Void = { err in
             DispatchQueue.main.async {
@@ -203,7 +223,7 @@ extension BKTClient {
             )
         }
     }
-
+    
     public func flush(completion: ((BKTError?) -> Void)? = nil) {
         let flushCompletion : (BKTError?) -> Void = { err in
             DispatchQueue.main.async {
@@ -217,7 +237,7 @@ extension BKTClient {
             )
         }
     }
-
+    
     @available(*, deprecated, message: "getVariationDetail<T> instead")
     public func evaluationDetails(featureId: String) -> BKTEvaluation? {
         let userId = self.component.userHolder.userId
@@ -236,16 +256,16 @@ extension BKTClient {
             reason: BKTEvaluation.Reason(rawValue: evaluation.reason.type.rawValue) ?? .default
         )
     }
-
+    
     @discardableResult
     public func addEvaluationUpdateListener(listener: EvaluationUpdateListener) -> String {
         component.evaluationInteractor.addUpdateListener(listener: listener)
     }
-
+    
     public func removeEvaluationUpdateListener(key: String) {
         component.evaluationInteractor.removeUpdateListener(key: key)
     }
-
+    
     public func clearEvaluationUpdateListeners() {
         component.evaluationInteractor.clearUpdateListeners()
     }
@@ -288,7 +308,7 @@ extension BKTClient {
             }
         })
     }
-
+    
     static func flushSync(component: Component, completion: ((BKTError?) -> Void)?) {
         component.eventInteractor.sendEvents(force: true) { result in
             switch result {
