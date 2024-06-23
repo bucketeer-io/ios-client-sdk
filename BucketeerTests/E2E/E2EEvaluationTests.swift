@@ -53,6 +53,20 @@ final class E2EEvaluationTests: XCTestCase {
                 variationValue: "value-1",
                 reason: .default
             ))
+
+            let actualEvaluationDetail = client.stringEvaluationDetails(featureId: FEATURE_ID_STRING, defaultValue: "default")
+
+            XCTAssertEqual(
+                actualEvaluationDetail,
+                .init(
+                    featureId: FEATURE_ID_STRING,
+                    featureVersion: 3,
+                    userId: USER_ID,
+                    variationId: "349ed945-d2f9-4d04-8e83-82344cffd1ec",
+                    variationName: "variation 1",
+                    variationValue: "value-1",
+                    reason: .default
+                ))
         } catch {
             XCTFail(error.localizedDescription)
         }
@@ -81,6 +95,20 @@ final class E2EEvaluationTests: XCTestCase {
                 variationValue: "10",
                 reason: .default
             ))
+
+            let actualEvaluationDetail = client.intEvaluationDetails(featureId: FEATURE_ID_INT, defaultValue: 1)
+
+            XCTAssertEqual(
+                actualEvaluationDetail,
+                .init(
+                    featureId: FEATURE_ID_INT,
+                    featureVersion: 4,
+                    userId: USER_ID,
+                    variationId: "9c5fd2d2-d587-4ba2-8de2-0fc9454d564e",
+                    variationName: "variation 10",
+                    variationValue: 10,
+                    reason: .default
+                ))
         } catch {
             XCTFail(error.localizedDescription)
         }
@@ -109,6 +137,20 @@ final class E2EEvaluationTests: XCTestCase {
                 variationValue: "2.1",
                 reason: .default
             ))
+
+            let actualEvaluationDetail = client.doubleEvaluationDetails(featureId: FEATURE_ID_DOUBLE, defaultValue: 1.1)
+
+            XCTAssertEqual(
+                actualEvaluationDetail,
+                .init(
+                    featureId: FEATURE_ID_DOUBLE,
+                    featureVersion: 3,
+                    userId: USER_ID,
+                    variationId: "38078d8f-c6eb-4b93-9d58-c3e57010983f",
+                    variationName: "variation 2.1",
+                    variationValue: 2.1,
+                    reason: .default
+                ))
         } catch {
             XCTFail(error.localizedDescription)
         }
@@ -117,17 +159,7 @@ final class E2EEvaluationTests: XCTestCase {
     func testBoolVariation() {
         do {
             let client = try BKTClient.shared
-            let actual = client.evaluationDetails(featureId: FEATURE_ID_BOOLEAN)
-
-            assertEvaluation(actual: actual, expected: .init(
-                id: "feature-ios-e2e-bool:3:bucketeer-ios-user-id-1",
-                featureId: FEATURE_ID_BOOLEAN,
-                featureVersion: 3,
-                variationId: "4f9e0f88-e053-42a9-93e1-95d407f67021",
-                variationName: "variation true",
-                variationValue: "true",
-                reason: .default
-            ))
+            XCTAssertEqual(client.boolVariation(featureId: FEATURE_ID_BOOLEAN, defaultValue: false), true)
         } catch {
             XCTFail(error.localizedDescription)
         }
@@ -147,6 +179,20 @@ final class E2EEvaluationTests: XCTestCase {
                 variationValue: "true",
                 reason: .default
             ))
+
+            let actualEvaluationDetail = client.boolEvaluationDetails(featureId: FEATURE_ID_BOOLEAN, defaultValue: false)
+
+            XCTAssertEqual(
+                actualEvaluationDetail,
+                .init(
+                    featureId: FEATURE_ID_BOOLEAN,
+                    featureVersion: 3,
+                    userId: USER_ID,
+                    variationId: "4f9e0f88-e053-42a9-93e1-95d407f67021",
+                    variationName: "variation true",
+                    variationValue: true,
+                    reason: .default
+                ))
         } catch {
             XCTFail(error.localizedDescription)
         }
@@ -176,6 +222,20 @@ final class E2EEvaluationTests: XCTestCase {
                 variationValue: "{ \"key\": \"value-1\" }",
                 reason: .default
             ))
+
+            let actualEvaluationDetail = client.jsonEvaluationDetails(featureId: FEATURE_ID_JSON, defaultValue: [:])
+
+            XCTAssertEqual(
+                actualEvaluationDetail,
+                .init(
+                    featureId: FEATURE_ID_BOOLEAN,
+                    featureVersion: 3,
+                    userId: USER_ID,
+                    variationId: "06f5be6b-0c79-431f-a057-822babd9d3eb",
+                    variationName: "variation 1",
+                    variationValue: ["key": "value-1"],
+                    reason: .default
+                ))
         } catch {
             XCTFail(error.localizedDescription)
         }

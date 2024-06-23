@@ -54,7 +54,7 @@ public struct BKTEvaluationDetail<T:Equatable>: Equatable {
         lhs.variationValue == rhs.variationValue
     }
 
-    public static func newDefaultInstance(featureId: String, userId: String, defaultValue: T) -> BKTEvaluationDetail<T> {
+    static func newDefaultInstance(featureId: String, userId: String, defaultValue: T) -> BKTEvaluationDetail<T> {
         return BKTEvaluationDetail(
             featureId: featureId,
             featureVersion: 0,
@@ -64,5 +64,21 @@ public struct BKTEvaluationDetail<T:Equatable>: Equatable {
             variationValue: defaultValue,
             reason: .client
         )
+    }
+
+    public init(featureId: String,
+                featureVersion: Int,
+                userId: String,
+                variationId: String,
+                variationName: String,
+                variationValue: T,
+                reason: Reason) {
+        self.featureId = featureId
+        self.featureVersion = featureVersion
+        self.userId = userId
+        self.variationId = variationId
+        self.variationName = variationName
+        self.variationValue = variationValue
+        self.reason = reason
     }
 }
