@@ -38,6 +38,10 @@ public struct BKTEvaluationDetail<T:Equatable>: Equatable {
         case client = "CLIENT"
         case offVariation = "OFF_VARIATION"
         case prerequisite = "PREREQUISITE"
+
+        public static func fromString(value: String) -> Reason {
+            return Reason(rawValue: value) ?? .client
+        }
     }
 
     public static func == (lhs: BKTEvaluationDetail<T>, rhs: BKTEvaluationDetail<T>) -> Bool {

@@ -56,7 +56,7 @@ public class BKTClient {
             variationId: raw.variationId,
             variationName: raw.variationName,
             variationValue: value,
-            reason: BKTEvaluationDetail<T>.Reason(rawValue: raw.reason.type.rawValue) ?? .client
+            reason: BKTEvaluationDetail<T>.Reason.fromString(value: raw.reason.type.rawValue)
         )
     }
 

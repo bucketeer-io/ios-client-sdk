@@ -91,6 +91,76 @@ extension Evaluation {
             ruleId: "rule5"
         )
     )
+
+    static let stringEvaluation = Evaluation(
+        id: "stringEvaluation:1:user2",
+        featureId: "stringEvaluation",
+        featureVersion: 1,
+        userId: User.mock2.id,
+        variationId: "variation string",
+        variationName: "variation name string",
+        variationValue: "test variation value",
+        reason: .init(
+            type: .rule,
+            ruleId: "rule3"
+        )
+    )
+
+    static let intEvaluation = Evaluation(
+        id: "intEvaluation:1:user2",
+        featureId: "intEvaluation",
+        featureVersion: 1,
+        userId: User.mock2.id,
+        variationId: "variation int",
+        variationName: "variation name int",
+        variationValue: "1",
+        reason: .init(
+            type: .rule,
+            ruleId: "rule3"
+        )
+    )
+
+    static let doubleEvaluation = Evaluation(
+        id: "doubleEvaluation:1:user2",
+        featureId: "doubleEvaluation",
+        featureVersion: 1,
+        userId: User.mock2.id,
+        variationId: "variation double",
+        variationName: "variation name double",
+        variationValue: "12.2",
+        reason: .init(
+            type: .rule,
+            ruleId: "rule3"
+        )
+    )
+
+    static let boolEvaluation = Evaluation(
+        id: "boolEvaluation:1:user2",
+        featureId: "boolEvaluation",
+        featureVersion: 1,
+        userId: User.mock2.id,
+        variationId: "variation bool",
+        variationName: "variation name bool",
+        variationValue: "true",
+        reason: .init(
+            type: .rule,
+            ruleId: "rule3"
+        )
+    )
+
+    static let jsonEvaluation = Evaluation(
+        id: "jsonEvaluation:1:user2",
+        featureId: "jsonEvaluation",
+        featureVersion: 1,
+        userId: User.mock2.id,
+        variationId: "variation json",
+        variationName: "variation name json",
+        variationValue: "{ \"key\": \"value\", \"key2\": \"value2\" }",
+        reason: .init(
+            type: .rule,
+            ruleId: "rule3"
+        )
+    )
 }
 
 extension UserEvaluations {
@@ -129,6 +199,14 @@ extension UserEvaluations {
     static let mock2 = UserEvaluations(
         id: "user_evaluation2",
         evaluations: [.mock3, .mock4, .mock5],
+        createdAt: "",
+        forceUpdate: false,
+        archivedFeatureIds: []
+    )
+
+    static let mockUserEvaluationsDetails = UserEvaluations(
+        id: "user_evaluation_details",
+        evaluations: [.stringEvaluation, .intEvaluation, .boolEvaluation, .doubleEvaluation, .jsonEvaluation],
         createdAt: "",
         forceUpdate: false,
         archivedFeatureIds: []
