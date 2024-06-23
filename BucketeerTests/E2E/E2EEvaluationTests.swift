@@ -228,7 +228,7 @@ final class E2EEvaluationTests: XCTestCase {
             XCTAssertEqual(
                 actualEvaluationDetail,
                 .init(
-                    featureId: FEATURE_ID_BOOLEAN,
+                    featureId: FEATURE_ID_JSON,
                     featureVersion: 3,
                     userId: USER_ID,
                     variationId: "06f5be6b-0c79-431f-a057-822babd9d3eb",
