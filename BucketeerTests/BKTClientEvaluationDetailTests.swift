@@ -3,7 +3,8 @@ import XCTest
 
 final class BKTClientEvaluationDetailTests: XCTestCase {
 
-    override func setUp() {
+    @MainActor
+    override func setUpWithError() throws {
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = 3
         expectation.assertForOverFulfill = true
@@ -41,7 +42,8 @@ final class BKTClientEvaluationDetailTests: XCTestCase {
         wait(for: [expectation], timeout: 1)
     }
 
-    override func tearDown() async throws {
+    @MainActor
+    override func tearDownWithError() throws {
         try BKTClient.destroy()
     }
 
@@ -87,6 +89,49 @@ final class BKTClientEvaluationDetailTests: XCTestCase {
         )
     }
 
+    func testStringEvaluationDetail() {
+        let client = BKTClient.default!
+
+        let expectedEvaluation = Evaluation.stringEvaluation
+        let expectedEvaluationValue = expectedEvaluation.getVariationValue(defaultValue: "2.0", logger: nil)
+        XCTAssertEqual(expectedEvaluationValue, "test variation value")
+
+        let featureId = expectedEvaluation.featureId
+
+        let actualEvaluation = client.stringEvaluationDetails(featureId: featureId, defaultValue: "2.0")
+        XCTAssertEqual(
+            actualEvaluation,
+            BKTEvaluationDetail(
+                featureId: expectedEvaluation.featureId,
+                featureVersion: expectedEvaluation.featureVersion,
+                userId: expectedEvaluation.userId,
+                variationId: expectedEvaluation.variationId,
+                variationName: expectedEvaluation.variationName,
+                variationValue: expectedEvaluationValue,
+                reason: BKTEvaluationDetail.Reason.fromString(value: expectedEvaluation.reason.type.rawValue))
+        )
+
+        XCTAssertEqual(
+            client.doubleEvaluationDetails(featureId: featureId, defaultValue: 2.1),
+            BKTEvaluationDetail.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: 2.1)
+        )
+
+        XCTAssertEqual(
+            client.boolEvaluationDetails(featureId: featureId, defaultValue: true),
+            BKTEvaluationDetail.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: true)
+        )
+
+        XCTAssertEqual(
+            client.intEvaluationDetails(featureId: featureId, defaultValue: 1),
+            BKTEvaluationDetail.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: 1)
+        )
+
+        XCTAssertEqual(
+            client.jsonEvaluationDetails(featureId: featureId, defaultValue: ["k":"v"]),
+            BKTEvaluationDetail.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: ["k":"v"])
+        )
+    }
+
     func testIntEvaluationDetail() {
         let client = BKTClient.default!
 
@@ -118,7 +163,186 @@ final class BKTClientEvaluationDetailTests: XCTestCase {
                 userId: expectedEvaluation.userId,
                 variationId: expectedEvaluation.variationId,
                 variationName: expectedEvaluation.variationName,
-                variationValue: expectedEvaluation.variationValue,
+                variationValue: "1",
+                reason: BKTEvaluationDetail.Reason.fromString(value: expectedEvaluation.reason.type.rawValue))
+        )
+
+        XCTAssertEqual(
+            client.doubleEvaluationDetails(featureId: featureId, defaultValue: 2.1),
+            BKTEvaluationDetail(
+                featureId: expectedEvaluation.featureId,
+                featureVersion: expectedEvaluation.featureVersion,
+                userId: expectedEvaluation.userId,
+                variationId: expectedEvaluation.variationId,
+                variationName: expectedEvaluation.variationName,
+                variationValue: 1.0,
+                reason: BKTEvaluationDetail.Reason.fromString(value: expectedEvaluation.reason.type.rawValue))
+        )
+
+        XCTAssertEqual(
+            client.boolEvaluationDetails(featureId: featureId, defaultValue: true),
+            BKTEvaluationDetail.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: true)
+        )
+
+        XCTAssertEqual(
+            client.jsonEvaluationDetails(featureId: featureId, defaultValue: ["k":"v"]),
+            BKTEvaluationDetail.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: ["k":"v"])
+        )
+    }
+
+    func testBoolEvaluationDetail() {
+        let client = BKTClient.default!
+
+        let expectedEvaluation = Evaluation.boolEvaluation
+        let expectedEvaluationValue = expectedEvaluation.getVariationValue(defaultValue: false, logger: nil)
+        XCTAssertEqual(expectedEvaluationValue, true)
+
+        let featureId = expectedEvaluation.featureId
+
+        let actualEvaluation = client.boolEvaluationDetails(featureId: featureId, defaultValue: false)
+        XCTAssertEqual(
+            actualEvaluation,
+            BKTEvaluationDetail(
+                featureId: expectedEvaluation.featureId,
+                featureVersion: expectedEvaluation.featureVersion,
+                userId: expectedEvaluation.userId,
+                variationId: expectedEvaluation.variationId,
+                variationName: expectedEvaluation.variationName,
+                variationValue: expectedEvaluationValue,
+                reason: BKTEvaluationDetail.Reason.fromString(value: expectedEvaluation.reason.type.rawValue))
+        )
+
+        let actualStringEvaluation = client.stringEvaluationDetails(featureId: featureId, defaultValue: "2")
+        XCTAssertEqual(
+            actualStringEvaluation,
+            BKTEvaluationDetail(
+                featureId: expectedEvaluation.featureId,
+                featureVersion: expectedEvaluation.featureVersion,
+                userId: expectedEvaluation.userId,
+                variationId: expectedEvaluation.variationId,
+                variationName: expectedEvaluation.variationName,
+                variationValue: "true",
+                reason: BKTEvaluationDetail.Reason.fromString(value: expectedEvaluation.reason.type.rawValue))
+        )
+
+        XCTAssertEqual(
+            client.doubleEvaluationDetails(featureId: featureId, defaultValue: 2.1),
+            BKTEvaluationDetail.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: 2.1)
+        )
+
+        XCTAssertEqual(
+            client.intEvaluationDetails(featureId: featureId, defaultValue: 1),
+            BKTEvaluationDetail.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: 1)
+        )
+
+        XCTAssertEqual(
+            client.jsonEvaluationDetails(featureId: featureId, defaultValue: ["k":"v"]),
+            BKTEvaluationDetail.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: ["k":"v"])
+        )
+    }
+
+    func testDoubleEvaluationDetail() {
+        let client = BKTClient.default!
+
+        let expectedEvaluation = Evaluation.doubleEvaluation
+        let expectedEvaluationValue = expectedEvaluation.getVariationValue(defaultValue: 2.0, logger: nil)
+        XCTAssertEqual(expectedEvaluationValue, 12.2)
+
+        let featureId = expectedEvaluation.featureId
+
+        let actualEvaluation = client.doubleEvaluationDetails(featureId: featureId, defaultValue: 2.0)
+        XCTAssertEqual(
+            actualEvaluation,
+            BKTEvaluationDetail(
+                featureId: expectedEvaluation.featureId,
+                featureVersion: expectedEvaluation.featureVersion,
+                userId: expectedEvaluation.userId,
+                variationId: expectedEvaluation.variationId,
+                variationName: expectedEvaluation.variationName,
+                variationValue: expectedEvaluationValue,
+                reason: BKTEvaluationDetail.Reason.fromString(value: expectedEvaluation.reason.type.rawValue))
+        )
+
+        let actualStringEvaluation = client.stringEvaluationDetails(featureId: featureId, defaultValue: "2.2")
+        XCTAssertEqual(
+            actualStringEvaluation,
+            BKTEvaluationDetail(
+                featureId: expectedEvaluation.featureId,
+                featureVersion: expectedEvaluation.featureVersion,
+                userId: expectedEvaluation.userId,
+                variationId: expectedEvaluation.variationId,
+                variationName: expectedEvaluation.variationName,
+                variationValue: "12.2",
+                reason: BKTEvaluationDetail.Reason.fromString(value: expectedEvaluation.reason.type.rawValue))
+        )
+
+        XCTAssertEqual(
+            client.boolEvaluationDetails(featureId: featureId, defaultValue: true),
+            BKTEvaluationDetail.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: true)
+        )
+
+        XCTAssertEqual(
+            client.intEvaluationDetails(featureId: featureId, defaultValue: 1),
+            BKTEvaluationDetail.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: 1)
+        )
+
+        XCTAssertEqual(
+            client.jsonEvaluationDetails(featureId: featureId, defaultValue: ["k":"v"]),
+            BKTEvaluationDetail.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: ["k":"v"])
+        )
+    }
+
+    func testJsonEvaluationDetail() {
+        let client = BKTClient.default!
+
+        let expectedEvaluation = Evaluation.jsonEvaluation
+        let expectedEvaluationValue = expectedEvaluation.getVariationValue(defaultValue: ["k":"k"], logger: nil)
+
+        XCTAssertEqual(expectedEvaluationValue, ["value":"body", "value1":"body1"])
+
+        let featureId = expectedEvaluation.featureId
+
+        XCTAssertEqual(
+            client.jsonEvaluationDetails(featureId: featureId, defaultValue: ["k":"v"]),
+            BKTEvaluationDetail(
+                featureId: expectedEvaluation.featureId,
+                featureVersion: expectedEvaluation.featureVersion,
+                userId: expectedEvaluation.userId,
+                variationId: expectedEvaluation.variationId,
+                variationName: expectedEvaluation.variationName,
+                variationValue: ["value":"body", "value1":"body1"],
+                reason: BKTEvaluationDetail.Reason.fromString(value: expectedEvaluation.reason.type.rawValue))
+        )
+
+        XCTAssertEqual(
+            client.doubleEvaluationDetails(featureId: featureId, defaultValue: 2.1),
+            BKTEvaluationDetail.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: 2.1)
+        )
+
+        XCTAssertEqual(
+            client.boolEvaluationDetails(featureId: featureId, defaultValue: true),
+            BKTEvaluationDetail.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: true)
+        )
+
+        XCTAssertEqual(
+            client.intEvaluationDetails(featureId: featureId, defaultValue: 1),
+            BKTEvaluationDetail.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: 1)
+        )
+
+        XCTAssertEqual(
+            client.stringEvaluationDetails(featureId: featureId, defaultValue: "2.0"),
+            BKTEvaluationDetail(
+                featureId: expectedEvaluation.featureId,
+                featureVersion: expectedEvaluation.featureVersion,
+                userId: expectedEvaluation.userId,
+                variationId: expectedEvaluation.variationId,
+                variationName: expectedEvaluation.variationName,
+                variationValue: """
+{
+  "value" : "body",
+  "value1" : "body1"
+}
+""",
                 reason: BKTEvaluationDetail.Reason.fromString(value: expectedEvaluation.reason.type.rawValue))
         )
     }

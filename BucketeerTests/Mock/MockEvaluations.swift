@@ -96,7 +96,7 @@ extension Evaluation {
         id: "stringEvaluation:1:user2",
         featureId: "stringEvaluation",
         featureVersion: 1,
-        userId: User.mock2.id,
+        userId: User.mock1.id,
         variationId: "variation string",
         variationName: "variation name string",
         variationValue: "test variation value",
@@ -110,7 +110,7 @@ extension Evaluation {
         id: "intEvaluation:1:user2",
         featureId: "intEvaluation",
         featureVersion: 1,
-        userId: User.mock2.id,
+        userId: User.mock1.id,
         variationId: "variation int",
         variationName: "variation name int",
         variationValue: "1",
@@ -124,7 +124,7 @@ extension Evaluation {
         id: "doubleEvaluation:1:user2",
         featureId: "doubleEvaluation",
         featureVersion: 1,
-        userId: User.mock2.id,
+        userId: User.mock1.id,
         variationId: "variation double",
         variationName: "variation name double",
         variationValue: "12.2",
@@ -138,7 +138,7 @@ extension Evaluation {
         id: "boolEvaluation:1:user2",
         featureId: "boolEvaluation",
         featureVersion: 1,
-        userId: User.mock2.id,
+        userId: User.mock1.id,
         variationId: "variation bool",
         variationName: "variation name bool",
         variationValue: "true",
@@ -152,10 +152,15 @@ extension Evaluation {
         id: "jsonEvaluation:1:user2",
         featureId: "jsonEvaluation",
         featureVersion: 1,
-        userId: User.mock2.id,
+        userId: User.mock1.id,
         variationId: "variation json",
         variationName: "variation name json",
-        variationValue: "{ \"key\": \"value\", \"key2\": \"value2\" }",
+        variationValue: """
+{
+  "value" : "body",
+  "value1" : "body1"
+}
+""",
         reason: .init(
             type: .rule,
             ruleId: "rule3"
