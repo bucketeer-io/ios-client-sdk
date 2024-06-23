@@ -296,7 +296,7 @@ final class BKTClientEvaluationDetailTests: XCTestCase {
         let client = BKTClient.default!
 
         let expectedEvaluation = Evaluation.jsonEvaluation
-        let expectedEvaluationValue = expectedEvaluation.getVariationValue(defaultValue: ["k":"k"], logger: nil)
+        let expectedEvaluationValue: [String: AnyHashable] = expectedEvaluation.getVariationValue(defaultValue: ["k":"k"], logger: nil)
 
         XCTAssertEqual(expectedEvaluationValue, ["value":"body", "value1":"body1"])
 

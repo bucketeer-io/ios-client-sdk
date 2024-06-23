@@ -28,7 +28,7 @@ extension Evaluation {
             anyValue = Double(value)
         case is Bool.Type:
             anyValue = Bool(value)
-        case is [String: AnyHashable].Type, is [String: String].Type:
+        case is [String: AnyHashable].Type:
             let data = value.data(using: .utf8) ?? Data()
             let json = (try? JSONSerialization.jsonObject(with: data)) as? [String: AnyHashable]
             anyValue = json
