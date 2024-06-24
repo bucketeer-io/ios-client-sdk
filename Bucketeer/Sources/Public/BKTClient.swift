@@ -16,7 +16,7 @@ public class BKTClient {
         return getVariationDetail(featureId: featureId, defaultValue: defaultValue).variationValue
     }
 
-    func getVariationDetail<T:Equatable>(featureId: String, defaultValue: T) -> BKTEvaluationDetail<T> {
+    func getVariationDetail<T:Equatable>(featureId: String, defaultValue: T) -> BKTEvaluationDetails<T> {
         component.config.logger?.debug(message: "BKTClient.getVariation(featureId = \(featureId), defaultValue = \(defaultValue) called")
         let raw = component.evaluationInteractor.getLatest(
             userId: component.userHolder.userId,
@@ -35,7 +35,7 @@ public class BKTClient {
                     featureId: featureId
                 )
             }
-            return BKTEvaluationDetail.newDefaultInstance(
+            return BKTEvaluationDetails.newDefaultInstance(
                 featureId: featureId,
                 userId: user.id,
                 defaultValue: defaultValue
@@ -49,14 +49,14 @@ public class BKTClient {
             )
         }
 
-        return BKTEvaluationDetail(
+        return BKTEvaluationDetails(
             featureId: featureId,
             featureVersion: raw.featureVersion,
             userId: raw.userId,
             variationId: raw.variationId,
             variationName: raw.variationName,
             variationValue: value,
-            reason: BKTEvaluationDetail<T>.Reason.fromString(value: raw.reason.type.rawValue)
+            reason: BKTEvaluationDetails<T>.Reason.fromString(value: raw.reason.type.rawValue)
         )
     }
 
@@ -143,24 +143,24 @@ extension BKTClient {
         }
     }
 
-    public func intEvaluationDetails(featureId: String, defaultValue: Int) -> BKTEvaluationDetail<Int> {
+    public func intEvaluationDetails(featureId: String, defaultValue: Int) -> BKTEvaluationDetails<Int> {
         return getVariationDetail(featureId: featureId, defaultValue: defaultValue)
     }
 
-    public func doubleEvaluationDetails(featureId: String, defaultValue: Double) -> BKTEvaluationDetail<Double> {
+    public func doubleEvaluationDetails(featureId: String, defaultValue: Double) -> BKTEvaluationDetails<Double> {
         return getVariationDetail(featureId: featureId, defaultValue: defaultValue)
     }
 
-    public func boolEvaluationDetails(featureId: String, defaultValue: Bool) -> BKTEvaluationDetail<Bool> {
+    public func boolEvaluationDetails(featureId: String, defaultValue: Bool) -> BKTEvaluationDetails<Bool> {
         return getVariationDetail(featureId: featureId, defaultValue: defaultValue)
     }
 
-    public func stringEvaluationDetails(featureId: String, defaultValue: String) -> BKTEvaluationDetail<String> {
+    public func stringEvaluationDetails(featureId: String, defaultValue: String) -> BKTEvaluationDetails<String> {
         return getVariationDetail(featureId: featureId, defaultValue: defaultValue)
     }
 
     public func jsonEvaluationDetails(featureId: String, defaultValue: [String: AnyHashable])
-    -> BKTEvaluationDetail<[String: AnyHashable]> {
+    -> BKTEvaluationDetails<[String: AnyHashable]> {
         return getVariationDetail(featureId: featureId, defaultValue: defaultValue)
     }
 

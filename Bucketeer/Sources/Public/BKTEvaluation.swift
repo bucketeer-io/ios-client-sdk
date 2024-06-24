@@ -22,7 +22,7 @@ public struct BKTEvaluation: Equatable {
     }
 }
 
-public struct BKTEvaluationDetail<T:Equatable>: Equatable {
+public struct BKTEvaluationDetails<T:Equatable>: Equatable {
     public let featureId: String
     public let featureVersion: Int
     public let userId: String
@@ -44,7 +44,7 @@ public struct BKTEvaluationDetail<T:Equatable>: Equatable {
         }
     }
 
-    public static func == (lhs: BKTEvaluationDetail<T>, rhs: BKTEvaluationDetail<T>) -> Bool {
+    public static func == (lhs: BKTEvaluationDetails<T>, rhs: BKTEvaluationDetails<T>) -> Bool {
         return lhs.featureId == rhs.featureId &&
         lhs.featureVersion == rhs.featureVersion &&
         lhs.userId == rhs.userId &&
@@ -54,8 +54,8 @@ public struct BKTEvaluationDetail<T:Equatable>: Equatable {
         lhs.variationValue == rhs.variationValue
     }
 
-    static func newDefaultInstance(featureId: String, userId: String, defaultValue: T) -> BKTEvaluationDetail<T> {
-        return BKTEvaluationDetail(
+    static func newDefaultInstance(featureId: String, userId: String, defaultValue: T) -> BKTEvaluationDetails<T> {
+        return BKTEvaluationDetails(
             featureId: featureId,
             featureVersion: 0,
             userId: userId,
