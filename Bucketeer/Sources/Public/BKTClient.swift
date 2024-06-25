@@ -143,23 +143,23 @@ extension BKTClient {
         }
     }
 
-    public func intEvaluationDetails(featureId: String, defaultValue: Int) -> BKTEvaluationDetails<Int> {
+    public func intVariationDetails(featureId: String, defaultValue: Int) -> BKTEvaluationDetails<Int> {
         return getVariationDetail(featureId: featureId, defaultValue: defaultValue)
     }
 
-    public func doubleEvaluationDetails(featureId: String, defaultValue: Double) -> BKTEvaluationDetails<Double> {
+    public func doubleVariationDetails(featureId: String, defaultValue: Double) -> BKTEvaluationDetails<Double> {
         return getVariationDetail(featureId: featureId, defaultValue: defaultValue)
     }
 
-    public func boolEvaluationDetails(featureId: String, defaultValue: Bool) -> BKTEvaluationDetails<Bool> {
+    public func boolVariationDetails(featureId: String, defaultValue: Bool) -> BKTEvaluationDetails<Bool> {
         return getVariationDetail(featureId: featureId, defaultValue: defaultValue)
     }
 
-    public func stringEvaluationDetails(featureId: String, defaultValue: String) -> BKTEvaluationDetails<String> {
+    public func stringVariationDetails(featureId: String, defaultValue: String) -> BKTEvaluationDetails<String> {
         return getVariationDetail(featureId: featureId, defaultValue: defaultValue)
     }
 
-    public func jsonEvaluationDetails(featureId: String, defaultValue: [String: AnyHashable])
+    public func jsonVariationDetails(featureId: String, defaultValue: [String: AnyHashable])
     -> BKTEvaluationDetails<[String: AnyHashable]> {
         return getVariationDetail(featureId: featureId, defaultValue: defaultValue)
     }

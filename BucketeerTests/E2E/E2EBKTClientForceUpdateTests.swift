@@ -173,17 +173,17 @@ final class E2EBKTClientForceUpdateTests: XCTestCase {
         let javascript = client.evaluationDetails(featureId: "feature-js-e2e-string")
         XCTAssertNotNil(javascript)
 
-        let androidEvaluationDetail = client.stringEvaluationDetails(featureId: "feature-android-e2e-string", defaultValue: "")
+        let androidEvaluationDetail = client.stringVariationDetails(featureId: "feature-android-e2e-string", defaultValue: "")
         XCTAssertNotNil(androidEvaluationDetail)
         XCTAssertEqual(androidEvaluationDetail.featureId, "feature-android-e2e-string")
         XCTAssert(androidEvaluationDetail.variationValue.count > 0)
 
-        let golangEvaluationDetail = client.stringEvaluationDetails(featureId: "feature-go-server-e2e-1", defaultValue: "")
+        let golangEvaluationDetail = client.stringVariationDetails(featureId: "feature-go-server-e2e-1", defaultValue: "")
         XCTAssertNotNil(golangEvaluationDetail)
         XCTAssertEqual(golangEvaluationDetail.featureId, "feature-go-server-e2e-1")
         XCTAssert(golangEvaluationDetail.variationValue.count > 0)
 
-        let javascriptEvaluationDetail = client.stringEvaluationDetails(featureId: "feature-js-e2e-string", defaultValue: "")
+        let javascriptEvaluationDetail = client.stringVariationDetails(featureId: "feature-js-e2e-string", defaultValue: "")
         XCTAssertNotNil(javascriptEvaluationDetail)
         XCTAssertEqual(javascriptEvaluationDetail.featureId, "feature-js-e2e-string")
         XCTAssert(javascriptEvaluationDetail.variationValue.count > 0)

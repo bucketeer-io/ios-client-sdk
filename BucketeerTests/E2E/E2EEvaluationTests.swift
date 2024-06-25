@@ -54,7 +54,7 @@ final class E2EEvaluationTests: XCTestCase {
                 reason: .default
             ))
 
-            let actualEvaluationDetail = client.stringEvaluationDetails(featureId: FEATURE_ID_STRING, defaultValue: "default")
+            let actualEvaluationDetail = client.stringVariationDetails(featureId: FEATURE_ID_STRING, defaultValue: "default")
 
             XCTAssertEqual(
                 actualEvaluationDetail,
@@ -96,7 +96,7 @@ final class E2EEvaluationTests: XCTestCase {
                 reason: .default
             ))
 
-            let actualEvaluationDetail = client.intEvaluationDetails(featureId: FEATURE_ID_INT, defaultValue: 1)
+            let actualEvaluationDetail = client.intVariationDetails(featureId: FEATURE_ID_INT, defaultValue: 1)
 
             XCTAssertEqual(
                 actualEvaluationDetail,
@@ -138,7 +138,7 @@ final class E2EEvaluationTests: XCTestCase {
                 reason: .default
             ))
 
-            let actualEvaluationDetail = client.doubleEvaluationDetails(featureId: FEATURE_ID_DOUBLE, defaultValue: 1.1)
+            let actualEvaluationDetail = client.doubleVariationDetails(featureId: FEATURE_ID_DOUBLE, defaultValue: 1.1)
 
             XCTAssertEqual(
                 actualEvaluationDetail,
@@ -180,7 +180,7 @@ final class E2EEvaluationTests: XCTestCase {
                 reason: .default
             ))
 
-            let actualEvaluationDetail = client.boolEvaluationDetails(featureId: FEATURE_ID_BOOLEAN, defaultValue: false)
+            let actualEvaluationDetail = client.boolVariationDetails(featureId: FEATURE_ID_BOOLEAN, defaultValue: false)
 
             XCTAssertEqual(
                 actualEvaluationDetail,
@@ -223,7 +223,7 @@ final class E2EEvaluationTests: XCTestCase {
                 reason: .default
             ))
 
-            let actualEvaluationDetail = client.jsonEvaluationDetails(featureId: FEATURE_ID_JSON, defaultValue: [:])
+            let actualEvaluationDetail = client.jsonVariationDetails(featureId: FEATURE_ID_JSON, defaultValue: [:])
 
             XCTAssertEqual(
                 actualEvaluationDetail,

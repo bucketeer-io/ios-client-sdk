@@ -68,23 +68,23 @@ final class BKTClientEvaluationDetailTests: XCTestCase {
         let unknowFeatureId = "unknowFeatureId"
         let userId = User.mock1.id
         XCTAssertEqual(
-            client.intEvaluationDetails(featureId: unknowFeatureId, defaultValue: 1),
+            client.intVariationDetails(featureId: unknowFeatureId, defaultValue: 1),
             BKTEvaluationDetails.newDefaultInstance(featureId: unknowFeatureId, userId: userId, defaultValue: 1)
         )
         XCTAssertEqual(
-            client.stringEvaluationDetails(featureId: unknowFeatureId, defaultValue: "2"),
+            client.stringVariationDetails(featureId: unknowFeatureId, defaultValue: "2"),
             BKTEvaluationDetails.newDefaultInstance(featureId: unknowFeatureId, userId: userId, defaultValue: "2")
         )
         XCTAssertEqual(
-            client.boolEvaluationDetails(featureId: unknowFeatureId, defaultValue: true),
+            client.boolVariationDetails(featureId: unknowFeatureId, defaultValue: true),
             BKTEvaluationDetails.newDefaultInstance(featureId: unknowFeatureId, userId: userId, defaultValue: true)
         )
         XCTAssertEqual(
-            client.doubleEvaluationDetails(featureId: unknowFeatureId, defaultValue: 1.2),
+            client.doubleVariationDetails(featureId: unknowFeatureId, defaultValue: 1.2),
             BKTEvaluationDetails.newDefaultInstance(featureId: unknowFeatureId, userId: userId, defaultValue: 1.2)
         )
         XCTAssertEqual(
-            client.jsonEvaluationDetails(featureId: unknowFeatureId, defaultValue: ["k":"v", "v":"k"]),
+            client.jsonVariationDetails(featureId: unknowFeatureId, defaultValue: ["k":"v", "v":"k"]),
             BKTEvaluationDetails.newDefaultInstance(featureId: unknowFeatureId, userId: userId, defaultValue: ["v":"k", "k":"v"])
         )
     }
@@ -98,7 +98,7 @@ final class BKTClientEvaluationDetailTests: XCTestCase {
 
         let featureId = expectedEvaluation.featureId
 
-        let actualEvaluation = client.stringEvaluationDetails(featureId: featureId, defaultValue: "2.0")
+        let actualEvaluation = client.stringVariationDetails(featureId: featureId, defaultValue: "2.0")
         XCTAssertEqual(
             actualEvaluation,
             BKTEvaluationDetails(
@@ -112,22 +112,22 @@ final class BKTClientEvaluationDetailTests: XCTestCase {
         )
 
         XCTAssertEqual(
-            client.doubleEvaluationDetails(featureId: featureId, defaultValue: 2.1),
+            client.doubleVariationDetails(featureId: featureId, defaultValue: 2.1),
             BKTEvaluationDetails.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: 2.1)
         )
 
         XCTAssertEqual(
-            client.boolEvaluationDetails(featureId: featureId, defaultValue: true),
+            client.boolVariationDetails(featureId: featureId, defaultValue: true),
             BKTEvaluationDetails.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: true)
         )
 
         XCTAssertEqual(
-            client.intEvaluationDetails(featureId: featureId, defaultValue: 1),
+            client.intVariationDetails(featureId: featureId, defaultValue: 1),
             BKTEvaluationDetails.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: 1)
         )
 
         XCTAssertEqual(
-            client.jsonEvaluationDetails(featureId: featureId, defaultValue: ["k":"v"]),
+            client.jsonVariationDetails(featureId: featureId, defaultValue: ["k":"v"]),
             BKTEvaluationDetails.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: ["k":"v"])
         )
     }
@@ -141,7 +141,7 @@ final class BKTClientEvaluationDetailTests: XCTestCase {
 
         let featureId = expectedEvaluation.featureId
 
-        let actualEvaluation = client.intEvaluationDetails(featureId: featureId, defaultValue: 2)
+        let actualEvaluation = client.intVariationDetails(featureId: featureId, defaultValue: 2)
         XCTAssertEqual(
             actualEvaluation,
             BKTEvaluationDetails(
@@ -154,7 +154,7 @@ final class BKTClientEvaluationDetailTests: XCTestCase {
                 reason: BKTEvaluationDetails.Reason.fromString(value: expectedEvaluation.reason.type.rawValue))
         )
 
-        let actualStringEvaluation = client.stringEvaluationDetails(featureId: featureId, defaultValue: "2")
+        let actualStringEvaluation = client.stringVariationDetails(featureId: featureId, defaultValue: "2")
         XCTAssertEqual(
             actualStringEvaluation,
             BKTEvaluationDetails(
@@ -168,7 +168,7 @@ final class BKTClientEvaluationDetailTests: XCTestCase {
         )
 
         XCTAssertEqual(
-            client.doubleEvaluationDetails(featureId: featureId, defaultValue: 2.1),
+            client.doubleVariationDetails(featureId: featureId, defaultValue: 2.1),
             BKTEvaluationDetails(
                 featureId: expectedEvaluation.featureId,
                 featureVersion: expectedEvaluation.featureVersion,
@@ -180,12 +180,12 @@ final class BKTClientEvaluationDetailTests: XCTestCase {
         )
 
         XCTAssertEqual(
-            client.boolEvaluationDetails(featureId: featureId, defaultValue: true),
+            client.boolVariationDetails(featureId: featureId, defaultValue: true),
             BKTEvaluationDetails.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: true)
         )
 
         XCTAssertEqual(
-            client.jsonEvaluationDetails(featureId: featureId, defaultValue: ["k":"v"]),
+            client.jsonVariationDetails(featureId: featureId, defaultValue: ["k":"v"]),
             BKTEvaluationDetails.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: ["k":"v"])
         )
     }
@@ -199,7 +199,7 @@ final class BKTClientEvaluationDetailTests: XCTestCase {
 
         let featureId = expectedEvaluation.featureId
 
-        let actualEvaluation = client.boolEvaluationDetails(featureId: featureId, defaultValue: false)
+        let actualEvaluation = client.boolVariationDetails(featureId: featureId, defaultValue: false)
         XCTAssertEqual(
             actualEvaluation,
             BKTEvaluationDetails(
@@ -212,7 +212,7 @@ final class BKTClientEvaluationDetailTests: XCTestCase {
                 reason: BKTEvaluationDetails.Reason.fromString(value: expectedEvaluation.reason.type.rawValue))
         )
 
-        let actualStringEvaluation = client.stringEvaluationDetails(featureId: featureId, defaultValue: "2")
+        let actualStringEvaluation = client.stringVariationDetails(featureId: featureId, defaultValue: "2")
         XCTAssertEqual(
             actualStringEvaluation,
             BKTEvaluationDetails(
@@ -226,17 +226,17 @@ final class BKTClientEvaluationDetailTests: XCTestCase {
         )
 
         XCTAssertEqual(
-            client.doubleEvaluationDetails(featureId: featureId, defaultValue: 2.1),
+            client.doubleVariationDetails(featureId: featureId, defaultValue: 2.1),
             BKTEvaluationDetails.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: 2.1)
         )
 
         XCTAssertEqual(
-            client.intEvaluationDetails(featureId: featureId, defaultValue: 1),
+            client.intVariationDetails(featureId: featureId, defaultValue: 1),
             BKTEvaluationDetails.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: 1)
         )
 
         XCTAssertEqual(
-            client.jsonEvaluationDetails(featureId: featureId, defaultValue: ["k":"v"]),
+            client.jsonVariationDetails(featureId: featureId, defaultValue: ["k":"v"]),
             BKTEvaluationDetails.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: ["k":"v"])
         )
     }
@@ -250,7 +250,7 @@ final class BKTClientEvaluationDetailTests: XCTestCase {
 
         let featureId = expectedEvaluation.featureId
 
-        let actualEvaluation = client.doubleEvaluationDetails(featureId: featureId, defaultValue: 2.0)
+        let actualEvaluation = client.doubleVariationDetails(featureId: featureId, defaultValue: 2.0)
         XCTAssertEqual(
             actualEvaluation,
             BKTEvaluationDetails(
@@ -263,7 +263,7 @@ final class BKTClientEvaluationDetailTests: XCTestCase {
                 reason: BKTEvaluationDetails.Reason.fromString(value: expectedEvaluation.reason.type.rawValue))
         )
 
-        let actualStringEvaluation = client.stringEvaluationDetails(featureId: featureId, defaultValue: "2.2")
+        let actualStringEvaluation = client.stringVariationDetails(featureId: featureId, defaultValue: "2.2")
         XCTAssertEqual(
             actualStringEvaluation,
             BKTEvaluationDetails(
@@ -277,17 +277,17 @@ final class BKTClientEvaluationDetailTests: XCTestCase {
         )
 
         XCTAssertEqual(
-            client.boolEvaluationDetails(featureId: featureId, defaultValue: true),
+            client.boolVariationDetails(featureId: featureId, defaultValue: true),
             BKTEvaluationDetails.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: true)
         )
 
         XCTAssertEqual(
-            client.intEvaluationDetails(featureId: featureId, defaultValue: 1),
+            client.intVariationDetails(featureId: featureId, defaultValue: 1),
             BKTEvaluationDetails.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: 1)
         )
 
         XCTAssertEqual(
-            client.jsonEvaluationDetails(featureId: featureId, defaultValue: ["k":"v"]),
+            client.jsonVariationDetails(featureId: featureId, defaultValue: ["k":"v"]),
             BKTEvaluationDetails.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: ["k":"v"])
         )
     }
@@ -303,7 +303,7 @@ final class BKTClientEvaluationDetailTests: XCTestCase {
         let featureId = expectedEvaluation.featureId
 
         XCTAssertEqual(
-            client.jsonEvaluationDetails(featureId: featureId, defaultValue: ["k":"v"]),
+            client.jsonVariationDetails(featureId: featureId, defaultValue: ["k":"v"]),
             BKTEvaluationDetails(
                 featureId: expectedEvaluation.featureId,
                 featureVersion: expectedEvaluation.featureVersion,
@@ -315,22 +315,22 @@ final class BKTClientEvaluationDetailTests: XCTestCase {
         )
 
         XCTAssertEqual(
-            client.doubleEvaluationDetails(featureId: featureId, defaultValue: 2.1),
+            client.doubleVariationDetails(featureId: featureId, defaultValue: 2.1),
             BKTEvaluationDetails.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: 2.1)
         )
 
         XCTAssertEqual(
-            client.boolEvaluationDetails(featureId: featureId, defaultValue: true),
+            client.boolVariationDetails(featureId: featureId, defaultValue: true),
             BKTEvaluationDetails.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: true)
         )
 
         XCTAssertEqual(
-            client.intEvaluationDetails(featureId: featureId, defaultValue: 1),
+            client.intVariationDetails(featureId: featureId, defaultValue: 1),
             BKTEvaluationDetails.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: 1)
         )
 
         XCTAssertEqual(
-            client.stringEvaluationDetails(featureId: featureId, defaultValue: "2.0"),
+            client.stringVariationDetails(featureId: featureId, defaultValue: "2.0"),
             BKTEvaluationDetails(
                 featureId: expectedEvaluation.featureId,
                 featureVersion: expectedEvaluation.featureVersion,
