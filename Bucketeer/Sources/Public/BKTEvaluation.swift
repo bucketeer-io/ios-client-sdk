@@ -11,7 +11,7 @@ public struct BKTEvaluation: Equatable {
     public let variationValue: String
     public let reason: Reason
 
-    @available(*, deprecated, message: "Use BKTEvaluationDetail<T>.Reason instead")
+    @available(*, deprecated, message: "Use BKTEvaluationDetails<T>.Reason instead")
     public enum Reason: String, Codable, Hashable {
         case target = "TARGET"
         case rule = "RULE"
