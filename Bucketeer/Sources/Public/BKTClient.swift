@@ -17,7 +17,7 @@ public class BKTClient {
     }
 
     func getVariationDetail<T:Equatable>(featureId: String, defaultValue: T) -> BKTEvaluationDetails<T> {
-        component.config.logger?.debug(message: "BKTClient.getVariation(featureId = \(featureId), defaultValue = \(defaultValue) called")
+        component.config.logger?.debug(message: "BKTClient.getVariationDetail(featureId = \(featureId), defaultValue = \(defaultValue) called")
         let raw = component.evaluationInteractor.getLatest(
             userId: component.userHolder.userId,
             featureId: featureId
