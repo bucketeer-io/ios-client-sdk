@@ -1,6 +1,6 @@
 import Foundation
 
-@available(*, deprecated, message: "Use BKTEvaluationDetail<T> instead")
+@available(*, deprecated, message: "Use BKTEvaluationDetails<T> instead")
 public struct BKTEvaluation: Equatable {
     public let id: String
     public let featureId: String
