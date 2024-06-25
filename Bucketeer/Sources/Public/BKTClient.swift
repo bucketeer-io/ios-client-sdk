@@ -238,7 +238,7 @@ extension BKTClient {
         }
     }
 
-    @available(*, deprecated, message: "use stringEvaluationDetails<T> instead")
+    @available(*, deprecated, message: "use stringVariation(featureId:, defaultValue:) instead")
     public func evaluationDetails(featureId: String) -> BKTEvaluation? {
         let userId = self.component.userHolder.userId
         let evaluation = self.component.evaluationInteractor.getLatest(userId: userId, featureId: featureId)
