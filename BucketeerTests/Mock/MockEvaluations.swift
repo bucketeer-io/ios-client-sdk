@@ -166,6 +166,56 @@ extension Evaluation {
             ruleId: "rule3"
         )
     )
+
+    static let jsonObjectEvaluation = Evaluation(
+        id: "jsonObjectEvaluation:1:user2",
+        featureId: "jsonObjectEvaluation",
+        featureVersion: 1,
+        userId: User.mock1.id,
+        variationId: "variation json",
+        variationName: "variation name json",
+        variationValue: """
+{
+  "value" : "body",
+  "value1" : "body1",
+  "valueInt" : 1,
+  "valueBool" : true,
+  "valueDouble" : 1.2,
+  "valueDictionary": {"key" : "value"},
+  "valueList1": [{"key" : "value"},{"key" : 10}],
+  "valueList2": [1,2.2,true]
+}
+""",
+        reason: .init(
+            type: .rule,
+            ruleId: "rule3"
+        )
+    )
+
+    static let jsonArrayEvaluation = Evaluation(
+        id: "jsonArrayEvaluation:1:user2",
+        featureId: "jsonArrayEvaluation",
+        featureVersion: 1,
+        userId: User.mock1.id,
+        variationId: "variation json",
+        variationName: "variation name json",
+        variationValue: """
+[
+{
+  "value" : "body",
+  "value1" : "body1"
+},
+{
+  "value2" : "body2",
+  "value3" : "body3"
+}
+]
+""",
+        reason: .init(
+            type: .rule,
+            ruleId: "rule3"
+        )
+    )
 }
 
 extension UserEvaluations {
@@ -211,7 +261,7 @@ extension UserEvaluations {
 
     static let mockUserEvaluationsDetails = UserEvaluations(
         id: "user_evaluation_details",
-        evaluations: [.stringEvaluation, .intEvaluation, .boolEvaluation, .doubleEvaluation, .jsonEvaluation],
+        evaluations: [.stringEvaluation, .intEvaluation, .boolEvaluation, .doubleEvaluation, .jsonEvaluation, .jsonObjectEvaluation, .jsonArrayEvaluation],
         createdAt: "",
         forceUpdate: false,
         archivedFeatureIds: []

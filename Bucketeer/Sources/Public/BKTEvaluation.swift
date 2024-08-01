@@ -46,12 +46,12 @@ public struct BKTEvaluationDetails<T:Equatable>: Equatable {
 
     public static func == (lhs: BKTEvaluationDetails<T>, rhs: BKTEvaluationDetails<T>) -> Bool {
         return lhs.featureId == rhs.featureId &&
-        lhs.featureVersion == rhs.featureVersion &&
-        lhs.userId == rhs.userId &&
-        lhs.variationId == rhs.variationId &&
-        lhs.variationName == rhs.variationName &&
-        lhs.reason == rhs.reason &&
-        lhs.variationValue == rhs.variationValue
+            lhs.featureVersion == rhs.featureVersion &&
+            lhs.userId == rhs.userId &&
+            lhs.variationId == rhs.variationId &&
+            lhs.variationName == rhs.variationName &&
+            lhs.reason == rhs.reason &&
+            lhs.variationValue == rhs.variationValue
     }
 
     static func newDefaultInstance(featureId: String, userId: String, defaultValue: T) -> BKTEvaluationDetails<T> {

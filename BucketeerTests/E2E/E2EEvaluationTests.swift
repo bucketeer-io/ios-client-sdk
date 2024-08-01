@@ -42,22 +42,20 @@ final class E2EEvaluationTests: XCTestCase {
     func testStringVariationDetail() {
         do {
             let client = try BKTClient.shared
-            let actual = client.evaluationDetails(featureId: FEATURE_ID_STRING)
-
-            assertEvaluation(actual: actual, expected: .init(
-                id: "feature-ios-e2e-string:3:bucketeer-ios-user-id-1",
-                featureId: FEATURE_ID_STRING,
-                featureVersion: 3,
-                variationId: "349ed945-d2f9-4d04-8e83-82344cffd1ec",
-                variationName: "variation 1",
-                variationValue: "value-1",
-                reason: .default
-            ))
-
-            let actualEvaluationDetail = client.stringVariationDetails(featureId: FEATURE_ID_STRING, defaultValue: "default")
+            assertEvaluation(
+                actual: client.evaluationDetails(featureId: FEATURE_ID_STRING),
+                expected: .init(
+                    id: "feature-ios-e2e-string:3:bucketeer-ios-user-id-1",
+                    featureId: FEATURE_ID_STRING,
+                    featureVersion: 3,
+                    variationId: "349ed945-d2f9-4d04-8e83-82344cffd1ec",
+                    variationName: "variation 1",
+                    variationValue: "value-1",
+                    reason: .default
+                ))
 
             XCTAssertEqual(
-                actualEvaluationDetail,
+                client.stringVariationDetails(featureId: FEATURE_ID_STRING, defaultValue: "default"),
                 .init(
                     featureId: FEATURE_ID_STRING,
                     featureVersion: 3,
@@ -65,6 +63,18 @@ final class E2EEvaluationTests: XCTestCase {
                     variationId: "349ed945-d2f9-4d04-8e83-82344cffd1ec",
                     variationName: "variation 1",
                     variationValue: "value-1",
+                    reason: .default
+                ))
+
+            XCTAssertEqual(
+                client.objectVariationDetails(featureId: FEATURE_ID_STRING, defaultValue: .list([])),
+                .init(
+                    featureId: FEATURE_ID_STRING,
+                    featureVersion: 3,
+                    userId: USER_ID,
+                    variationId: "349ed945-d2f9-4d04-8e83-82344cffd1ec",
+                    variationName: "variation 1",
+                    variationValue: .string("value-1"),
                     reason: .default
                 ))
         } catch {
@@ -84,9 +94,8 @@ final class E2EEvaluationTests: XCTestCase {
     func testIntVariationDetail() {
         do {
             let client = try BKTClient.shared
-            let actual = client.evaluationDetails(featureId: FEATURE_ID_INT)
 
-            assertEvaluation(actual: actual, expected: .init(
+            assertEvaluation(actual: client.evaluationDetails(featureId: FEATURE_ID_INT), expected: .init(
                 id: "feature-ios-e2e-integer:4:bucketeer-ios-user-id-1",
                 featureId: FEATURE_ID_INT,
                 featureVersion: 4,
@@ -96,10 +105,8 @@ final class E2EEvaluationTests: XCTestCase {
                 reason: .default
             ))
 
-            let actualEvaluationDetail = client.intVariationDetails(featureId: FEATURE_ID_INT, defaultValue: 1)
-
             XCTAssertEqual(
-                actualEvaluationDetail,
+                client.intVariationDetails(featureId: FEATURE_ID_INT, defaultValue: 1),
                 .init(
                     featureId: FEATURE_ID_INT,
                     featureVersion: 4,
@@ -107,6 +114,18 @@ final class E2EEvaluationTests: XCTestCase {
                     variationId: "9c5fd2d2-d587-4ba2-8de2-0fc9454d564e",
                     variationName: "variation 10",
                     variationValue: 10,
+                    reason: .default
+                ))
+
+            XCTAssertEqual(
+                client.objectVariationDetails(featureId: FEATURE_ID_INT, defaultValue: .integer(1)),
+                .init(
+                    featureId: FEATURE_ID_INT,
+                    featureVersion: 4,
+                    userId: USER_ID,
+                    variationId: "9c5fd2d2-d587-4ba2-8de2-0fc9454d564e",
+                    variationName: "variation 10",
+                    variationValue: .integer(10),
                     reason: .default
                 ))
         } catch {
@@ -126,9 +145,8 @@ final class E2EEvaluationTests: XCTestCase {
     func testDoubleVariationDetail() async throws {
         do {
             let client = try BKTClient.shared
-            let actual = client.evaluationDetails(featureId: FEATURE_ID_DOUBLE)
 
-            assertEvaluation(actual: actual, expected: .init(
+            assertEvaluation(actual: client.evaluationDetails(featureId: FEATURE_ID_DOUBLE), expected: .init(
                 id: "feature-ios-e2e-double:3:bucketeer-ios-user-id-1",
                 featureId: FEATURE_ID_DOUBLE,
                 featureVersion: 3,
@@ -138,10 +156,8 @@ final class E2EEvaluationTests: XCTestCase {
                 reason: .default
             ))
 
-            let actualEvaluationDetail = client.doubleVariationDetails(featureId: FEATURE_ID_DOUBLE, defaultValue: 1.1)
-
             XCTAssertEqual(
-                actualEvaluationDetail,
+                client.doubleVariationDetails(featureId: FEATURE_ID_DOUBLE, defaultValue: 1.1),
                 .init(
                     featureId: FEATURE_ID_DOUBLE,
                     featureVersion: 3,
@@ -149,6 +165,18 @@ final class E2EEvaluationTests: XCTestCase {
                     variationId: "38078d8f-c6eb-4b93-9d58-c3e57010983f",
                     variationName: "variation 2.1",
                     variationValue: 2.1,
+                    reason: .default
+                ))
+
+            XCTAssertEqual(
+                client.objectVariationDetails(featureId: FEATURE_ID_DOUBLE, defaultValue: .double(1.1)),
+                .init(
+                    featureId: FEATURE_ID_DOUBLE,
+                    featureVersion: 3,
+                    userId: USER_ID,
+                    variationId: "38078d8f-c6eb-4b93-9d58-c3e57010983f",
+                    variationName: "variation 2.1",
+                    variationValue: .double(2.1),
                     reason: .default
                 ))
         } catch {
@@ -168,9 +196,8 @@ final class E2EEvaluationTests: XCTestCase {
     func testBoolVariationDetail() {
         do {
             let client = try BKTClient.shared
-            let actual = client.evaluationDetails(featureId: FEATURE_ID_BOOLEAN)
 
-            assertEvaluation(actual: actual, expected: .init(
+            assertEvaluation(actual: client.evaluationDetails(featureId: FEATURE_ID_BOOLEAN), expected: .init(
                 id: "feature-ios-e2e-bool:3:bucketeer-ios-user-id-1",
                 featureId: FEATURE_ID_BOOLEAN,
                 featureVersion: 3,
@@ -180,10 +207,8 @@ final class E2EEvaluationTests: XCTestCase {
                 reason: .default
             ))
 
-            let actualEvaluationDetail = client.boolVariationDetails(featureId: FEATURE_ID_BOOLEAN, defaultValue: false)
-
             XCTAssertEqual(
-                actualEvaluationDetail,
+                client.boolVariationDetails(featureId: FEATURE_ID_BOOLEAN, defaultValue: false),
                 .init(
                     featureId: FEATURE_ID_BOOLEAN,
                     featureVersion: 3,
@@ -191,6 +216,18 @@ final class E2EEvaluationTests: XCTestCase {
                     variationId: "4f9e0f88-e053-42a9-93e1-95d407f67021",
                     variationName: "variation true",
                     variationValue: true,
+                    reason: .default
+                ))
+
+            XCTAssertEqual(
+                client.objectVariationDetails(featureId: FEATURE_ID_BOOLEAN, defaultValue: .boolean(false)),
+                .init(
+                    featureId: FEATURE_ID_BOOLEAN,
+                    featureVersion: 3,
+                    userId: USER_ID,
+                    variationId: "4f9e0f88-e053-42a9-93e1-95d407f67021",
+                    variationName: "variation true",
+                    variationValue: .boolean(true),
                     reason: .default
                 ))
         } catch {
@@ -211,9 +248,8 @@ final class E2EEvaluationTests: XCTestCase {
     func testJSONVariationDetail() {
         do {
             let client = try BKTClient.shared
-            let actual = client.evaluationDetails(featureId: FEATURE_ID_JSON)
 
-            assertEvaluation(actual: actual, expected: .init(
+            assertEvaluation(actual: client.evaluationDetails(featureId: FEATURE_ID_JSON), expected: .init(
                 id: "feature-ios-e2e-json:3:bucketeer-ios-user-id-1",
                 featureId: FEATURE_ID_JSON,
                 featureVersion: 3,
@@ -223,17 +259,15 @@ final class E2EEvaluationTests: XCTestCase {
                 reason: .default
             ))
 
-            let actualEvaluationDetail = client.jsonVariationDetails(featureId: FEATURE_ID_JSON, defaultValue: [:])
-
             XCTAssertEqual(
-                actualEvaluationDetail,
+                client.objectVariationDetails(featureId: FEATURE_ID_JSON, defaultValue: .dictionary([:])),
                 .init(
                     featureId: FEATURE_ID_JSON,
                     featureVersion: 3,
                     userId: USER_ID,
                     variationId: "06f5be6b-0c79-431f-a057-822babd9d3eb",
                     variationName: "variation 1",
-                    variationValue: ["key": "value-1"],
+                    variationValue: .dictionary(["key": .string("value-1")]),
                     reason: .default
                 ))
         } catch {
@@ -261,6 +295,18 @@ final class E2EEvaluationTests: XCTestCase {
                 variationValue: "value-2",
                 reason: .rule
             ))
+
+            XCTAssertEqual(
+                client.objectVariationDetails(featureId: FEATURE_ID_STRING, defaultValue: .double(1.0)),
+                .init(
+                    featureId: FEATURE_ID_STRING,
+                    featureVersion: 3,
+                    userId: USER_ID,
+                    variationId: "b4931643-e82f-4079-bd3c-aed02852cdd6",
+                    variationName: "variation 2",
+                    variationValue: .string("value-2"),
+                    reason: .rule
+                ))
         } catch {
             XCTFail(error.localizedDescription)
         }

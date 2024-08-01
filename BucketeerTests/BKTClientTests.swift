@@ -374,7 +374,7 @@ final class BKTClientTests: XCTestCase {
 
     func testEvaluationDetails() {
         let expectation = self.expectation(description: "")
-        expectation.expectedFulfillmentCount = 4
+        expectation.expectedFulfillmentCount = 6
         expectation.assertForOverFulfill = true
         let dataModule = MockDataModule(
             userHolder: .init(user: .mock1),
@@ -416,10 +416,38 @@ final class BKTClientTests: XCTestCase {
                 variationValue: "variation_value1",
                 reason: .rule
             )
+
             XCTAssertEqual(evaluation, expected)
+
+            XCTAssertEqual(
+                client.stringVariationDetails(featureId: "feature1", defaultValue: "")
+                , .init(
+                    featureId: "feature1",
+                    featureVersion: 1,
+                    userId: User.mock1.id,
+                    variationId: "variation1",
+                    variationName: "variation name1",
+                    variationValue: "variation_value1",
+                    reason: .rule
+                )
+            )
+
+            XCTAssertEqual(
+                client.objectVariationDetails(featureId: "feature1", defaultValue: .boolean(false))
+                , .init(
+                    featureId: "feature1",
+                    featureVersion: 1,
+                    userId: User.mock1.id,
+                    variationId: "variation1",
+                    variationName: "variation name1",
+                    variationValue: .string("variation_value1"),
+                    reason: .rule
+                )
+            )
+
             expectation.fulfill()
         }
-        wait(for: [expectation], timeout: 1)
+        wait(for: [expectation], timeout: 100)
     }
 
     func testTrackGoal() {

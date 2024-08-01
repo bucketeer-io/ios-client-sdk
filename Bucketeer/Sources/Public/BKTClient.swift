@@ -25,7 +25,7 @@ public class BKTClient {
         let user = component.userHolder.user
         let featureTag = component.config.featureTag
 
-        guard let raw = raw, let value: T = raw.getVariationValues(
+        guard let raw = raw, let value: T = raw.getVariationValue(
             logger: component.config.logger
         ) else {
             execute {
@@ -159,29 +159,34 @@ extension BKTClient {
         return getVariationDetail(featureId: featureId, defaultValue: defaultValue)
     }
 
-    public func jsonVariationDetails(featureId: String, defaultValue: [String: AnyHashable])
-    -> BKTEvaluationDetails<[String: AnyHashable]> {
+    public func objectVariationDetails(featureId: String, defaultValue:BKTValue)
+    -> BKTEvaluationDetails<BKTValue> {
         return getVariationDetail(featureId: featureId, defaultValue: defaultValue)
     }
 
     public func stringVariation(featureId: String, defaultValue: String) -> String {
-        return getVariationValue(featureId: featureId, defaultValue: defaultValue)
+        return stringVariationDetails(featureId: featureId, defaultValue: defaultValue).variationValue
     }
 
     public func intVariation(featureId: String, defaultValue: Int) -> Int {
-        return getVariationValue(featureId: featureId, defaultValue: defaultValue)
+        return intVariationDetails(featureId: featureId, defaultValue: defaultValue).variationValue
     }
 
     public func doubleVariation(featureId: String, defaultValue: Double) -> Double {
-        return getVariationValue(featureId: featureId, defaultValue: defaultValue)
+        return doubleVariationDetails(featureId: featureId, defaultValue: defaultValue).variationValue
     }
 
     public func boolVariation(featureId: String, defaultValue: Bool) -> Bool {
-        return getVariationValue(featureId: featureId, defaultValue: defaultValue)
+        return boolVariationDetails(featureId: featureId, defaultValue: defaultValue).variationValue
     }
 
+    @available(*, deprecated, message: "use objectVariation(featureId:, defaultValue:) instead")
     public func jsonVariation(featureId: String, defaultValue: [String: AnyHashable]) -> [String: AnyHashable] {
-        return getVariationValue(featureId: featureId, defaultValue: defaultValue)
+        return getVariationDetail(featureId: featureId, defaultValue: defaultValue).variationValue
+    }
+
+    public func objectVariation(featureId: String, defaultValue: BKTValue) -> BKTValue {
+        return objectVariationDetails(featureId: featureId, defaultValue: defaultValue).variationValue
     }
 
     public func track(goalId: String, value: Double = 0.0) {

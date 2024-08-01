@@ -1,6 +1,6 @@
 import Foundation
 
-struct UserEvaluations: Hashable, Codable {
+struct UserEvaluations: Hashable, Equatable, Codable {
     let id: String
     let evaluations: [Evaluation]
     let createdAt: String
