@@ -1,7 +1,7 @@
 import Foundation
 
 /**
- * BKTValue Represents a JSON node value. refs: OpenFeature
+ * BKTValue Represents a JSON node value
  */
 public enum BKTValue: Equatable, Codable, Hashable {
     case boolean(Bool)
