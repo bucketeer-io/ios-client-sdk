@@ -17,6 +17,12 @@ extension Evaluation {
     }
 
     func getVariationValue<T>(logger: Logger?) -> T? {
+        return variationValue.getVariationValue(logger: logger)
+    }
+}
+
+extension String {
+    func getVariationValue<T>(logger: Logger?) -> T? {
         if T.self is BKTValue.Type {
             guard let bktValue = getVariationBKTValue(logger: logger) as? T else {
                 return nil
@@ -27,7 +33,7 @@ extension Evaluation {
     }
 
     fileprivate func decodeValue<T>(logger: Logger?) -> T? {
-        let value = self.variationValue
+        let value = self
         let anyValue: Any?
         switch T.self {
         case is String.Type:
@@ -76,6 +82,6 @@ extension Evaluation {
         if let doubleResult: Double = decodeValue(logger: logger) {
             return .double(doubleResult)
         }
-        return .string(variationValue)
+        return .string(self)
     }
 }

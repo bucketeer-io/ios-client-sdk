@@ -54,36 +54,6 @@ public enum BKTValue: Equatable, Codable, Hashable {
         }
     }
 
-    public static func of<T>(_ value: T) -> BKTValue {
-        if let value = value as? Bool {
-            return .boolean(value)
-        } else if let value = value as? String {
-            return .string(value)
-        } else if let value = value as? Int64 {
-            return .integer(value)
-        } else if let value = value as? Double {
-            return .double(value)
-        } else {
-            return .null
-        }
-    }
-
-    public func getTyped<T>() -> T? {
-        if let value = self as? T {
-            return value
-        }
-
-        switch self {
-        case .boolean(let value): return value as? T
-        case .string(let value): return value as? T
-        case .integer(let value): return value as? T
-        case .double(let value): return value as? T
-        case .list(let value): return value as? T
-        case .dictionary(let value): return value as? T
-        case .null: return nil
-        }
-    }
-
     public func asBoolean() -> Bool? {
         if case let .boolean(bool) = self {
             return bool
@@ -150,32 +120,6 @@ extension BKTValue: CustomStringConvertible {
             return "\(values.mapValues { value in value.description })"
         case .null:
             return "null"
-        }
-    }
-}
-
-extension BKTValue {
-    public func decode<T: Decodable>() throws -> T {
-        let data = try JSONSerialization.data(withJSONObject: toJson(value: self))
-        return try JSONDecoder().decode(T.self, from: data)
-    }
-
-    func toJson(value: BKTValue) -> Any {
-        switch value {
-        case .boolean(let bool):
-            return bool
-        case .string(let string):
-            return string
-        case .integer(let int64):
-            return int64
-        case .double(let double):
-            return double
-        case .list(let list):
-            return list.map(self.toJson)
-        case .dictionary(let structure):
-            return structure.mapValues(self.toJson)
-        case .null:
-            return NSNull()
         }
     }
 }

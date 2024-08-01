@@ -683,5 +683,43 @@ final class BKTClientTests: XCTestCase {
         }
         wait(for: [expectation], timeout: 0.1)
     }
+
+    func testObjectVariation() {
+        let expectation = self.expectation(description: "")
+        expectation.expectedFulfillmentCount = 4
+        expectation.assertForOverFulfill = true
+        let dataModule = MockDataModule(
+            userHolder: .init(user: .mock1),
+            apiClient: MockApiClient(getEvaluationsHandler: { (user, _, _, _, handler) in
+                XCTAssertEqual(user, .mock1)
+                handler?(.success(.init(evaluations: .mock2, userEvaluationsId: "new")))
+                expectation.fulfill()
+            }),
+            evaluationStorage: MockEvaluationStorage(
+                userId: User.mock1.id,
+                getHandler: {
+                    XCTFail("Should not call")
+                    return []
+                }, updateHandler: { evalutions, archivedFeatureIds, evaluedAt in
+                    expectation.fulfill()
+                    XCTAssertEqual(evalutions, UserEvaluations.mock2.evaluations)
+                    XCTAssertEqual(archivedFeatureIds, UserEvaluations.mock2.archivedFeatureIds)
+                    XCTAssertEqual(evaluedAt, UserEvaluations.mock2.createdAt)
+                    return true
+                }, getByFeatureIdHandler: { featureId in
+                    expectation.fulfill()
+                    XCTAssertEqual(featureId, "feature5")
+                    return .mock5
+                }
+            )
+        )
+        let client = BKTClient(dataModule: dataModule, dispatchQueue: .global())
+        client.fetchEvaluations(timeoutMillis: nil) { _ in
+            let value = client.objectVariation(featureId: "feature5", defaultValue: .dictionary([:]))
+            XCTAssertEqual(value, .dictionary(["key": .string("value")]))
+            expectation.fulfill()
+        }
+        wait(for: [expectation], timeout: 0.1)
+    }
 }
 // swiftlint:enable type_body_length file_length
