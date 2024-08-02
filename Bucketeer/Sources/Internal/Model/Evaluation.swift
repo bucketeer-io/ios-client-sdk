@@ -23,16 +23,6 @@ extension Evaluation {
 
 extension String {
     func getVariationValue<T>(logger: Logger?) -> T? {
-        if T.self is BKTValue.Type {
-            guard let bktValue = getVariationBKTValue(logger: logger) as? T else {
-                return nil
-            }
-            return bktValue
-        }
-        return decodeValue(logger: logger)
-    }
-
-    fileprivate func decodeValue<T>(logger: Logger?) -> T? {
         let value = self
         let anyValue: Any?
         switch T.self {
@@ -48,6 +38,8 @@ extension String {
             let data = value.data(using: .utf8) ?? Data()
             let json = (try? JSONSerialization.jsonObject(with: data)) as? [String: AnyHashable]
             anyValue = json
+        case is BKTValue.Type:
+            anyValue = getVariationBKTValue(logger: logger)
         default:
             anyValue = value
         }
