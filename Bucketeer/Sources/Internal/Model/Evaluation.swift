@@ -48,14 +48,6 @@ extension String {
             let data = value.data(using: .utf8) ?? Data()
             let json = (try? JSONSerialization.jsonObject(with: data)) as? [String: AnyHashable]
             anyValue = json
-        case is [String: BKTValue].Type:
-            let data = value.data(using: .utf8) ?? Data()
-            let json = (try? JSONDecoder().decode([String: BKTValue].self, from: data))
-            anyValue = json
-        case is [BKTValue].Type:
-            let data = value.data(using: .utf8) ?? Data()
-            let json = (try? JSONDecoder().decode([BKTValue].self, from: data))
-            anyValue = json
         default:
             anyValue = value
         }
@@ -67,20 +59,10 @@ extension String {
     }
 
     func getVariationBKTValue(logger: Logger?) -> BKTValue {
-        if let dictionaryResult: [String: BKTValue] = decodeValue(logger: logger) {
-            return .dictionary(dictionaryResult)
-        }
-        if let listResult: [BKTValue] = decodeValue(logger: logger) {
-            return .list(listResult)
-        }
-        if let boolResult: Bool = decodeValue(logger: logger) {
-            return .boolean(boolResult)
-        }
-        if let intResult: Int = decodeValue(logger: logger) {
-            return .integer(Int64(intResult))
-        }
-        if let doubleResult: Double = decodeValue(logger: logger) {
-            return .double(doubleResult)
+        let value = self
+        let data = value.data(using: .utf8) ?? Data()
+        if let valueResult = (try? JSONDecoder().decode(BKTValue.self, from: data)), valueResult != .null {
+            return valueResult
         }
         return .string(self)
     }
