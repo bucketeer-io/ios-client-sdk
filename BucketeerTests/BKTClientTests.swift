@@ -572,7 +572,7 @@ final class BKTClientTests: XCTestCase {
 
     func testDoubleVariation() {
         let expectation = self.expectation(description: "")
-        expectation.expectedFulfillmentCount = 4
+        expectation.expectedFulfillmentCount = 5
         expectation.assertForOverFulfill = true
         let dataModule = MockDataModule(
             userHolder: .init(user: .mock1),
@@ -601,8 +601,10 @@ final class BKTClientTests: XCTestCase {
         )
         let client = BKTClient(dataModule: dataModule, dispatchQueue: .global())
         client.fetchEvaluations(timeoutMillis: nil) { _ in
-            let value = client.doubleVariation(featureId: "feature3", defaultValue: 0)
-            XCTAssertEqual(value, 3)
+            let doubleValue = client.doubleVariation(featureId: "feature3", defaultValue: 0.0)
+            XCTAssertEqual(doubleValue, 3.1)
+            let intValue = client.intVariation(featureId: "feature3", defaultValue: 0)
+            XCTAssertEqual(intValue, 3)
             expectation.fulfill()
         }
         wait(for: [expectation], timeout: 0.1)

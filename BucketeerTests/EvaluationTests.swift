@@ -27,7 +27,7 @@ final class EvaluationTests: XCTestCase {
         let value1: Int = mockEvaluation(value: "100").getVariationValue(defaultValue: 0, logger: nil)
         XCTAssertEqual(value1, 100)
         let value2: Int = mockEvaluation(value: "200.1").getVariationValue(defaultValue: 0, logger: nil)
-        XCTAssertEqual(value2, 0)
+        XCTAssertEqual(value2, 200)
         let value3: Int = mockEvaluation(value: "text").getVariationValue(defaultValue: 0, logger: nil)
         XCTAssertEqual(value3, 0)
     }

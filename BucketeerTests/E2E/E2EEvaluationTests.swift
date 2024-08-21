@@ -137,6 +137,7 @@ final class E2EEvaluationTests: XCTestCase {
         do {
             let client = try BKTClient.shared
             XCTAssertEqual(client.doubleVariation(featureId: FEATURE_ID_DOUBLE, defaultValue: 0.1), 2.1)
+            XCTAssertEqual(client.intVariation(featureId: FEATURE_ID_DOUBLE, defaultValue: 0), 2)
         } catch {
             XCTFail(error.localizedDescription)
         }
@@ -165,6 +166,18 @@ final class E2EEvaluationTests: XCTestCase {
                     variationId: "38078d8f-c6eb-4b93-9d58-c3e57010983f",
                     variationName: "variation 2.1",
                     variationValue: 2.1,
+                    reason: .default
+                ))
+
+            XCTAssertEqual(
+                client.intVariationDetails(featureId: FEATURE_ID_DOUBLE, defaultValue: 1),
+                .init(
+                    featureId: FEATURE_ID_DOUBLE,
+                    featureVersion: 3,
+                    userId: USER_ID,
+                    variationId: "38078d8f-c6eb-4b93-9d58-c3e57010983f",
+                    variationName: "variation 2.1",
+                    variationValue: 2,
                     reason: .default
                 ))
 

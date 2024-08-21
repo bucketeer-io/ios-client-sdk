@@ -29,7 +29,11 @@ extension String {
         case is String.Type:
             anyValue = value
         case is Int.Type:
-            anyValue = Int(value)
+            if let doubleValue = Double(value) {
+                anyValue = Int(doubleValue)
+            } else {
+                anyValue = nil
+            }
         case is Double.Type:
             anyValue = Double(value)
         case is Bool.Type:

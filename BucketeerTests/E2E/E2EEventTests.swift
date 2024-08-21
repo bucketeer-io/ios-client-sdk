@@ -48,6 +48,7 @@ final class E2EEventTests: XCTestCase {
             let client = try BKTClient.shared
             XCTAssertEqual(client.stringVariation(featureId: FEATURE_ID_STRING, defaultValue: ""), "value-1")
             XCTAssertEqual(client.intVariation(featureId: FEATURE_ID_INT, defaultValue: 0), 10)
+            XCTAssertEqual(client.intVariation(featureId: FEATURE_ID_DOUBLE, defaultValue: 0), 2)
             XCTAssertEqual(client.doubleVariation(featureId: FEATURE_ID_DOUBLE, defaultValue: 0.0), 2.1)
             XCTAssertEqual(client.boolVariation(featureId: FEATURE_ID_BOOLEAN, defaultValue: false), true)
             XCTAssertEqual(client.jsonVariation(featureId: FEATURE_ID_JSON, defaultValue: [:]), ["key":"value-1"])

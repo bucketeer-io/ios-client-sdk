@@ -311,7 +311,14 @@ final class BKTClientEvaluationDetailTests: XCTestCase {
 
         XCTAssertEqual(
             client.intVariationDetails(featureId: featureId, defaultValue: 1),
-            BKTEvaluationDetails.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: 1)
+            BKTEvaluationDetails(
+                featureId: expectedEvaluation.featureId,
+                featureVersion: expectedEvaluation.featureVersion,
+                userId: expectedEvaluation.userId,
+                variationId: expectedEvaluation.variationId,
+                variationName: expectedEvaluation.variationName,
+                variationValue: 12,
+                reason: BKTEvaluationDetails.Reason.fromString(value: expectedEvaluation.reason.type.rawValue))
         )
         XCTAssertEqual(
             client.objectVariationDetails(featureId: featureId, defaultValue: .string("default")),

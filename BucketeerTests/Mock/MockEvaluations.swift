@@ -55,7 +55,7 @@ extension Evaluation {
         userId: User.mock2.id,
         variationId: "variation3",
         variationName: "variation name3",
-        variationValue: "3.0",
+        variationValue: "3.1",
         reason: .init(
             type: .rule,
             ruleId: "rule3"
