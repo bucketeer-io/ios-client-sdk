@@ -205,7 +205,7 @@ final class BKTClientEvaluationDetailTests: XCTestCase {
                 userId: expectedEvaluation.userId,
                 variationId: expectedEvaluation.variationId,
                 variationName: expectedEvaluation.variationName,
-                variationValue: .integer(1),
+                variationValue: .number(1),
                 reason: BKTEvaluationDetails.Reason.fromString(value: expectedEvaluation.reason.type.rawValue)
             )
         )
@@ -328,7 +328,7 @@ final class BKTClientEvaluationDetailTests: XCTestCase {
                 userId: expectedEvaluation.userId,
                 variationId: expectedEvaluation.variationId,
                 variationName: expectedEvaluation.variationName,
-                variationValue: .double(12.2),
+                variationValue: .number(12.2),
                 reason: BKTEvaluationDetails.Reason.fromString(value: expectedEvaluation.reason.type.rawValue)
             )
         )
@@ -349,20 +349,20 @@ final class BKTClientEvaluationDetailTests: XCTestCase {
                 [
                     "value": .string("body"),
                     "value1": .string("body1"),
-                    "valueInt" : .integer(1),
+                    "valueInt" : .number(1),
                     "valueBool" : .boolean(true),
-                    "valueDouble" : .double(1.2),
+                    "valueDouble" : .number(1.2),
                     "valueDictionary": .dictionary(["key" : .string("value")]),
                     "valueList1": .list(
                         [
                             .dictionary(["key" : .string("value")]),
-                            .dictionary(["key" : .integer(10)])
+                            .dictionary(["key" : .number(10)])
                         ]
                     ),
                     "valueList2": .list(
                         [
-                            .integer(1),
-                            .double(2.2),
+                            .number(1),
+                            .number(2.2),
                             .boolean(true)
                         ]
                     )

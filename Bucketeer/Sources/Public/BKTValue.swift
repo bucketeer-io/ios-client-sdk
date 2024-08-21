@@ -6,8 +6,7 @@ import Foundation
 public enum BKTValue: Equatable, Codable, Hashable {
     case boolean(Bool)
     case string(String)
-    case integer(Int64)
-    case double(Double)
+    case number(Double)
     case list([BKTValue])
     case dictionary([String: BKTValue])
     case null
@@ -16,10 +15,8 @@ public enum BKTValue: Equatable, Codable, Hashable {
         let container = try decoder.singleValueContainer()
         if let stringValue = try? container.decode(String.self) {
             self = .string(stringValue)
-        } else if let intValue = try? container.decode(Int64.self) {
-            self = .integer(intValue)
         } else if let doubleValue = try? container.decode(Double.self) {
-            self = .double(doubleValue)
+            self = .number(doubleValue)
         } else if let boolValue = try? container.decode(Bool.self) {
             self = .boolean(boolValue)
         } else if let objectValue = try? container.decode([String: BKTValue].self) {
@@ -39,9 +36,7 @@ public enum BKTValue: Equatable, Codable, Hashable {
         switch self {
         case .string(let value):
             try container.encode(value)
-        case .integer(let value):
-            try container.encode(value)
-        case .double(let value):
+        case .number(let value):
             try container.encode(value)
         case .dictionary(let value):
             try container.encode(value)
@@ -70,16 +65,16 @@ public enum BKTValue: Equatable, Codable, Hashable {
         return nil
     }
 
-    public func asInteger() -> Int64? {
-        if case let .integer(int64) = self {
-            return int64
+    public func asInteger() -> Int? {
+        if case let .number(double) = self {
+            return Int(double)
         }
 
         return nil
     }
 
     public func asDouble() -> Double? {
-        if case let .double(double) = self {
+        if case let .number(double) = self {
             return double
         }
 
@@ -110,9 +105,7 @@ extension BKTValue: CustomStringConvertible {
             return "\(value)"
         case .string(let value):
             return value
-        case .integer(let value):
-            return "\(value)"
-        case .double(let value):
+        case .number(let value):
             return "\(value)"
         case .list(value: let values):
             return "\(values.map { value in value.description })"

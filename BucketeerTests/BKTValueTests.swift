@@ -28,9 +28,9 @@ class BKTValueEncodingTests: XCTestCase {
     let testCases: [EncodeTestCase] = [
         EncodeTestCase(value: .string("test string"), expectedJsonString: "\"test string\""),
         EncodeTestCase(value: .string(""), expectedJsonString: "\"\""),
-        EncodeTestCase(value: .integer(123), expectedJsonString: "123"),
-        EncodeTestCase(value: .double(123.456), expectedJsonString: "123.456"),
-        EncodeTestCase(value: .double(123.0), expectedJsonString: "123"),
+        EncodeTestCase(value: .number(123), expectedJsonString: "123"),
+        EncodeTestCase(value: .number(123.456), expectedJsonString: "123.456"),
+        EncodeTestCase(value: .number(123.0), expectedJsonString: "123"),
         EncodeTestCase(value: .boolean(true), expectedJsonString: "true"),
         EncodeTestCase(value: .dictionary(["key": .string("value")]), expectedJsonString: "{\"key\":\"value\"}"),
         EncodeTestCase(value: .list([.string("value1"), .string("value2")]), expectedJsonString: "[\"value1\",\"value2\"]"),
@@ -57,10 +57,10 @@ class BKTValueDecodeTests: XCTestCase {
         let testCases: [DecodeTestCase] = [
             DecodeTestCase(json: "\"test string\"", expected: .string("test string")),
             DecodeTestCase(json: "null", expected: .null),
-            DecodeTestCase(json: "123", expected: .integer(123)),
-            DecodeTestCase(json: "123.456", expected: .double(123.456)),
-            DecodeTestCase(json: "123.0", expected: .integer(123)),
-            DecodeTestCase(json: "123.00", expected: .integer(123)),
+            DecodeTestCase(json: "123", expected: .number(123)),
+            DecodeTestCase(json: "123.456", expected: .number(123.456)),
+            DecodeTestCase(json: "123.0", expected: .number(123)),
+            DecodeTestCase(json: "123.00", expected: .number(123)),
             DecodeTestCase(json: "true", expected: .boolean(true)),
             DecodeTestCase(json: "false", expected: .boolean(false)),
             DecodeTestCase(json: "\"true\"", expected: .string("true")),
@@ -91,8 +91,8 @@ final class BKTValueTests: XCTestCase {
     func testAsBoolean() {
         XCTAssertEqual(BKTValue.boolean(true).asBoolean(), true)
         XCTAssertNil(BKTValue.string("string").asBoolean())
-        XCTAssertNil(BKTValue.integer(123).asBoolean())
-        XCTAssertNil(BKTValue.double(123.456).asBoolean())
+        XCTAssertNil(BKTValue.number(123).asBoolean())
+        XCTAssertNil(BKTValue.number(123.456).asBoolean())
         XCTAssertNil(BKTValue.list([.boolean(true)]).asBoolean())
         XCTAssertNil(BKTValue.dictionary(["key": .boolean(true)]).asBoolean())
         XCTAssertNil(BKTValue.null.asBoolean())
@@ -101,30 +101,30 @@ final class BKTValueTests: XCTestCase {
     func testAsString() {
         XCTAssertEqual(BKTValue.string("test").asString(), "test")
         XCTAssertNil(BKTValue.boolean(true).asString())
-        XCTAssertNil(BKTValue.integer(123).asString())
-        XCTAssertNil(BKTValue.double(123.456).asString())
+        XCTAssertNil(BKTValue.number(123).asString())
+        XCTAssertNil(BKTValue.number(123.456).asString())
         XCTAssertNil(BKTValue.list([.string("value")]).asString())
         XCTAssertNil(BKTValue.dictionary(["key": .string("value")]).asString())
         XCTAssertNil(BKTValue.null.asString())
     }
 
     func testAsInteger() {
-        XCTAssertEqual(BKTValue.integer(123).asInteger(), 123)
+        XCTAssertEqual(BKTValue.number(123).asInteger(), 123)
         XCTAssertNil(BKTValue.boolean(true).asInteger())
         XCTAssertNil(BKTValue.string("string").asInteger())
-        XCTAssertNil(BKTValue.double(123.456).asInteger())
-        XCTAssertNil(BKTValue.list([.integer(123)]).asInteger())
-        XCTAssertNil(BKTValue.dictionary(["key": .integer(123)]).asInteger())
+        XCTAssertEqual(BKTValue.number(123.456).asInteger(), 123)
+        XCTAssertNil(BKTValue.list([.number(123)]).asInteger())
+        XCTAssertNil(BKTValue.dictionary(["key": .number(123)]).asInteger())
         XCTAssertNil(BKTValue.null.asInteger())
     }
 
     func testAsDouble() {
-        XCTAssertEqual(BKTValue.double(123.456).asDouble(), 123.456)
+        XCTAssertEqual(BKTValue.number(123.456).asDouble(), 123.456)
         XCTAssertNil(BKTValue.boolean(true).asDouble())
         XCTAssertNil(BKTValue.string("string").asDouble())
-        XCTAssertNil(BKTValue.integer(123).asDouble())
-        XCTAssertNil(BKTValue.list([.double(123.456)]).asDouble())
-        XCTAssertNil(BKTValue.dictionary(["key": .double(123.456)]).asDouble())
+        XCTAssertEqual(BKTValue.number(123).asDouble(), 123)
+        XCTAssertNil(BKTValue.list([.number(123.456)]).asDouble())
+        XCTAssertNil(BKTValue.dictionary(["key": .number(123.456)]).asDouble())
         XCTAssertNil(BKTValue.null.asDouble())
     }
 
@@ -132,8 +132,8 @@ final class BKTValueTests: XCTestCase {
         XCTAssertEqual(BKTValue.list([.string("value")]).asList(), [.string("value")])
         XCTAssertNil(BKTValue.boolean(true).asList())
         XCTAssertNil(BKTValue.string("string").asList())
-        XCTAssertNil(BKTValue.integer(123).asList())
-        XCTAssertNil(BKTValue.double(123.456).asList())
+        XCTAssertNil(BKTValue.number(123).asList())
+        XCTAssertNil(BKTValue.number(123.456).asList())
         XCTAssertNil(BKTValue.dictionary(["key": .list([.string("value")])]).asList())
         XCTAssertNil(BKTValue.null.asList())
     }
@@ -142,8 +142,8 @@ final class BKTValueTests: XCTestCase {
         XCTAssertEqual(BKTValue.dictionary(["key": .string("value")]).asDictionary(), ["key": .string("value")])
         XCTAssertNil(BKTValue.boolean(true).asDictionary())
         XCTAssertNil(BKTValue.string("string").asDictionary())
-        XCTAssertNil(BKTValue.integer(123).asDictionary())
-        XCTAssertNil(BKTValue.double(123.456).asDictionary())
+        XCTAssertNil(BKTValue.number(123).asDictionary())
+        XCTAssertNil(BKTValue.number(123.456).asDictionary())
         XCTAssertNil(BKTValue.list([.dictionary(["key": .string("value")])]).asDictionary())
         XCTAssertNil(BKTValue.null.asDictionary())
     }
@@ -156,10 +156,10 @@ final class BKTValueTests: XCTestCase {
         XCTAssertEqual("\"test value\"".getVariationBKTValue(logger: nil), .string("test value"))
         XCTAssertEqual("true".getVariationBKTValue(logger: nil), .boolean(true))
         XCTAssertEqual("false".getVariationBKTValue(logger: nil), .boolean(false))
-        XCTAssertEqual("1".getVariationBKTValue(logger: nil), .integer(1))
-        XCTAssertEqual("1.0".getVariationBKTValue(logger: nil), .integer(1))
-        XCTAssertEqual("1.2".getVariationBKTValue(logger: nil), .double(1.2))
-        XCTAssertEqual("1.234".getVariationBKTValue(logger: nil), .double(1.234))
+        XCTAssertEqual("1".getVariationBKTValue(logger: nil), .number(1))
+        XCTAssertEqual("1.0".getVariationBKTValue(logger: nil), .number(1))
+        XCTAssertEqual("1.2".getVariationBKTValue(logger: nil), .number(1.2))
+        XCTAssertEqual("1.234".getVariationBKTValue(logger: nil), .number(1.234))
 
         let dictionaryJSONText = """
 {
@@ -179,20 +179,20 @@ final class BKTValueTests: XCTestCase {
                 [
                     "value": .string("body"),
                     "value1": .string("body1"),
-                    "valueInt" : .integer(1),
+                    "valueInt" : .number(1),
                     "valueBool" : .boolean(true),
-                    "valueDouble" : .double(1.2),
+                    "valueDouble" : .number(1.2),
                     "valueDictionary": .dictionary(["key" : .string("value")]),
                     "valueList1": .list(
                         [
                             .dictionary(["key" : .string("value")]),
-                            .dictionary(["key" : .integer(10)])
+                            .dictionary(["key" : .number(10)])
                         ]
                     ),
                     "valueList2": .list(
                         [
-                            .integer(1),
-                            .double(2.2),
+                            .number(1),
+                            .number(2.2),
                             .boolean(true)
                         ]
                     )
@@ -211,7 +211,7 @@ final class BKTValueTests: XCTestCase {
             .list(
                 [
                     .dictionary(["key" : .string("value")]),
-                    .dictionary(["key" : .integer(10)])
+                    .dictionary(["key" : .number(10)])
                 ]
             )
         )
@@ -223,8 +223,8 @@ final class BKTValueTests: XCTestCase {
             listJSON2Text.getVariationBKTValue(logger: nil),
             .list(
                 [
-                    .integer(1),
-                    .double(2.2),
+                    .number(1),
+                    .number(2.2),
                     .boolean(true)
                 ]
             )

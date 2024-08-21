@@ -118,14 +118,14 @@ final class E2EEvaluationTests: XCTestCase {
                 ))
 
             XCTAssertEqual(
-                client.objectVariationDetails(featureId: FEATURE_ID_INT, defaultValue: .integer(1)),
+                client.objectVariationDetails(featureId: FEATURE_ID_INT, defaultValue: .number(1)),
                 .init(
                     featureId: FEATURE_ID_INT,
                     featureVersion: 4,
                     userId: USER_ID,
                     variationId: "9c5fd2d2-d587-4ba2-8de2-0fc9454d564e",
                     variationName: "variation 10",
-                    variationValue: .integer(10),
+                    variationValue: .number(10),
                     reason: .default
                 ))
         } catch {
@@ -182,14 +182,14 @@ final class E2EEvaluationTests: XCTestCase {
                 ))
 
             XCTAssertEqual(
-                client.objectVariationDetails(featureId: FEATURE_ID_DOUBLE, defaultValue: .double(1.1)),
+                client.objectVariationDetails(featureId: FEATURE_ID_DOUBLE, defaultValue: .number(1.1)),
                 .init(
                     featureId: FEATURE_ID_DOUBLE,
                     featureVersion: 3,
                     userId: USER_ID,
                     variationId: "38078d8f-c6eb-4b93-9d58-c3e57010983f",
                     variationName: "variation 2.1",
-                    variationValue: .double(2.1),
+                    variationValue: .number(2.1),
                     reason: .default
                 ))
         } catch {
@@ -310,7 +310,7 @@ final class E2EEvaluationTests: XCTestCase {
             ))
 
             XCTAssertEqual(
-                client.objectVariationDetails(featureId: FEATURE_ID_STRING, defaultValue: .double(1.0)),
+                client.objectVariationDetails(featureId: FEATURE_ID_STRING, defaultValue: .number(1.0)),
                 .init(
                     featureId: FEATURE_ID_STRING,
                     featureVersion: 3,

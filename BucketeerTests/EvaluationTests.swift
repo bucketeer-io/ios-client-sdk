@@ -67,9 +67,9 @@ final class EvaluationTests: XCTestCase {
         XCTAssertEqual(stringValue, .string("a123"))
         // "123" in JSON is a integer 123
         let intValue: BKTValue? = mockEvaluation(value: "123").getVariationValue(logger: nil)
-        XCTAssertEqual(intValue, .integer(123))
+        XCTAssertEqual(intValue, .number(123))
         let doubleValue: BKTValue? = mockEvaluation(value: "1.2").getVariationValue(logger: nil)
-        XCTAssertEqual(doubleValue, .double(1.2))
+        XCTAssertEqual(doubleValue, .number(1.2))
 
         let objectValue: BKTValue = Evaluation.jsonObjectEvaluation.getVariationValue(defaultValue: .boolean(false), logger: nil)
         XCTAssertEqual(
@@ -78,20 +78,20 @@ final class EvaluationTests: XCTestCase {
                 [
                     "value": .string("body"),
                     "value1": .string("body1"),
-                    "valueInt" : .integer(1),
+                    "valueInt" : .number(1),
                     "valueBool" : .boolean(true),
-                    "valueDouble" : .double(1.2),
+                    "valueDouble" : .number(1.2),
                     "valueDictionary": .dictionary(["key" : .string("value")]),
                     "valueList1": .list(
                         [
                             .dictionary(["key" : .string("value")]),
-                            .dictionary(["key" : .integer(10)])
+                            .dictionary(["key" : .number(10)])
                         ]
                     ),
                     "valueList2": .list(
                         [
-                            .integer(1),
-                            .double(2.2),
+                            .number(1),
+                            .number(2.2),
                             .boolean(true)
                         ]
                     )
