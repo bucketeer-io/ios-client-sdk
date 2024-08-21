@@ -139,7 +139,9 @@ final class BKTValueTests: XCTestCase {
     }
 
     func testAsDictionary() {
-        XCTAssertEqual(BKTValue.dictionary(["key": .string("value")]).asDictionary(), ["key": .string("value")])
+        XCTAssertEqual(
+            BKTValue.dictionary(
+                ["key": .string("value"), "key1": .number(1)]).asDictionary(), ["key": .string("value"), "key1": .number(1)])
         XCTAssertNil(BKTValue.boolean(true).asDictionary())
         XCTAssertNil(BKTValue.string("string").asDictionary())
         XCTAssertNil(BKTValue.number(123).asDictionary())
