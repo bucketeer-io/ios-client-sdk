@@ -143,24 +143,27 @@ extension BKTClient {
         }
     }
 
-    public func intVariationDetails(featureId: String, defaultValue: Int) -> BKTEvaluationDetails<Int> {
-        return getVariationDetail(featureId: featureId, defaultValue: defaultValue)
-    }
-
-    public func doubleVariationDetails(featureId: String, defaultValue: Double) -> BKTEvaluationDetails<Double> {
-        return getVariationDetail(featureId: featureId, defaultValue: defaultValue)
+    public func boolVariation(featureId: String, defaultValue: Bool) -> Bool {
+        return boolVariationDetails(featureId: featureId, defaultValue: defaultValue).variationValue
     }
 
     public func boolVariationDetails(featureId: String, defaultValue: Bool) -> BKTEvaluationDetails<Bool> {
         return getVariationDetail(featureId: featureId, defaultValue: defaultValue)
     }
 
-    public func stringVariationDetails(featureId: String, defaultValue: String) -> BKTEvaluationDetails<String> {
+    public func intVariation(featureId: String, defaultValue: Int) -> Int {
+        return intVariationDetails(featureId: featureId, defaultValue: defaultValue).variationValue
+    }
+
+    public func intVariationDetails(featureId: String, defaultValue: Int) -> BKTEvaluationDetails<Int> {
         return getVariationDetail(featureId: featureId, defaultValue: defaultValue)
     }
 
-    public func objectVariationDetails(featureId: String, defaultValue:BKTValue)
-    -> BKTEvaluationDetails<BKTValue> {
+    public func doubleVariation(featureId: String, defaultValue: Double) -> Double {
+        return doubleVariationDetails(featureId: featureId, defaultValue: defaultValue).variationValue
+    }
+
+    public func doubleVariationDetails(featureId: String, defaultValue: Double) -> BKTEvaluationDetails<Double> {
         return getVariationDetail(featureId: featureId, defaultValue: defaultValue)
     }
 
@@ -168,25 +171,22 @@ extension BKTClient {
         return stringVariationDetails(featureId: featureId, defaultValue: defaultValue).variationValue
     }
 
-    public func intVariation(featureId: String, defaultValue: Int) -> Int {
-        return intVariationDetails(featureId: featureId, defaultValue: defaultValue).variationValue
+    public func stringVariationDetails(featureId: String, defaultValue: String) -> BKTEvaluationDetails<String> {
+        return getVariationDetail(featureId: featureId, defaultValue: defaultValue)
     }
 
-    public func doubleVariation(featureId: String, defaultValue: Double) -> Double {
-        return doubleVariationDetails(featureId: featureId, defaultValue: defaultValue).variationValue
+    public func objectVariation(featureId: String, defaultValue: BKTValue) -> BKTValue {
+        return objectVariationDetails(featureId: featureId, defaultValue: defaultValue).variationValue
     }
 
-    public func boolVariation(featureId: String, defaultValue: Bool) -> Bool {
-        return boolVariationDetails(featureId: featureId, defaultValue: defaultValue).variationValue
+    public func objectVariationDetails(featureId: String, defaultValue:BKTValue)
+    -> BKTEvaluationDetails<BKTValue> {
+        return getVariationDetail(featureId: featureId, defaultValue: defaultValue)
     }
 
     @available(*, deprecated, message: "use objectVariation(featureId:, defaultValue:) instead")
     public func jsonVariation(featureId: String, defaultValue: [String: AnyHashable]) -> [String: AnyHashable] {
         return getVariationDetail(featureId: featureId, defaultValue: defaultValue).variationValue
-    }
-
-    public func objectVariation(featureId: String, defaultValue: BKTValue) -> BKTValue {
-        return objectVariationDetails(featureId: featureId, defaultValue: defaultValue).variationValue
     }
 
     public func track(goalId: String, value: Double = 0.0) {
