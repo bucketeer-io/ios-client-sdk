@@ -116,6 +116,10 @@ settings:
       VERSIONING_SYSTEM: apple-generic
       VERSION_INFO_PREFIX: ''
       VALIDATE_PRODUCT: 'YES'
+packages:
+  Firebase:
+    url: https://github.com/firebase/firebase-ios-sdk
+    from: 11.1.0
 targets:
   Bucketeer:
     platform: iOS
@@ -215,8 +219,14 @@ targets:
       path: BucketeerTests
     type: bundle.unit-test
   Example:
+    entitlements:
+      path: Example/Example.entitlements
+      properties:
+        aps-environment: development
     dependencies:
     - target: Bucketeer
+    - package: Firebase
+      product: FirebaseMessaging
     platform: iOS
     configFiles:
       Debug: environment.xcconfig
