@@ -151,17 +151,17 @@ final class BKTValueTests: XCTestCase {
     }
 
     func testGetVariationBKTValue() throws {
-        XCTAssertEqual("".getVariationBKTValue(logger: nil), .string(""))
-        XCTAssertEqual("null".getVariationBKTValue(logger: nil), .string("null"))
-        XCTAssertEqual("test".getVariationBKTValue(logger: nil), .string("test"))
-        XCTAssertEqual("test value".getVariationBKTValue(logger: nil), .string("test value"))
-        XCTAssertEqual("\"test value\"".getVariationBKTValue(logger: nil), .string("test value"))
-        XCTAssertEqual("true".getVariationBKTValue(logger: nil), .boolean(true))
-        XCTAssertEqual("false".getVariationBKTValue(logger: nil), .boolean(false))
-        XCTAssertEqual("1".getVariationBKTValue(logger: nil), .number(1))
-        XCTAssertEqual("1.0".getVariationBKTValue(logger: nil), .number(1))
-        XCTAssertEqual("1.2".getVariationBKTValue(logger: nil), .number(1.2))
-        XCTAssertEqual("1.234".getVariationBKTValue(logger: nil), .number(1.234))
+        XCTAssertEqual("".getVariationBKTValue(), .string(""))
+        XCTAssertEqual("null".getVariationBKTValue(), .string("null"))
+        XCTAssertEqual("test".getVariationBKTValue(), .string("test"))
+        XCTAssertEqual("test value".getVariationBKTValue(), .string("test value"))
+        XCTAssertEqual("\"test value\"".getVariationBKTValue(), .string("test value"))
+        XCTAssertEqual("true".getVariationBKTValue(), .boolean(true))
+        XCTAssertEqual("false".getVariationBKTValue(), .boolean(false))
+        XCTAssertEqual("1".getVariationBKTValue(), .number(1))
+        XCTAssertEqual("1.0".getVariationBKTValue(), .number(1))
+        XCTAssertEqual("1.2".getVariationBKTValue(), .number(1.2))
+        XCTAssertEqual("1.234".getVariationBKTValue(), .number(1.234))
 
         let dictionaryJSONText = """
 {
@@ -176,7 +176,7 @@ final class BKTValueTests: XCTestCase {
 }
 """
         XCTAssertEqual(
-            dictionaryJSONText.getVariationBKTValue(logger: nil),
+            dictionaryJSONText.getVariationBKTValue(),
             .dictionary(
                 [
                     "value": .string("body"),
@@ -209,7 +209,7 @@ final class BKTValueTests: XCTestCase {
 ]
 """
         XCTAssertEqual(
-            listJSON1Text.getVariationBKTValue(logger: nil),
+            listJSON1Text.getVariationBKTValue(),
             .list(
                 [
                     .dictionary(["key" : .string("value")]),
@@ -222,7 +222,7 @@ final class BKTValueTests: XCTestCase {
   [1,2.2,true]
 """
         XCTAssertEqual(
-            listJSON2Text.getVariationBKTValue(logger: nil),
+            listJSON2Text.getVariationBKTValue(),
             .list(
                 [
                     .number(1),
