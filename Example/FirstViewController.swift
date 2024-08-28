@@ -1,4 +1,5 @@
 import UIKit
+import FirebaseMessaging
 import Bucketeer
 
 class FirstViewController: UIViewController {
@@ -21,6 +22,8 @@ class FirstViewController: UIViewController {
 
         let colorCode = client?.stringVariation(featureId: "ios_test_003", defaultValue: "#999999") ?? "#999999"
         view.backgroundColor = UIColor(hex: colorCode)
+        
+        requestPushNotificationPermission()
     }
     @IBAction func trackButtonAction(_ sender: Any) {
         let client = try? BKTClient.shared
@@ -105,6 +108,45 @@ class FirstViewController: UIViewController {
             }
         } else {
             destroyAndInitialize()
+        }
+    }
+    
+    func requestPushNotificationPermission() {
+        let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
+        UNUserNotificationCenter.current().requestAuthorization(
+            options: authOptions,
+            completionHandler: { [weak self] result, err in
+                if result {
+                    self?.onGrantedNotificationPermission()
+                }
+            }
+        )
+
+        UIApplication.shared.registerForRemoteNotifications()
+    }
+    
+    func onGrantedNotificationPermission() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: { [weak self] in
+            Messaging.messaging().token { token, error in
+                if let token = token, token.count > 0 {
+                    self?.subscribeToTopic()
+                }
+            }
+        })
+    }
+    
+    // In order to receive the update notification when the flag value changed
+    // We need subscribe to topic, with the topic name is in this format bucketeer-<YOUR_FEATURE_TAG>
+    // Please add your Firebase project's GoogleService-Info.plist to the target `Example` before test this.
+    func subscribeToTopic() {
+        let tag = "ios"
+        let topic = "bucketeer-\(tag)"
+        Messaging.messaging().subscribe(toTopic: topic) { error in
+            if let error = error {
+                print("Subscribed to \(topic) topic failed with error: \(error)")
+            } else {
+                print("Subscribed to \(topic) topic")
+            }
         }
     }
 }
