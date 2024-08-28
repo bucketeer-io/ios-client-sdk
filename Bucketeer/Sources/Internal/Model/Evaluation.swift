@@ -43,7 +43,7 @@ extension String {
             let json = (try? JSONSerialization.jsonObject(with: data)) as? [String: AnyHashable]
             anyValue = json
         case is BKTValue.Type:
-            anyValue = getVariationBKTValue(logger: logger)
+            anyValue = getVariationBKTValue()
         default:
             anyValue = value
         }
@@ -54,7 +54,7 @@ extension String {
         return typedValue
     }
 
-    func getVariationBKTValue(logger: Logger?) -> BKTValue {
+    func getVariationBKTValue() -> BKTValue {
         let value = self
         let data = value.data(using: .utf8) ?? Data()
         if let valueResult = (try? JSONDecoder().decode(BKTValue.self, from: data)), valueResult != .null {

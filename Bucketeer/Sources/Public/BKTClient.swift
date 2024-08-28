@@ -12,11 +12,7 @@ public class BKTClient {
         self.component = ComponentImpl(dataModule: dataModule)
     }
 
-    func getVariationValue<T: Equatable>(featureId: String, defaultValue: T) -> T {
-        return getVariationDetail(featureId: featureId, defaultValue: defaultValue).variationValue
-    }
-
-    func getVariationDetail<T:Equatable>(featureId: String, defaultValue: T) -> BKTEvaluationDetails<T> {
+    func getBKTEvaluationDetails<T:Equatable>(featureId: String, defaultValue: T) -> BKTEvaluationDetails<T> {
         component.config.logger?.debug(message: "BKTClient.getVariationDetail(featureId = \(featureId), defaultValue = \(defaultValue) called")
         let raw = component.evaluationInteractor.getLatest(
             userId: component.userHolder.userId,
@@ -148,7 +144,7 @@ extension BKTClient {
     }
 
     public func boolVariationDetails(featureId: String, defaultValue: Bool) -> BKTEvaluationDetails<Bool> {
-        return getVariationDetail(featureId: featureId, defaultValue: defaultValue)
+        return getBKTEvaluationDetails(featureId: featureId, defaultValue: defaultValue)
     }
 
     public func intVariation(featureId: String, defaultValue: Int) -> Int {
@@ -156,7 +152,7 @@ extension BKTClient {
     }
 
     public func intVariationDetails(featureId: String, defaultValue: Int) -> BKTEvaluationDetails<Int> {
-        return getVariationDetail(featureId: featureId, defaultValue: defaultValue)
+        return getBKTEvaluationDetails(featureId: featureId, defaultValue: defaultValue)
     }
 
     public func doubleVariation(featureId: String, defaultValue: Double) -> Double {
@@ -164,7 +160,7 @@ extension BKTClient {
     }
 
     public func doubleVariationDetails(featureId: String, defaultValue: Double) -> BKTEvaluationDetails<Double> {
-        return getVariationDetail(featureId: featureId, defaultValue: defaultValue)
+        return getBKTEvaluationDetails(featureId: featureId, defaultValue: defaultValue)
     }
 
     public func stringVariation(featureId: String, defaultValue: String) -> String {
@@ -172,7 +168,7 @@ extension BKTClient {
     }
 
     public func stringVariationDetails(featureId: String, defaultValue: String) -> BKTEvaluationDetails<String> {
-        return getVariationDetail(featureId: featureId, defaultValue: defaultValue)
+        return getBKTEvaluationDetails(featureId: featureId, defaultValue: defaultValue)
     }
 
     public func objectVariation(featureId: String, defaultValue: BKTValue) -> BKTValue {
@@ -181,12 +177,12 @@ extension BKTClient {
 
     public func objectVariationDetails(featureId: String, defaultValue:BKTValue)
     -> BKTEvaluationDetails<BKTValue> {
-        return getVariationDetail(featureId: featureId, defaultValue: defaultValue)
+        return getBKTEvaluationDetails(featureId: featureId, defaultValue: defaultValue)
     }
 
     @available(*, deprecated, message: "use objectVariation(featureId:, defaultValue:) instead")
     public func jsonVariation(featureId: String, defaultValue: [String: AnyHashable]) -> [String: AnyHashable] {
-        return getVariationDetail(featureId: featureId, defaultValue: defaultValue).variationValue
+        return getBKTEvaluationDetails(featureId: featureId, defaultValue: defaultValue).variationValue
     }
 
     public func track(goalId: String, value: Double = 0.0) {
