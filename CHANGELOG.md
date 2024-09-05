@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.2.0](https://github.com/bucketeer-io/ios-client-sdk/compare/v2.1.5...v2.2.0) (2024-09-05)
+
+
+### Features
+
+* comply with new iOS third-party SDK requirements ([#86](https://github.com/bucketeer-io/ios-client-sdk/issues/86)) ([e11bb4b](https://github.com/bucketeer-io/ios-client-sdk/commit/e11bb4b250f81f8799b549733e8cbd08b01c248c))
+* get variation details by variation type ([#90](https://github.com/bucketeer-io/ios-client-sdk/issues/90)) ([5a79914](https://github.com/bucketeer-io/ios-client-sdk/commit/5a79914dab736f8e60c977f7cb7c0fb2d636f56b))
+
 ## [2.1.5](https://github.com/bucketeer-io/ios-client-sdk/compare/v2.1.4...v2.1.5) (2024-04-23)
 
 
