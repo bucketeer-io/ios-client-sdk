@@ -19,13 +19,15 @@ final class EvaluationTests: XCTestCase {
     func testGetVariationValueAsText() {
         let value: String = mockEvaluation(value: "text").getVariationValue(defaultValue: "default", logger: nil)
         XCTAssertEqual(value, "text")
+        let value123: String = mockEvaluation(value: "123").getVariationValue(defaultValue: "default", logger: nil)
+        XCTAssertEqual(value123, "123")
     }
 
     func testGetVariationValueAsInt() {
         let value1: Int = mockEvaluation(value: "100").getVariationValue(defaultValue: 0, logger: nil)
         XCTAssertEqual(value1, 100)
         let value2: Int = mockEvaluation(value: "200.1").getVariationValue(defaultValue: 0, logger: nil)
-        XCTAssertEqual(value2, 0)
+        XCTAssertEqual(value2, 200)
         let value3: Int = mockEvaluation(value: "text").getVariationValue(defaultValue: 0, logger: nil)
         XCTAssertEqual(value3, 0)
     }
@@ -56,5 +58,45 @@ final class EvaluationTests: XCTestCase {
         let jsonString = object.value.data(using: .utf8)?.base64EncodedString() ?? ""
         let value: Any = mockEvaluation(value: jsonString).getVariationValue(defaultValue: "", logger: nil)
         XCTAssertEqual(value as? String, jsonString)
+    }
+
+    func testGetVariationValueAsBKTValue() throws {
+        let boolValue: BKTValue? = mockEvaluation(value: "true").getVariationValue(logger: nil)
+        XCTAssertEqual(boolValue, .boolean(true))
+        let stringValue: BKTValue? = mockEvaluation(value: "a123").getVariationValue(logger: nil)
+        XCTAssertEqual(stringValue, .string("a123"))
+        // "123" in JSON is a integer 123
+        let intValue: BKTValue? = mockEvaluation(value: "123").getVariationValue(logger: nil)
+        XCTAssertEqual(intValue, .number(123))
+        let doubleValue: BKTValue? = mockEvaluation(value: "1.2").getVariationValue(logger: nil)
+        XCTAssertEqual(doubleValue, .number(1.2))
+
+        let objectValue: BKTValue = Evaluation.jsonObjectEvaluation.getVariationValue(defaultValue: .boolean(false), logger: nil)
+        XCTAssertEqual(
+            objectValue,
+            .dictionary(
+                [
+                    "value": .string("body"),
+                    "value1": .string("body1"),
+                    "valueInt" : .number(1),
+                    "valueBool" : .boolean(true),
+                    "valueDouble" : .number(1.2),
+                    "valueDictionary": .dictionary(["key" : .string("value")]),
+                    "valueList1": .list(
+                        [
+                            .dictionary(["key" : .string("value")]),
+                            .dictionary(["key" : .number(10)])
+                        ]
+                    ),
+                    "valueList2": .list(
+                        [
+                            .number(1),
+                            .number(2.2),
+                            .boolean(true)
+                        ]
+                    )
+                ]
+            )
+        )
     }
 }
