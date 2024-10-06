@@ -307,7 +307,15 @@ class BKTErrorTests: XCTestCase {
                 metricsEventData = .internalSdkError(.init(apiId: apiId, labels: labels))
                 metricsEventType = .internalError
             case .unknown:
-                metricsEventData = .unknownError(.init(apiId: apiId, labels: labels))
+                metricsEventData = .unknownError(
+                    .init(
+                        apiId: apiId,
+                        labels: [
+                            "key": "value",
+                            "error_message": "unknown"
+                        ]
+                    )
+                )
                 metricsEventType = .unknownError
             case .unknownServer:
                 metricsEventData = .unknownError(
