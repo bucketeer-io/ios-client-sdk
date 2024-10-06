@@ -407,8 +407,18 @@ extension BKTError {
                 )
             )
             metricsEventType = .unknownError
-        case .unknown:
-            metricsEventData = .unknownError(.init(apiId: apiId, labels: labels))
+        case .unknown(let message, _):
+            metricsEventData = .unknownError(
+                .init(
+                    apiId: apiId,
+                    labels: labels.merging(
+                        [
+                            "error_message":message
+                        ]
+                        , uniquingKeysWith: { (first, _) in first }
+                    )
+                )
+            )
             metricsEventType = .unknownError
         }
         return .metrics(.init(
