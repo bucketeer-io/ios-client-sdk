@@ -168,6 +168,19 @@ final class EventInteractorImpl: EventInteractor {
     }
 
     func trackFetchEvaluationsFailure(featureTag: String, error: BKTError) throws {
+
+        if case .forbidden = error {
+            logger?.warn(message: "An forbidden error occurred. Please check your API Key.")
+            logger?.error(error)
+            return
+        }
+
+        if case .unauthorized = error {
+            logger?.warn(message: "An unauthorized error occurred. Please check your API Key.")
+            logger?.error(error)
+            return
+        }
+
         let eventData = error.toMetricsEventData(
             apiId: .getEvaluations,
             labels: ["tag": featureTag],
