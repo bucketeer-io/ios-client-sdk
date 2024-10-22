@@ -39,7 +39,7 @@ final class MockEventSQLDao: EventSQLDao {
     func delete(ids: [String]) throws {
         lock.lock()
         defer { lock.unlock() }
-        
+
         try deleteEventsHandler?(ids)
         events.removeAll(where: { ids.contains($0.id) })
     }
