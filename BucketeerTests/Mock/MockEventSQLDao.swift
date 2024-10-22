@@ -10,6 +10,7 @@ final class MockEventSQLDao: EventSQLDao {
     let getEventsHandler: GetEventsHandler?
     let deleteEventsHandler: DeleteEventsHandler?
     var events: [Event] = []
+    private let lock = NSLock()
 
     init(addEventsHandler: AddEventsHandler? = nil,
          getEventsHandler: GetEventsHandler? = nil,
@@ -24,6 +25,9 @@ final class MockEventSQLDao: EventSQLDao {
     }
 
     func add(events: [Event]) throws {
+        lock.lock()
+        defer { lock.unlock() }
+
         try addEventsHandler?(events)
         self.events.append(contentsOf: events)
     }
