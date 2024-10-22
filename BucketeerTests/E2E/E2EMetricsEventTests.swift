@@ -50,9 +50,8 @@ final class E2EMetricsEventTests: XCTestCase {
             return
         }
         let events : [Event] = try component.dataModule.eventSQLDao.getEvents()
-        // It includes the Latency and ResponseSize metrics
-        XCTAssertEqual(events.count, 1)
-        XCTAssertTrue(events.contains { event in
+        // We did not generate error events for forbidden (403) errors. The event count is expected to be 0.
+        XCTAssertFalse(events.contains { event in
             if case .metrics = event.type,
                case .metrics(let data) = event.event,
                case .forbiddenError = data.type,
@@ -62,20 +61,17 @@ final class E2EMetricsEventTests: XCTestCase {
             }
             return false
         })
+        XCTAssertEqual(events.count, 0)
 
         do {
             try await client.flush()
-            XCTFail("Using a random string in the api key setting should throw Forbidden")
         } catch {
-            guard case BKTError.forbidden(_) = error else {
-                XCTFail("Using a random string in the api key setting should throw Forbidden")
-                return
-            }
+            XCTFail("No events to flush; no request is sent, so no error is expected.")
         }
 
         let events2 : [Event] = try component.dataModule.eventSQLDao.getEvents()
         // It includes the Latency and ResponseSize metrics
-        XCTAssertEqual(events2.count, 2)
+        XCTAssertEqual(events2.count, 0)
     }
 
     // Using a random string in the featureTag setting should not affect api request
