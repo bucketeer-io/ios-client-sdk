@@ -707,9 +707,17 @@ final class EventInteractorTests: XCTestCase {
             error: .forbidden(message: "forbidden")
         )
 
+        try interactor.trackRegisterEventsFailure(
+            error: .forbidden(message: "forbidden")
+        )
+
         // Simulate unauthorized error - Expectation should also not fulfill
         try interactor.trackFetchEvaluationsFailure(
             featureTag: "featureTag1",
+            error: .unauthorized(message: "unauthorized")
+        )
+
+        try interactor.trackRegisterEventsFailure(
             error: .unauthorized(message: "unauthorized")
         )
 

@@ -176,7 +176,7 @@ final class EventInteractorImpl: EventInteractor {
         try trackApiFailureMetricsEvent(error: error, featureTag: featureTag, apiId: .registerEvents)
     }
 
-    func trackApiFailureMetricsEvent(error: BKTError, featureTag: String, apiId: ApiId) throws {
+    private func trackApiFailureMetricsEvent(error: BKTError, featureTag: String, apiId: ApiId) throws {
         if case .forbidden = error {
             logger?.warn(message: "An forbidden error occurred. Please check your API Key.")
             logger?.error(error)
