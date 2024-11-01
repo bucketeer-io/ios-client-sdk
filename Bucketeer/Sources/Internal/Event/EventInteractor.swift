@@ -168,26 +168,29 @@ final class EventInteractorImpl: EventInteractor {
     }
 
     func trackFetchEvaluationsFailure(featureTag: String, error: BKTError) throws {
-        let eventData = error.toMetricsEventData(
-            apiId: .getEvaluations,
-            labels: ["tag": featureTag],
-            currentTimeSeconds: clock.currentTimeSeconds,
-            sdkVersion: sdkVersion,
-            metadata: metadata
-        )
-        try trackMetricsEvent(events: [
-            .init(
-                id: idGenerator.id(),
-                event: eventData,
-                type: .metrics
-            )
-        ])
+        try trackApiFailureMetricsEvent(error: error, featureTag: featureTag, apiId: .getEvaluations)
     }
 
     func trackRegisterEventsFailure(error: BKTError) throws {
         // note: using the same tag in BKConfig.featureTag
+        try trackApiFailureMetricsEvent(error: error, featureTag: featureTag, apiId: .registerEvents)
+    }
+
+    private func trackApiFailureMetricsEvent(error: BKTError, featureTag: String, apiId: ApiId) throws {
+        if case .forbidden = error {
+            logger?.warn(message: "An forbidden error occurred. Please check your API Key.")
+            logger?.error(error)
+            return
+        }
+
+        if case .unauthorized = error {
+            logger?.warn(message: "An unauthorized error occurred. Please check your API Key.")
+            logger?.error(error)
+            return
+        }
+
         let eventData = error.toMetricsEventData(
-            apiId: .registerEvents,
+            apiId: apiId,
             labels: ["tag": featureTag],
             currentTimeSeconds: clock.currentTimeSeconds,
             sdkVersion: sdkVersion,

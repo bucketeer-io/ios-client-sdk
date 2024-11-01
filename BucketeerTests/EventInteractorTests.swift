@@ -687,5 +687,41 @@ final class EventInteractorTests: XCTestCase {
 
         wait(for: [expectation], timeout: 20)
     }
+
+    func testShouldNotCreateErrorEventForUnauthorizedAndForbiddenExceptions() throws {
+        let expectation = XCTestExpectation(description: "Expectation should not be fulfilled")
+        expectation.isInverted = true // Inverted expectation: Should NOT be fulfilled
+        expectation.assertForOverFulfill = true
+
+        let interactor = self.eventInteractor()
+        let listener = MockEventUpdateListener { _ in
+            // Only fulfill for specific events (if needed, based on other logic)
+            expectation.fulfill()
+        }
+
+        interactor.set(eventUpdateListener: listener)
+
+        // Simulate forbidden error - Expectation should not fulfill for these cases
+        try interactor.trackFetchEvaluationsFailure(
+            featureTag: "featureTag1",
+            error: .forbidden(message: "forbidden")
+        )
+
+        try interactor.trackRegisterEventsFailure(
+            error: .forbidden(message: "forbidden")
+        )
+
+        // Simulate unauthorized error - Expectation should also not fulfill
+        try interactor.trackFetchEvaluationsFailure(
+            featureTag: "featureTag1",
+            error: .unauthorized(message: "unauthorized")
+        )
+
+        try interactor.trackRegisterEventsFailure(
+            error: .unauthorized(message: "unauthorized")
+        )
+
+        wait(for: [expectation], timeout: 1)
+    }
 }
 // swiftlint:enable type_body_length file_length
