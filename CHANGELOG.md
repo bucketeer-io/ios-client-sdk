@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.2.1](https://github.com/bucketeer-io/ios-client-sdk/compare/v2.2.0...v2.2.1) (2024-11-01)
+
+
+### Bug Fixes
+
+* missing error message when reporting client's unknown error ([#94](https://github.com/bucketeer-io/ios-client-sdk/issues/94)) ([a0e47b1](https://github.com/bucketeer-io/ios-client-sdk/commit/a0e47b1bb770ae2bcb490ee72edde0a033db84a4))
+* skip generating error events for unauthorized or forbidden errors ([#95](https://github.com/bucketeer-io/ios-client-sdk/issues/95)) ([1826db0](https://github.com/bucketeer-io/ios-client-sdk/commit/1826db0a72f3db0bd6d6789a3b5df36702d8f955))
+
 ## [2.2.0](https://github.com/bucketeer-io/ios-client-sdk/compare/v2.1.5...v2.2.0) (2024-09-05)
 
 
