@@ -131,6 +131,20 @@ func assertEvaluation(actual: BKTEvaluation?, expected: BKTEvaluationExpected, f
     }
 }
 
+func assertEvaluationDetails<T>(
+    actual: BKTEvaluationDetails<T>,
+    expected: BKTEvaluationDetails<T>
+) {
+    // Skipped check on the feature version
+    let isEqual = actual.featureId == expected.featureId &&
+        actual.userId == expected.userId &&
+        actual.variationId == expected.variationId &&
+        actual.variationName == expected.variationName &&
+        actual.reason == expected.reason &&
+        actual.variationValue == expected.variationValue
+    XCTAssertTrue(isEqual)
+}
+
 final class E2ELogger: BKTLogger {
     private var prefix: String {
         "Bucketeer E2E "

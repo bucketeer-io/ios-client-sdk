@@ -54,9 +54,9 @@ final class E2EEvaluationTests: XCTestCase {
                     reason: .default
                 ))
 
-            XCTAssertEqual(
-                client.stringVariationDetails(featureId: FEATURE_ID_STRING, defaultValue: "default"),
-                .init(
+            assertEvaluationDetails(
+                actual: client.stringVariationDetails(featureId: FEATURE_ID_STRING, defaultValue: "default"),
+                expected: .init(
                     featureId: FEATURE_ID_STRING,
                     featureVersion: 3,
                     userId: USER_ID,
@@ -66,9 +66,9 @@ final class E2EEvaluationTests: XCTestCase {
                     reason: .default
                 ))
 
-            XCTAssertEqual(
-                client.objectVariationDetails(featureId: FEATURE_ID_STRING, defaultValue: .list([])),
-                .init(
+            assertEvaluationDetails(
+                actual: client.objectVariationDetails(featureId: FEATURE_ID_STRING, defaultValue: .list([])),
+                expected: .init(
                     featureId: FEATURE_ID_STRING,
                     featureVersion: 3,
                     userId: USER_ID,
@@ -105,9 +105,9 @@ final class E2EEvaluationTests: XCTestCase {
                 reason: .default
             ))
 
-            XCTAssertEqual(
-                client.intVariationDetails(featureId: FEATURE_ID_INT, defaultValue: 1),
-                .init(
+            assertEvaluationDetails(
+                actual: client.intVariationDetails(featureId: FEATURE_ID_INT, defaultValue: 1),
+                expected: .init(
                     featureId: FEATURE_ID_INT,
                     featureVersion: 4,
                     userId: USER_ID,
@@ -117,9 +117,9 @@ final class E2EEvaluationTests: XCTestCase {
                     reason: .default
                 ))
 
-            XCTAssertEqual(
-                client.objectVariationDetails(featureId: FEATURE_ID_INT, defaultValue: .number(1)),
-                .init(
+            assertEvaluationDetails(
+                actual: client.objectVariationDetails(featureId: FEATURE_ID_INT, defaultValue: .number(1)),
+                expected: .init(
                     featureId: FEATURE_ID_INT,
                     featureVersion: 4,
                     userId: USER_ID,
@@ -157,9 +157,9 @@ final class E2EEvaluationTests: XCTestCase {
                 reason: .default
             ))
 
-            XCTAssertEqual(
-                client.doubleVariationDetails(featureId: FEATURE_ID_DOUBLE, defaultValue: 1.1),
-                .init(
+            assertEvaluationDetails(
+                actual: client.doubleVariationDetails(featureId: FEATURE_ID_DOUBLE, defaultValue: 1.1),
+                expected: .init(
                     featureId: FEATURE_ID_DOUBLE,
                     featureVersion: 3,
                     userId: USER_ID,
@@ -169,9 +169,9 @@ final class E2EEvaluationTests: XCTestCase {
                     reason: .default
                 ))
 
-            XCTAssertEqual(
-                client.intVariationDetails(featureId: FEATURE_ID_DOUBLE, defaultValue: 1),
-                .init(
+            assertEvaluationDetails(
+                actual: client.intVariationDetails(featureId: FEATURE_ID_DOUBLE, defaultValue: 1),
+                expected: .init(
                     featureId: FEATURE_ID_DOUBLE,
                     featureVersion: 3,
                     userId: USER_ID,
@@ -181,9 +181,9 @@ final class E2EEvaluationTests: XCTestCase {
                     reason: .default
                 ))
 
-            XCTAssertEqual(
-                client.objectVariationDetails(featureId: FEATURE_ID_DOUBLE, defaultValue: .number(1.1)),
-                .init(
+            assertEvaluationDetails(
+                actual: client.objectVariationDetails(featureId: FEATURE_ID_DOUBLE, defaultValue: .number(1.1)),
+                expected: .init(
                     featureId: FEATURE_ID_DOUBLE,
                     featureVersion: 3,
                     userId: USER_ID,
@@ -220,9 +220,9 @@ final class E2EEvaluationTests: XCTestCase {
                 reason: .default
             ))
 
-            XCTAssertEqual(
-                client.boolVariationDetails(featureId: FEATURE_ID_BOOLEAN, defaultValue: false),
-                .init(
+            assertEvaluationDetails(
+                actual: client.boolVariationDetails(featureId: FEATURE_ID_BOOLEAN, defaultValue: false),
+                expected: .init(
                     featureId: FEATURE_ID_BOOLEAN,
                     featureVersion: 3,
                     userId: USER_ID,
@@ -232,9 +232,9 @@ final class E2EEvaluationTests: XCTestCase {
                     reason: .default
                 ))
 
-            XCTAssertEqual(
-                client.objectVariationDetails(featureId: FEATURE_ID_BOOLEAN, defaultValue: .boolean(false)),
-                .init(
+            assertEvaluationDetails(
+                actual: client.objectVariationDetails(featureId: FEATURE_ID_BOOLEAN, defaultValue: .boolean(false)),
+                expected: .init(
                     featureId: FEATURE_ID_BOOLEAN,
                     featureVersion: 3,
                     userId: USER_ID,
@@ -272,9 +272,9 @@ final class E2EEvaluationTests: XCTestCase {
                 reason: .default
             ))
 
-            XCTAssertEqual(
-                client.objectVariationDetails(featureId: FEATURE_ID_JSON, defaultValue: .dictionary([:])),
-                .init(
+            assertEvaluationDetails(
+                actual: client.objectVariationDetails(featureId: FEATURE_ID_JSON, defaultValue: .dictionary([:])),
+                expected: .init(
                     featureId: FEATURE_ID_JSON,
                     featureVersion: 3,
                     userId: USER_ID,
@@ -309,9 +309,9 @@ final class E2EEvaluationTests: XCTestCase {
                 reason: .rule
             ))
 
-            XCTAssertEqual(
-                client.objectVariationDetails(featureId: FEATURE_ID_STRING, defaultValue: .number(1.0)),
-                .init(
+            assertEvaluationDetails(
+                actual: client.objectVariationDetails(featureId: FEATURE_ID_STRING, defaultValue: .number(1.0)),
+                expected: .init(
                     featureId: FEATURE_ID_STRING,
                     featureVersion: 3,
                     userId: USER_ID,
