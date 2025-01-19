@@ -16,6 +16,9 @@ public struct BKTEvaluationDetails<T:Equatable>: Equatable {
         case client = "CLIENT"
         case offVariation = "OFF_VARIATION"
         case prerequisite = "PREREQUISITE"
+        case featureFlagNotFound = "FEATURE_FLAG_NOT_FOUND"
+        case invalidArgument = "INVALID_ARGUMENT"
+        case internalError = "INTERNAL_ERROR"
 
         public static func fromString(value: String) -> Reason {
             return Reason(rawValue: value) ?? .client

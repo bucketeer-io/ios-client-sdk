@@ -237,6 +237,9 @@ final class BKTEvaluationDetailTests: XCTestCase {
         XCTAssertEqual(BKTEvaluationDetails<Double>.Reason.fromString(value: "CLIENT"), .client)
         XCTAssertEqual(BKTEvaluationDetails<Bool>.Reason.fromString(value: "OFF_VARIATION"), .offVariation)
         XCTAssertEqual(BKTEvaluationDetails<Int>.Reason.fromString(value: "PREREQUISITE"), .prerequisite)
+        XCTAssertEqual(BKTEvaluationDetails<Int>.Reason.fromString(value: "FEATURE_FLAG_NOT_FOUND"), .featureFlagNotFound)
+        XCTAssertEqual(BKTEvaluationDetails<Int>.Reason.fromString(value: "INVALID_ARGUMENT"), .invalidArgument)
+        XCTAssertEqual(BKTEvaluationDetails<Int>.Reason.fromString(value: "INTERNAL_ERROR"), .internalError)
     }
 
     func testFromStringWithInvalidValue() {

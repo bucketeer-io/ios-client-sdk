@@ -21,6 +21,8 @@ public class BKTClient {
         let user = component.userHolder.user
         let featureTag = component.config.featureTag
 
+        // If raw is nil, it means `featureFlagNotFound`
+        // We need read the error from getVarriationValue to see if it should be `invalidArgument` or `internalError`
         guard let raw = raw, let value: T = raw.getVariationValue(
             logger: component.config.logger
         ) else {
