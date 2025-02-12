@@ -13,12 +13,21 @@ public struct BKTEvaluationDetails<T:Equatable>: Equatable {
         case target = "TARGET"
         case rule = "RULE"
         case `default` = "DEFAULT"
+        @available(*, deprecated, message: "ReasonType `client` has been deprecated")
         case client = "CLIENT"
+
         case offVariation = "OFF_VARIATION"
         case prerequisite = "PREREQUISITE"
 
+        case errorNoEvaluations = "ERROR_NO_EVALUATIONS"
+        case errorFlagNotFound = "ERROR_FLAG_NOT_FOUND"
+        case errorWrongType = "ERROR_WRONG_TYPE"
+        case errorUserIdNotSpecified = "ERROR_USER_ID_NOT_SPECIFIED"
+        case errorFeatureFlagIdNotSpecified = "ERROR_FEATURE_FLAG_ID_NOT_SPECIFIED"
+        case errorException = "ERROR_EXCEPTION"
+
         public static func fromString(value: String) -> Reason {
-            return Reason(rawValue: value) ?? .client
+            return Reason(rawValue: value) ?? .errorException
         }
     }
 
@@ -32,7 +41,12 @@ public struct BKTEvaluationDetails<T:Equatable>: Equatable {
             lhs.variationValue == rhs.variationValue
     }
 
-    static func newDefaultInstance(featureId: String, userId: String, defaultValue: T) -> BKTEvaluationDetails<T> {
+    static func newDefaultInstance(
+        featureId: String,
+        userId: String,
+        defaultValue: T,
+        reason: Reason? = nil
+    ) -> BKTEvaluationDetails<T> {
         return BKTEvaluationDetails(
             featureId: featureId,
             featureVersion: 0,
@@ -40,7 +54,7 @@ public struct BKTEvaluationDetails<T:Equatable>: Equatable {
             variationId: "",
             variationName: "",
             variationValue: defaultValue,
-            reason: .client
+            reason: reason ?? .client
         )
     }
 

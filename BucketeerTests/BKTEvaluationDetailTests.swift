@@ -240,7 +240,7 @@ final class BKTEvaluationDetailTests: XCTestCase {
     }
 
     func testFromStringWithInvalidValue() {
-        XCTAssertEqual(BKTEvaluationDetails<Int>.Reason.fromString(value: "INVALID"), .client)
+        XCTAssertEqual(BKTEvaluationDetails<Int>.Reason.fromString(value: "INVALID"), .errorException)
     }
 }
 // swiftlint:enable function_body_length
