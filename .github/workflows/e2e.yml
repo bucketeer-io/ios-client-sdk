@@ -2,6 +2,9 @@ name: E2E tests
 on:
   workflow_dispatch:
   workflow_call:
+  push:
+    branches:
+      - feat/update-ci-cd
 
 jobs:
   generate-xcode-project:
@@ -13,7 +16,7 @@ jobs:
     needs: generate-xcode-project
     if: always()
     name: E2E tests
-    runs-on: macos-13-xlarge
+    runs-on: macos-15-xlarge
     steps:
       - uses: actions/checkout@v4
 
