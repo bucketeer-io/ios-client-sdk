@@ -2,9 +2,6 @@ name: E2E tests
 on:
   workflow_dispatch:
   workflow_call:
-  push:
-    branches:
-      - feat/update-ci-cd
 
 jobs:
   generate-xcode-project:
