@@ -8,6 +8,7 @@ on:
 
 jobs:
   generate-xcode-project:
+    if: ${{ github.event.workflow  == '.github/workflows/e2e.yml'}}
     uses: ./.github/workflows/generate-xcode-project.yml
 
   e2e:
