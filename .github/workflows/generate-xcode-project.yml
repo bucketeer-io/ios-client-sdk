@@ -5,9 +5,17 @@ on:
 
 jobs:
   generate-xcode-project:
-    runs-on: macos-15-xlarge
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      # Get macOS version for cache key
+      - name: Get macOS version
+        id: macos-version
+        run: |
+          VERSION=$(sw_vers -productVersion | cut -d. -f1,2)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Running on macOS $VERSION"
 
       # Pre-cache mint packages directory
       - name: Cache Mint packages
@@ -18,10 +26,10 @@ jobs:
             ~/Library/Caches/Mint
             ~/Library/Developer/Xcode/DerivedData
             ~/.swiftpm
-          key: ${{ runner.os }}-mint-packages-${{ hashFiles('**/Mintfile') }}-v4
+          key: ${{ runner.os }}-${{ steps.macos-version.outputs.version }}-mint-packages-${{ hashFiles('**/Mintfile') }}-v1
           restore-keys: |
-            ${{ runner.os }}-mint-packages-${{ hashFiles('**/Mintfile') }}-
-            ${{ runner.os }}-mint-packages-
+            ${{ runner.os }}-${{ steps.macos-version.outputs.version }}-mint-packages-${{ hashFiles('**/Mintfile') }}-
+            ${{ runner.os }}-${{ steps.macos-version.outputs.version }}-mint-packages-
 
       # Use setup-mint action with optimized settings
       - name: Setup Mint
@@ -30,7 +38,7 @@ jobs:
           bootstrap: true
           bootstrap-link: true
           use-cache: true
-          cache-prefix: "mint-setup-v4"
+          cache-prefix: "mint-setup-${{ steps.macos-version.outputs.version }}-v1"
           clean: true
 
       - name: Generate XcodeProject
