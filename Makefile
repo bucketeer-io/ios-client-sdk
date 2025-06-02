@@ -3,7 +3,7 @@ APP_NAME=Bucketeer
 BUILD_SETTINGS ?= CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
 CONFIGURATION ?= Debug
 SCHEME ?= $(APP_NAME)
-DEVICE ?= "iPhone 16"
+DEVICE ?= "iPhone\ 16"
 
 XCODEBUILD=xcodebuild
 
@@ -15,7 +15,9 @@ EXAMPLE_OPTIONS=\
 	-project $(APP_NAME).xcodeproj \
 	-scheme Example
 
-DESTINATION=-destination 'platform=iOS Simulator,name=$(DEVICE),OS=18.2'
+DESTINATION_IPHONE=-destination "name=$(DEVICE)"
+# Destination for iOS Simulator, iphone 16, os 18.2
+DESTINATION=-destination 'id=02D18BF3-B53A-446D-A9C5-D9447E51BA48'
 
 CLEAN=rm -rf build
 SHOW_BUILD_SETTINGS=$(XCODEBUILD) $(BUILD_SETTINGS) $(OPTIONS) $(DESTINATION) \
