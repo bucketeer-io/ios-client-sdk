@@ -24,6 +24,8 @@ jobs:
           path: ./Bucketeer.xcodeproj
       - name: Select Xcode version
         run: sudo xcode-select -s '/Applications/Xcode_16.2.app/Contents/Developer'
+      - name: List available simulators
+        run: xcrun simctl list devices
 
       - name: Download environment file
         uses: actions/download-artifact@v4

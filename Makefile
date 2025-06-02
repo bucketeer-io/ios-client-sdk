@@ -15,7 +15,7 @@ EXAMPLE_OPTIONS=\
 	-project $(APP_NAME).xcodeproj \
 	-scheme Example
 
-DESTINATION=-destination "name=$(DEVICE)"
+DESTINATION=-destination 'platform=iOS Simulator,name=$(DEVICE),OS=18.2'
 
 CLEAN=rm -rf build
 SHOW_BUILD_SETTINGS=$(XCODEBUILD) $(BUILD_SETTINGS) $(OPTIONS) $(DESTINATION) \
