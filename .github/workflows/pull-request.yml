@@ -14,16 +14,38 @@ concurrency:
 
 jobs:
 
+  generate-xcode-project:
+    uses: ./.github/workflows/generate-xcode-project.yml
+
   lint_swift:
+    needs: generate-xcode-project
     runs-on: macos-15-xlarge
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install bootstrap mint
-        uses: irgaly/setup-mint@99eaad2ad1197ea872390322a47620da2f21fde4 # v1.4.0
+      # Pre-cache mint packages directory
+      - name: Cache Mint packages
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: |
+            ~/.mint
+            ~/Library/Caches/Mint
+            ~/Library/Developer/Xcode/DerivedData
+            ~/.swiftpm
+          key: ${{ runner.os }}-mint-packages-${{ hashFiles('**/Mintfile') }}-v4
+          restore-keys: |
+            ${{ runner.os }}-mint-packages-${{ hashFiles('**/Mintfile') }}-
+            ${{ runner.os }}-mint-packages-
+
+      # Use setup-mint action with optimized settings
+      - name: Setup Mint
+        uses: irgaly/setup-mint@d61b6ece0c0f5486ea8a17de6026e8da5468af60 # v1.7.0
         with:
           bootstrap: true
+          bootstrap-link: true
           use-cache: true
+          cache-prefix: "mint-setup-v4"
+          clean: true
 
       - name: Lint swift
         run: mint run swiftlint --strict
@@ -34,9 +56,6 @@ jobs:
       - uses: actions/checkout@v4
       - name: Lint Pods
         run: pod lib lint --allow-warnings
-
-  generate-xcode-project:
-    uses: ./.github/workflows/generate-xcode-project.yml
 
   build:
     needs: generate-xcode-project
