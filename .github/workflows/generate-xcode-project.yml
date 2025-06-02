@@ -20,6 +20,7 @@ jobs:
             ~/.swiftpm
           key: ${{ runner.os }}-mint-packages-${{ hashFiles('**/Mintfile') }}-v4
           restore-keys: |
+            ${{ runner.os }}-mint-packages-${{ hashFiles('**/Mintfile') }}-
             ${{ runner.os }}-mint-packages-
 
       # Use setup-mint action with optimized settings
