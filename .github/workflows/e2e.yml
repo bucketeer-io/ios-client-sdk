@@ -34,52 +34,8 @@ jobs:
       - name: Build for testing
         run: make build-for-testing
 
-      # Run tests with a cleaner output using xcbeautify
-      - name: Install xcbeautify
-        run: |
-          if ! command -v xcbeautify &> /dev/null; then
-            echo "Installing xcbeautify..."
-            brew install xcbeautify
-          else
-            echo "xcbeautify already installed"
-          fi
-
       - name: E2E Test
         env:
           E2E_API_ENDPOINT: ${{ secrets.E2E_API_ENDPOINT }}
           E2E_API_KEY: ${{ secrets.E2E_API_KEY }}
-        run: |
-          set -o pipefail
-          make e2e-without-building
-          xcbeautify --renderer github-actions
-
-      # Use xcparse for better test result parsing
-      - name: Install xcparse
-        if: failure()
-        run: |
-          if ! command -v xcparse &> /dev/null; then
-            echo "Installing xcparse..."
-            brew install xcparse
-          else
-            echo "xcparse already installed"
-          fi
-
-      - name: Parse test results on failure
-        if: failure()
-        run: |
-          echo "=== Test Results Summary ==="
-          xcparse screenshots TestResults.xcresult ./screenshots || true
-          xcparse logs TestResults.xcresult ./logs || true
-          
-          # Show failed tests
-          xcparse tests TestResults.xcresult --failed || echo "No test result details available"
-
-      - name: Upload test results
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results-actions
-          path: |
-            TestResults.xcresult
-            screenshots/
-            logs/
+        run: make e2e-without-building
