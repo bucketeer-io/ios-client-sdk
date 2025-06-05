@@ -14,6 +14,8 @@ jobs:
     if: always()
     name: E2E tests
     runs-on: macos-15-xlarge
+    env:
+      XCODE_VERSION: '16.2'
     steps:
       - uses: actions/checkout@v4
 
@@ -22,8 +24,32 @@ jobs:
         with:
           name: output-xcodeproj-file
           path: ./Bucketeer.xcodeproj
+
       - name: Select Xcode version
-        run: sudo xcode-select -s '/Applications/Xcode_16.2.app/Contents/Developer'
+        run: sudo xcode-select -s '/Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer'
+
+      # Get macOS version for cache key
+      - name: Get macOS version
+        id: macos-version
+        run: |
+          VERSION=$(sw_vers -productVersion | cut -d. -f1,2)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Running on macOS $VERSION"
+
+      # Cache Xcode DerivedData and SPM dependencies
+      - name: Cache build artifacts
+        id: cache-build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Developer/Xcode/DerivedData
+            ~/.swiftpm
+            ~/Library/Caches/org.swift.swiftpm
+            ~/Library/Caches/com.apple.dt.Xcode
+          key: ${{ runner.os }}-${{ steps.macos-version.outputs.version }}-xcode-${{ env.XCODE_VERSION }}-${{ hashFiles('**/Package.swift', '**/Bucketeer.xcodeproj/project.pbxproj') }}-${{ hashFiles('**/*.swift') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ steps.macos-version.outputs.version }}-xcode-${{ env.XCODE_VERSION }}-${{ hashFiles('**/Package.swift', '**/Bucketeer.xcodeproj/project.pbxproj') }}-
+            ${{ runner.os }}-${{ steps.macos-version.outputs.version }}-xcode-${{ env.XCODE_VERSION }}-
 
       - name: Verify iPhone simulators
         run: |
