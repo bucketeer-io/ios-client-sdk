@@ -25,6 +25,11 @@ jobs:
       - name: Select Xcode version
         run: sudo xcode-select -s '/Applications/Xcode_16.2.app/Contents/Developer'
 
+      - name: Verify iPhone simulators
+        run: |
+          echo "Available iPhone simulators:"
+          xcrun simctl list devices available | grep "iPhone" || echo "No iPhone simulators found!"
+
       - name: Download environment file
         uses: actions/download-artifact@v4
         with:
