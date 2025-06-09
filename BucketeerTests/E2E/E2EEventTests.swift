@@ -59,14 +59,14 @@ final class E2EEventTests: XCTestCase {
             }
 
             // getVariationValue() is logging events using another dispatch queue, we need to wait a few secs
-            try await Task.sleep(nanoseconds: 10_000_000)
+            try await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
             let events = try component.dataModule.eventSQLDao.getEvents()
             // It includes the Latency and ResponseSize metrics
             XCTAssertTrue(events.count >= 5)
             XCTAssertTrue(events.contains { event in
                 if case .evaluation = event.type,
-                   case .evaluation(let data) = event.event,
-                   case .`default` = data.reason.type {
+                    case .evaluation(let data) = event.event,
+                    case .default = data.reason.type {
                     return true
                 }
                 return false
@@ -97,6 +97,17 @@ final class E2EEventTests: XCTestCase {
                     }
                 }
             })
+
+            // Wait for the event to be added
+            try await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
+
+            // After clearing evaluations, we expect 2 metrics events (Latency and ResponseSize)
+            client.assert(expectedEventCount: 2)
+
+            // Wait for the clear operation to complete
+            try await Task.sleep(nanoseconds: 300_000_000) // 300 milliseconds
+
+            // Make variation calls to generate default evaluation events
             XCTAssertEqual(client.stringVariation(featureId: FEATURE_ID_STRING, defaultValue: "value-default"), "value-default")
             XCTAssertEqual(client.intVariation(featureId: FEATURE_ID_INT, defaultValue: 100), 100)
             XCTAssertEqual(client.doubleVariation(featureId: FEATURE_ID_DOUBLE, defaultValue: 3.0), 3.0)
@@ -108,15 +119,16 @@ final class E2EEventTests: XCTestCase {
                 return
             }
 
-            // getVariationValue() is logging events using another dispatch queue, we need to wait a few secs
-            try await Task.sleep(nanoseconds: 10_000_000)
+            // Wait for events to be processed
+            try await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
+
             let events = try component.dataModule.eventSQLDao.getEvents()
             // It includes the Latency and ResponseSize metrics
-            XCTAssertTrue(events.count >= 5)
+            XCTAssertTrue(events.count >= 7, "Expected at least 7 events but got \(events.count)")
             XCTAssertTrue(events.contains { event in
                 if case .evaluation = event.type,
-                   case .evaluation(let data) = event.event,
-                   case .client = data.reason.type {
+                    case .evaluation(let data) = event.event,
+                    case .client = data.reason.type {
                     return true
                 }
                 return false
