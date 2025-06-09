@@ -330,7 +330,7 @@ final class E2EEvaluationTests: XCTestCase {
             let client = try BKTClient.shared
             client.assert(expectedEventCount: 2)
             client.track(goalId: GOAL_ID, value: GOAL_VALUE)
-            try await Task.sleep(nanoseconds: 1_000_000)
+            try await Task.sleep(nanoseconds: 300_000_000)
             client.assert(expectedEventCount: 3)
             try await client.flush()
             client.assert(expectedEventCount: 0)
