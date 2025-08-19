@@ -19,7 +19,7 @@ jobs:
 
   lint_swift:
     needs: generate-xcode-project
-    runs-on: macos-15-xlarge
+    runs-on: macos-14-xlarge
     steps:
       - uses: actions/checkout@v4
 
@@ -51,7 +51,7 @@ jobs:
         run: mint run swiftlint --strict
 
   lint_pod:
-    runs-on: macos-15-xlarge
+    runs-on: macos-14-xlarge
     steps:
       - uses: actions/checkout@v4
       - name: Lint Pods
@@ -59,7 +59,7 @@ jobs:
 
   build:
     needs: generate-xcode-project
-    runs-on: macos-15-xlarge
+    runs-on: macos-14-xlarge
     steps:
       - uses: actions/checkout@v4
 
@@ -76,7 +76,7 @@ jobs:
 
   build-example:
     needs: generate-xcode-project
-    runs-on: macos-15-xlarge
+    runs-on: macos-14-xlarge
     steps:
       - uses: actions/checkout@v4
 
@@ -99,7 +99,7 @@ jobs:
 
   test:
     needs: generate-xcode-project
-    runs-on: macos-15-xlarge
+    runs-on: macos-14-xlarge
     steps:
       - uses: actions/checkout@v4
 

@@ -15,7 +15,7 @@ jobs:
 
   build:
     needs: generate-xcode-project
-    runs-on: macos-15-xlarge
+    runs-on: macos-14-xlarge
     steps:
       - uses: actions/checkout@v4
 
@@ -32,7 +32,7 @@ jobs:
 
   build-example:
     needs: generate-xcode-project
-    runs-on: macos-15-xlarge
+    runs-on: macos-14-xlarge
     steps:
       - uses: actions/checkout@v4
 
@@ -56,7 +56,7 @@ jobs:
   test:
     name: Unit tests
     needs: generate-xcode-project
-    runs-on: macos-15-xlarge
+    runs-on: macos-14-xlarge
     steps:
       - uses: actions/checkout@v4
 
