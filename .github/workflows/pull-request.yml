@@ -17,7 +17,7 @@ jobs:
   generate-xcode-project:
     uses: ./.github/workflows/generate-xcode-project.yml
 
-  lint_swift:
+  lint-swift:
     needs: generate-xcode-project
     runs-on: macos-14-xlarge
     steps:
@@ -50,7 +50,7 @@ jobs:
       - name: Lint swift
         run: mint run swiftlint --strict
 
-  lint_pod:
+  lint-pod:
     runs-on: macos-14-xlarge
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
@@ -107,7 +107,7 @@ jobs:
           CI: true
         run: make build-example
 
-  test:
+  unit-test:
     needs: generate-xcode-project
     runs-on: macos-14-xlarge
     steps:

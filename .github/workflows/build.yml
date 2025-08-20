@@ -63,8 +63,7 @@ jobs:
           CI: true
         run: make build-example
 
-  test:
-    name: Unit tests
+  unit-test:
     needs: generate-xcode-project
     runs-on: macos-14-xlarge
     steps:
@@ -93,7 +92,7 @@ jobs:
       - name: Unit Test
         run: make test-without-building
 
-  e2e:
+  e2e-test:
     name: E2E tests
     needs: generate-xcode-project
     uses: ./.github/workflows/e2e.yml
