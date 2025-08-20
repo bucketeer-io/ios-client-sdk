@@ -8,12 +8,12 @@ on:
 
 jobs:
   upload-xcframework:
-    runs-on: macos-15-xlarge
+    runs-on: macos-14-xlarge
     env:
       MINT_PATH: ${{ github.workspace }}/mint/lib
       MINT_LINK_PATH: ${{ github.workspace }}/mint/bin
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
 
       - name: Install bootstrap mint
         uses: irgaly/setup-mint@99eaad2ad1197ea872390322a47620da2f21fde4 # v1.4.0

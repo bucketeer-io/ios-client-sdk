@@ -1,5 +1,5 @@
 # This workflow will update the CHANGELOG page in the `bucketeer-io/bucketeer-docs` repository when a tag is created
-name: update-changelog-docs-page
+name: Update Changelog Docs Page
 
 on:
   workflow_dispatch:
@@ -14,7 +14,7 @@ jobs:
       RELEASE_TAG: ${{ steps.release_tag.outputs.value }}
       COMMIT_URL: ${{ steps.commit_url.outputs.value }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
         with:
           fetch-depth: 0
       - name: Store the tag value
@@ -24,11 +24,11 @@ jobs:
         id: commit_url
         run: echo "value=$(echo '${{ github.event.head_commit.url }}' | head -n 1)" >> $GITHUB_OUTPUT
 
-  update_changelog_doc_page:
+  update-changelog-doc-page:
     needs: setup
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
       - name: Workflow Dispatch
         uses: benc-uk/workflow-dispatch@798e70c97009500150087d30d9f11c5444830385 # v1.2.2
         env:
