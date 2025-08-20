@@ -21,7 +21,7 @@ jobs:
     needs: generate-xcode-project
     runs-on: macos-14-xlarge
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
 
       # Pre-cache mint packages directory
       - name: Cache Mint packages
@@ -53,7 +53,7 @@ jobs:
   lint_pod:
     runs-on: macos-14-xlarge
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
       - name: Lint Pods
         run: pod lib lint --allow-warnings
 
@@ -61,10 +61,15 @@ jobs:
     needs: generate-xcode-project
     runs-on: macos-14-xlarge
     steps:
-      - uses: actions/checkout@v4
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@60606e260d2fc5762a71e64e74b2174e8ea3c8bd # v1.6.0
+        with:
+          xcode-version: '16.2'
+
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
 
       - name: Download xcode project file
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: output-xcodeproj-file
           path: ./Bucketeer.xcodeproj
@@ -78,16 +83,21 @@ jobs:
     needs: generate-xcode-project
     runs-on: macos-14-xlarge
     steps:
-      - uses: actions/checkout@v4
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@60606e260d2fc5762a71e64e74b2174e8ea3c8bd # v1.6.0
+        with:
+          xcode-version: '16.2'
+
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
 
       - name: Download environment file
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: output-environment-file
           path: ./environment.xcconfig
 
       - name: Download xcode project file
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: output-xcodeproj-file
           path: ./Bucketeer.xcodeproj
@@ -101,10 +111,15 @@ jobs:
     needs: generate-xcode-project
     runs-on: macos-14-xlarge
     steps:
-      - uses: actions/checkout@v4
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@60606e260d2fc5762a71e64e74b2174e8ea3c8bd # v1.6.0
+        with:
+          xcode-version: '16.2'
+
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
 
       - name: Download xcode project file
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: output-xcodeproj-file
           path: ./Bucketeer.xcodeproj

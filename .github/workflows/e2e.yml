@@ -16,7 +16,13 @@ jobs:
     runs-on: macos-14-xlarge
     env:
       XCODE_VERSION: '16.2'
+
     steps:
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@60606e260d2fc5762a71e64e74b2174e8ea3c8bd # v1.6.0
+        with:
+          xcode-version: '16.2'
+
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
 
       - name: Download xcode project file
@@ -24,9 +30,6 @@ jobs:
         with:
           name: output-xcodeproj-file
           path: ./Bucketeer.xcodeproj
-
-      - name: Select Xcode version
-        run: sudo xcode-select -s '/Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer'
 
       # Get macOS version for cache key
       - name: Get macOS version

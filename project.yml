@@ -255,10 +255,6 @@ targets:
           PRODUCT_BUNDLE_IDENTIFIER: io.bucketeer.sdk.ios.example
           PROVISIONING_PROFILE_SPECIFIER: ""
           SWIFT_VERSION: "5.3"
-          SWIFT_OPTIMIZATION_LEVEL: -Onone
-          SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG
-          CLANG_ENABLE_MODULES: "YES"
-          SWIFT_ENABLE_BATCH_MODE: "NO"
         Release:
           CODE_SIGN_IDENTITY: Apple Development
           CODE_SIGN_STYLE: Automatic
@@ -279,9 +275,6 @@ targets:
           PRODUCT_BUNDLE_IDENTIFIER: io.bucketeer.sdk.ios.example
           PROVISIONING_PROFILE_SPECIFIER: ""
           SWIFT_VERSION: "5.3"
-          SWIFT_OPTIMIZATION_LEVEL: -O
-          CLANG_ENABLE_MODULES: "YES"
-          SWIFT_ENABLE_BATCH_MODE: "NO"
     sources:
       - name: Example
         path: Example
