@@ -13,14 +13,14 @@ Minimum build tool versions:
 | Tool  | Version |
 | ----- | ------- |
 | Xcode | 13.1+   |
-| Swift | 5.0+    |
+| Swift | 5.3+    |
 
 Minimum device platforms:
 
 | Platform | Version |
 | -------- | ------- |
-| iOS      | 11.0    |
-| tvOS     | 11.0    |
+| iOS      | 12.0    |
+| tvOS     | 12.0    |
 
 ## Installation
 
