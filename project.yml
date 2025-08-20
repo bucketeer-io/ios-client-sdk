@@ -119,8 +119,7 @@ settings:
 packages:
   Firebase:
     url: https://github.com/firebase/firebase-ios-sdk
-    from: 10.18.0
-    upToNextMajorVersion: 11.0.0
+    from: 12.1.0
 targets:
   Bucketeer:
     platform: iOS
