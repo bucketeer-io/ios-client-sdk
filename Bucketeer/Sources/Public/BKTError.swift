@@ -107,16 +107,17 @@ extension BKTError : LocalizedError {
             }
             return
         }
-
+        // This bridging is available where the Objective-C runtime is available (iOS)
+        // https://github.com/swiftlang/swift-evolution/blob/main/proposals/0112-nserror-bridging.md
         let nsError = error as NSError
+        // Any error with Error Domain = NSURLErrorDomain can be considered a network error.
+        // https://developer.apple.com/documentation/foundation/nsurlerrordomain
         if nsError.domain == NSURLErrorDomain {
             let nsErrorCode = nsError.code
-            if BKTError.networkErrorCodes.contains(nsErrorCode) {
-                self = .network(message: "Network connection error: \(error)", error: error)
-            } else if nsErrorCode == NSURLErrorTimedOut {
+            if nsErrorCode == NSURLErrorTimedOut {
                 self = .timeout(message: "Request timeout error: \(error)", error: error, timeoutMillis: 0)
             } else {
-                self = .unknown(message: "Unknown error: \(error)", error: error)
+                self = .network(message: "Network connection error: \(error)", error: error)
             }
         } else {
             self = .unknown(message: "Unknown error: \(error)", error: error)
@@ -194,36 +195,4 @@ extension BKTError : LocalizedError {
             return "\(error)"
         }
     }
-}
-
-extension BKTError {
-    // full list of NSURLError  https://developer.apple.com/documentation/foundation/nserror/1448136-nserror_codes#3139076
-    static let networkErrorCodes = [
-        NSURLErrorBadURL,
-        NSURLErrorUnsupportedURL,
-        NSURLErrorNotConnectedToInternet,
-        NSURLErrorNetworkConnectionLost,
-        NSURLErrorCannotFindHost,
-        NSURLErrorCannotConnectToHost,
-        NSURLErrorDNSLookupFailed,
-        // Router, gateway error
-        NSURLErrorHTTPTooManyRedirects,
-        NSURLErrorRedirectToNonExistentLocation,
-        // SSL error
-        NSURLErrorAppTransportSecurityRequiresSecureConnection,
-        NSURLErrorSecureConnectionFailed,
-        NSURLErrorServerCertificateHasBadDate,
-        NSURLErrorServerCertificateUntrusted,
-        NSURLErrorServerCertificateHasUnknownRoot,
-        NSURLErrorServerCertificateNotYetValid,
-        NSURLErrorClientCertificateRejected,
-        NSURLErrorClientCertificateRequired,
-        // Data network errors 3G,4G...
-        NSURLErrorResourceUnavailable,
-        NSURLErrorCannotLoadFromNetwork,
-        NSURLErrorInternationalRoamingOff,
-        NSURLErrorCallIsActive,
-        NSURLErrorDataNotAllowed,
-        NSURLErrorRequestBodyStreamExhausted
-    ]
 }

@@ -231,7 +231,7 @@ class BKTErrorTests: XCTestCase {
             .timeout(message: "Request timeout error: \(timeoutError)", error: timeoutError, timeoutMillis: 0)
         )
 
-        for networkErrorCode in BKTError.networkErrorCodes {
+        for networkErrorCode in BKTError.testNetworkErrorCodes {
             let networkError = NSError(domain: NSURLErrorDomain, code: networkErrorCode, userInfo: [:])
             assertEqual(
                 .init(error: networkError),
@@ -343,7 +343,7 @@ class BKTErrorTests: XCTestCase {
     }
 }
 
-extension BKTError: CaseIterable {
+extension BKTError {
 
     public enum TestError: Error {
         case timeout
@@ -369,6 +369,38 @@ extension BKTError: CaseIterable {
         .invalidHttpMethod(message: "invalidHttpMethod"),
         .unknownServer(message: "unknownServer", error: TestError.unknownServer, statusCode: 450),
         .unknown(message: "unknown", error: TestError.unknown)
+    ]
+
+    // full list of NSURLError  https://developer.apple.com/documentation/foundation/nserror/1448136-nserror_codes#3139076
+    static let testNetworkErrorCodes = [
+        NSURLErrorBadURL,
+        NSURLErrorUnsupportedURL,
+        NSURLErrorNotConnectedToInternet,
+        NSURLErrorNetworkConnectionLost,
+        NSURLErrorCannotFindHost,
+        NSURLErrorCannotConnectToHost,
+        NSURLErrorDNSLookupFailed,
+        // Router, gateway error
+        NSURLErrorHTTPTooManyRedirects,
+        NSURLErrorRedirectToNonExistentLocation,
+        // SSL error
+        NSURLErrorAppTransportSecurityRequiresSecureConnection,
+        NSURLErrorSecureConnectionFailed,
+        NSURLErrorServerCertificateHasBadDate,
+        NSURLErrorServerCertificateUntrusted,
+        NSURLErrorServerCertificateHasUnknownRoot,
+        NSURLErrorServerCertificateNotYetValid,
+        NSURLErrorClientCertificateRejected,
+        NSURLErrorClientCertificateRequired,
+        // Data network errors 3G,4G...
+        NSURLErrorResourceUnavailable,
+        NSURLErrorCannotLoadFromNetwork,
+        NSURLErrorInternationalRoamingOff,
+        NSURLErrorCallIsActive,
+        NSURLErrorDataNotAllowed,
+        NSURLErrorRequestBodyStreamExhausted,
+        // The connection can’t parse the server’s response.
+        NSURLErrorCannotParseResponse
     ]
 }
 // swiftlint:enable type_body_length

@@ -145,10 +145,12 @@ final class ApiClientImpl: ApiClient {
             var result : Result<(Response, URLResponse), Error>?
             let responseParser : (Data?, URLResponse?, Error?) -> Result<(Response, URLResponse), Error> = { data, urlResponse, error in
                 guard let urlResponse = urlResponse as? HTTPURLResponse else {
-                    // error is not from server
+                    // urlResponse == nil that mean error is not from server
                     guard let error = error else {
+                        // error is unknown
                         return .failure(ResponseError.unknown(urlResponse))
                     }
+                    // a NSError with NSURLErrorDomain codes
                     return .failure(error)
                 }
 
