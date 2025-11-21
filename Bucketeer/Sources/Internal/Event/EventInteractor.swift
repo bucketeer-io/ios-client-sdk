@@ -128,7 +128,7 @@ final class EventInteractorImpl: EventInteractor {
     }
 
     func trackFetchEvaluationsSuccess(featureTag: String, seconds: Double, sizeByte: Int64) throws {
-        try eventSQLDao.add(
+        try trackMetricsEvent(
             events: [
                 .init(
                     id: idGenerator.id(),
@@ -164,7 +164,6 @@ final class EventInteractorImpl: EventInteractor {
                 )
             ]
         )
-        updateEventsAndNotify()
     }
 
     func trackFetchEvaluationsFailure(featureTag: String, error: BKTError) throws {
