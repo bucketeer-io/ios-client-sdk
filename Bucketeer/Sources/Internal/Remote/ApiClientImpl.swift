@@ -135,7 +135,7 @@ final class ApiClientImpl: ApiClient {
         )
         completion?(result)
     }
-    
+
     private func sendRetriable<RequestBody: Encodable, Response: Decodable>(
         requestBody: RequestBody,
         path: String,
@@ -152,7 +152,7 @@ final class ApiClientImpl: ApiClient {
 
         while attempt < maxAttempts {
             attempt += 1
-            
+
             // Send the request and capture the result
             finalResult = sendInternal(requestBody: requestBody, path: path, timeoutMillis: timeoutMillis, encoder: encoder)
 
