@@ -1,5 +1,7 @@
 import Foundation
 
+let CLIENT_CLOSED_THE_CONNECTION_CODE: Int = 499
+
 final class ApiClientImpl: ApiClient {
 
     static let DEFAULT_REQUEST_TIMEOUT_MILLIS: Int64 = 30_000
@@ -124,6 +126,86 @@ final class ApiClientImpl: ApiClient {
             return
         }
 
+        // sendRetriable is non-throwing function
+        let result: Result<(Response, URLResponse), Error> = sendRetriable(
+            requestBody: requestBody,
+            path: path,
+            timeoutMillis: timeoutMillis,
+            encoder: encoder
+        )
+        completion?(result)
+    }
+    
+    private func sendRetriable<RequestBody: Encodable, Response: Decodable>(
+        requestBody: RequestBody,
+        path: String,
+        timeoutMillis: Int64,
+        encoder: JSONEncoder = JSONEncoder()) -> Result<(Response, URLResponse), Error> {
+        // This implementation uses the existing `send` method which is synchronous
+        // (it waits on an internal semaphore). We call it and capture the result,
+        // then decide whether to retry on transient/network/server errors.
+        var finalResult: Result<(Response, URLResponse), Error>?
+
+        // simple retry policy: try up to 3 attempts (initial + 2 retries)
+        let maxAttempts = 3
+        var attempt = 0
+
+        while attempt < maxAttempts {
+            attempt += 1
+            
+            // Send the request and capture the result
+            finalResult = sendInternal(requestBody: requestBody, path: path, timeoutMillis: timeoutMillis, encoder: encoder)
+
+            // If succeeded, break and return success result
+            if case .success = finalResult {
+                break
+            }
+
+            // If this was the last attempt, break and return the error
+            if attempt >= maxAttempts {
+                break
+            }
+
+            // Decide whether to retry based on error type
+            var shouldRetry = false
+            if case .failure(let error) = finalResult {
+                // Retry on status code (499) wrapped in ResponseError.unacceptableCode
+                if let respErr = error as? ResponseError {
+                    switch respErr {
+                    case .unacceptableCode(let code, _):
+                        if code == CLIENT_CLOSED_THE_CONNECTION_CODE { shouldRetry = true }
+                    default:
+                        break
+                    }
+                }
+            }
+
+            if !shouldRetry {
+                break
+            }
+
+            // Backoff before retrying (exponential: 100ms, 200ms, ...)
+            let backoff = pow(2.0, Double(attempt - 1)) * 0.1
+            Thread.sleep(forTimeInterval: backoff)
+        }
+
+        // finalResult should be set, but if not, return a safe illegalState error
+        if let res = finalResult {
+            return res
+        }
+
+        return .failure(BKTError.illegalState(message: "fail to handle the retriable request result"))
+    }
+
+    private func sendInternal<RequestBody: Encodable, Response: Decodable>(
+        requestBody: RequestBody,
+        path: String,
+        timeoutMillis: Int64,
+        encoder: JSONEncoder = JSONEncoder()) -> (Result<(Response, URLResponse), Error>) {
+        if (closed) {
+            return .failure(BKTError.illegalState(message: "API Client has been closed"))
+        }
+
         let requestId = Date().unixTimestamp
         logger?.debug(message: "[API] RequestID enqueue: \(requestId)")
         logger?.debug(message: "[API] Register events: \(requestBody)")
@@ -193,17 +275,17 @@ final class ApiClientImpl: ApiClient {
             logger?.debug(message: "[API] RequestID wait: \(requestId)")
             semaphore.wait()
             logger?.debug(message: "[API] RequestID finished: \(requestId)")
-            guard result != nil else {
-                completion?(.failure(BKTError.illegalState(message: "fail to handle the request result")))
-                return
+            guard let finalResult = result else {
+                return .failure(BKTError.illegalState(message: "fail to handle the request result"))
             }
-            completion?(result!)
+            // Success
+            return finalResult
         } catch let error {
             // catch error may throw before sending the request
             // runtime error will handle in the session callback
             // so that we will not required call `semephore.signal()` here
             logger?.debug(message: "[API] RequestID: \(requestId) could not request with error \(error.localizedDescription)")
-            completion?(.failure(error))
+            return .failure(error)
         }
     }
 
