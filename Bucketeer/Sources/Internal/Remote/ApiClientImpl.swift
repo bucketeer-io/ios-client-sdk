@@ -14,6 +14,7 @@ final class ApiClientImpl: ApiClient {
     private let defaultRequestTimeoutMills: Int64
     private let logger: Logger?
     private let semaphore = DispatchSemaphore(value: 0)
+    private let queue: DispatchQueue
     private var closed = false
 
     deinit {
@@ -28,6 +29,7 @@ final class ApiClientImpl: ApiClient {
         featureTag: String,
         defaultRequestTimeoutMills: Int64 = ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS,
         session: Session,
+        queue: DispatchQueue,
         logger: Logger?
     ) {
 
@@ -37,6 +39,7 @@ final class ApiClientImpl: ApiClient {
         self.defaultRequestTimeoutMills = defaultRequestTimeoutMills
         self.session = session
         self.logger = logger
+        self.queue = queue
         self.session.configuration.timeoutIntervalForRequest = TimeInterval(self.defaultRequestTimeoutMills) / 1000
     }
 
@@ -127,49 +130,37 @@ final class ApiClientImpl: ApiClient {
             return
         }
 
-        let result: Result<(Response, URLResponse), Error> = sendRetriable(
+        sendRetriable(
             requestBody: requestBody,
             path: path,
             timeoutMillis: timeoutMillis,
-            encoder: encoder
+            encoder: encoder,
+            completion: completion
         )
-        completion?(result)
     }
 
     private func sendRetriable<RequestBody: Encodable, Response: Decodable>(
         requestBody: RequestBody,
         path: String,
         timeoutMillis: Int64,
-        encoder: JSONEncoder = JSONEncoder()) -> Result<(Response, URLResponse), Error> {
-        // This implementation uses the existing `sendInternal` method which is synchronous
-        // (it waits on an internal semaphore). We call it and capture the result,
-        // then decide whether to retry on transient/network/server errors.
-        var finalResult: Result<(Response, URLResponse), Error>?
+        encoder: JSONEncoder = JSONEncoder(),
+        retryCount: Int = 0,
+        completion: ((Result<(Response, URLResponse), Error>) -> Void)?) {
 
-        // simple retry policy: try up to 3 attempts (initial + 2 retries)
-        let maxAttempts = ApiClientImpl.DEFAULT_MAX_ATTEMPTS
-        var attempt = 0
+        let result: Result<(Response, URLResponse), Error> = sendInternal(
+            requestBody: requestBody,
+            path: path,
+            timeoutMillis: timeoutMillis,
+            encoder: encoder
+        )
 
-        while attempt < maxAttempts {
-            attempt += 1
-
-            // Send the request and capture the result
-            finalResult = sendInternal(requestBody: requestBody, path: path, timeoutMillis: timeoutMillis, encoder: encoder)
-
-            // If succeeded, break and return success result
-            if case .success = finalResult {
-                break
-            }
-
-            // If this was the last attempt, break and return the error
-            if attempt >= maxAttempts {
-                break
-            }
-
-            // Decide whether to retry based on error type
-            var shouldRetry = false
-            if case .failure(let error) = finalResult {
-                // Retry on status code (499) wrapped in ResponseError.unacceptableCode
+        switch result {
+        case .success:
+            completion?(result)
+        case .failure(let error):
+            let maxAttempts = ApiClientImpl.DEFAULT_MAX_ATTEMPTS
+            if retryCount < maxAttempts - 1 {
+                var shouldRetry = false
                 if let respErr = error as? ResponseError {
                     switch respErr {
                     case .unacceptableCode(let code, _):
@@ -178,22 +169,24 @@ final class ApiClientImpl: ApiClient {
                         break
                     }
                 }
+
+                if shouldRetry {
+                    let backoff = pow(2.0, Double(retryCount)) * ApiClientImpl.DEFAULT_BASE_DELAY
+                    queue.asyncAfter(deadline: .now() + backoff) { [weak self] in
+                        self?.sendRetriable(
+                            requestBody: requestBody,
+                            path: path,
+                            timeoutMillis: timeoutMillis,
+                            encoder: encoder,
+                            retryCount: retryCount + 1,
+                            completion: completion
+                        )
+                    }
+                    return
+                }
             }
-
-            if !shouldRetry {
-                break
-            }
-
-            // Backoff before retrying (exponential: 100ms, 200ms, ...)
-            let backoff = pow(2.0, Double(attempt - 1)) * ApiClientImpl.DEFAULT_BASE_DELAY
-            Thread.sleep(forTimeInterval: backoff)
+            completion?(result)
         }
-
-        if let res = finalResult {
-            return res
-        }
-
-        return .failure(BKTError.illegalState(message: "fail to handle the retriable request result"))
     }
 
     private func sendInternal<RequestBody: Encodable, Response: Decodable>(

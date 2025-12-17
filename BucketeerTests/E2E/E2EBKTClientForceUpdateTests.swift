@@ -32,7 +32,10 @@ final class E2EBKTClientForceUpdateTests: XCTestCase {
         let config = try BKTConfig.e2e()
         let user = try BKTUser.Builder().with(id: USER_ID).build()
 
-        let internalDataModule = try DataModuleImpl(user: user.toUser(), config: config)
+        // note: we need prepare the context before initialize the BKTClient
+        // because on initialize() the BKTClient will auto fetch the evalutation
+        let mockDispatchQueue = DispatchQueue(label: "test.queue")
+        let internalDataModule = try DataModuleImpl(user: user.toUser(), config: config, dispatchQueue: mockDispatchQueue)
         let internalEvaluationStorage = internalDataModule.evaluationStorage
         let userId = USER_ID
         let tobeDeletedEvaluation = Evaluation(
@@ -63,8 +66,6 @@ final class E2EBKTClientForceUpdateTests: XCTestCase {
         let evaluations = try internalEvaluationStorage.get()
         XCTAssertEqual(evaluations, [tobeDeletedEvaluation], "We should have `tobeDeletedEvaluation` on the cache")
 
-        // note: we need prepare the context before initialize the BKTClient
-        // because on initialize() the BKTClient will auto fetch the evalutation
         try await BKTClient.initialize(
             config: config,
             user: user

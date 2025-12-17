@@ -29,6 +29,7 @@ class ApiClientRetriableTests: XCTestCase {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "path"
         let apiKey = "x:api-key"
+        let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
         let session = MockSession(
             configuration: .default,
@@ -48,6 +49,7 @@ class ApiClientRetriableTests: XCTestCase {
             featureTag: "tag1",
             defaultRequestTimeoutMills: 200,
             session: session,
+            queue: mockDispatchQueue,
             logger: nil
         )
 
@@ -79,6 +81,7 @@ class ApiClientRetriableTests: XCTestCase {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "path"
         let apiKey = "x:api-key"
+        let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
         let session = MockSession(
             configuration: .default,
@@ -98,6 +101,7 @@ class ApiClientRetriableTests: XCTestCase {
             featureTag: "tag1",
             defaultRequestTimeoutMills: 200,
             session: session,
+            queue: mockDispatchQueue,
             logger: nil
         )
 
@@ -130,6 +134,7 @@ class ApiClientRetriableTests: XCTestCase {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "path"
         let apiKey = "x:api-key"
+        let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
         let session = MockSession(
             configuration: .default,
@@ -149,6 +154,7 @@ class ApiClientRetriableTests: XCTestCase {
             featureTag: "tag1",
             defaultRequestTimeoutMills: 200,
             session: session,
+            queue: mockDispatchQueue,
             logger: nil
         )
 
@@ -181,6 +187,7 @@ class ApiClientRetriableTests: XCTestCase {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "path"
         let apiKey = "x:api-key"
+        let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
         let session = MockSession(
             configuration: .default,
@@ -200,6 +207,7 @@ class ApiClientRetriableTests: XCTestCase {
             featureTag: "tag1",
             defaultRequestTimeoutMills: 200,
             session: session,
+            queue: mockDispatchQueue,
             logger: nil
         )
 
@@ -233,6 +241,7 @@ class ApiClientRetriableTests: XCTestCase {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "path"
         let apiKey = "x:api-key"
+        let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
         let session = MockSession(
             configuration: .default,
@@ -252,6 +261,7 @@ class ApiClientRetriableTests: XCTestCase {
             featureTag: "tag1",
             defaultRequestTimeoutMills: 200,
             session: session,
+            queue: mockDispatchQueue,
             logger: nil
         )
 
@@ -280,6 +290,7 @@ class ApiClientRetriableTests: XCTestCase {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "path"
         let apiKey = "x:api-key"
+        let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
         var session = MockSession(
             configuration: .default,
@@ -311,6 +322,7 @@ class ApiClientRetriableTests: XCTestCase {
             featureTag: "tag1",
             defaultRequestTimeoutMills: 200,
             session: session,
+            queue: mockDispatchQueue,
             logger: nil
         )
 
@@ -343,6 +355,7 @@ class ApiClientRetriableTests: XCTestCase {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "path"
         let apiKey = "x:api-key"
+        let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
         var session = MockSession(
             configuration: .default,
@@ -375,6 +388,7 @@ class ApiClientRetriableTests: XCTestCase {
             featureTag: "tag1",
             defaultRequestTimeoutMills: 200,
             session: session,
+            queue: mockDispatchQueue,
             logger: nil
         )
 
@@ -402,6 +416,7 @@ class ApiClientRetriableTests: XCTestCase {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "path"
         let apiKey = "x:api-key"
+        let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
         var session = MockSession(
             configuration: .default,
@@ -433,6 +448,7 @@ class ApiClientRetriableTests: XCTestCase {
             featureTag: "tag1",
             defaultRequestTimeoutMills: 200,
             session: session,
+            queue: mockDispatchQueue,
             logger: nil
         )
 
@@ -465,6 +481,7 @@ class ApiClientRetriableTests: XCTestCase {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "path"
         let apiKey = "x:api-key"
+        let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
         var session = MockSession(
             configuration: .default,
@@ -497,6 +514,7 @@ class ApiClientRetriableTests: XCTestCase {
             featureTag: "tag1",
             defaultRequestTimeoutMills: 200,
             session: session,
+            queue: mockDispatchQueue,
             logger: nil
         )
 

@@ -18,13 +18,15 @@ final class DataModuleImpl: DataModule {
     let config: BKTConfig
     let sqlite: SQLite
     let eventSQLDao: EventSQLDao
+    let dispatchQueue: DispatchQueue
 
-    init(user: User, config: BKTConfig) throws {
+    init(user: User, config: BKTConfig, dispatchQueue: DispatchQueue) throws {
         self.user = user
         self.config = config
         self.sqlite = try DatabaseOpenHelper.createDatabase(logger: config.logger)
         self.evaluationDao = EvaluationSQLDaoImpl(db: sqlite)
         self.eventSQLDao = EventSQLDaoImpl(db: sqlite)
+        self.dispatchQueue = dispatchQueue
     }
 
     private(set) lazy var clock: Clock = ClockImpl()
@@ -34,6 +36,7 @@ final class DataModuleImpl: DataModule {
         apiKey: self.config.apiKey,
         featureTag: self.config.featureTag,
         session: URLSession(configuration: .default),
+        queue: dispatchQueue,
         logger: self.config.logger
     )
     private(set) lazy var userHolder: UserHolder = UserHolder(user: self.user)
