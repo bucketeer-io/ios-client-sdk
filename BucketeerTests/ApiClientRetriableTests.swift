@@ -23,188 +23,15 @@ class ApiClientRetriableTests: XCTestCase {
     // Verify that ApiClientImpl fails with .unacceptableCode (499) should be retriable at least 3 times
     // List test cases with different body responses
 
-    // MARK: - Test Case 1: Retriable with 499 - Empty String Response
-    func testRetriableWith499StatusCode_EmptyString() throws {
-        let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
-        let apiKey = "x:api-key"
-
-        var requestCount = 0
-
-        let session = MockSession(
-            configuration: .default,
-            requestHandler: { request in
-                requestCount += 1
-                XCTAssertEqual(request.httpMethod, "POST")
-                XCTAssertEqual(request.url?.host, apiEndpointURL.host)
-            },
-            data: Data("".utf8),
-            response: HTTPURLResponse(
-                url: apiEndpointURL.appendingPathComponent(path),
-                statusCode: 499,
-                httpVersion: nil,
-                headerFields: nil
-            )
-        )
-
-        let api = ApiClientImpl(
-            apiEndpoint: apiEndpointURL,
-            apiKey: apiKey,
-            featureTag: "tag1",
-            defaultRequestTimeoutMills: 200,
-            session: session,
-            logger: nil
-        )
-
-        let expectation = XCTestExpectation(description: "Should retry 3 times for 499 empty string")
-
-        api.send(
-            requestBody: MockRequestBody(),
-            path: path,
-            timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
-            // Should fail after 3 attempts
-            switch result {
-            case .success((_, _)):
-                XCTFail("should not succeed")
-            case .failure(let error):
-                guard let error = error as? ResponseError,
-                      case .unacceptableCode(let code, _) = error, code == 499 else {
-                    XCTFail("should be 499 unacceptable code error")
-                    return
-                }
-                // Verify we attempted 3 times
-                XCTAssertEqual(requestCount, 3, "Should attempt exactly 3 times for 499")
-            }
-            expectation.fulfill()
-        }
-
-        wait(for: [expectation], timeout: 5)
-    }
-
-    // MARK: - Test Case 2: Retriable with 499 - Random String Response
-    func testRetriableWith499StatusCode_RandomString() throws {
-        let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
-        let apiKey = "x:api-key"
-
-        var requestCount = 0
-
-        let session = MockSession(
-            configuration: .default,
-            requestHandler: { _ in
-                requestCount += 1
-            },
-            data: Data("okay random string".utf8),
-            response: HTTPURLResponse(
-                url: apiEndpointURL.appendingPathComponent(path),
-                statusCode: 499,
-                httpVersion: nil,
-                headerFields: nil
-            ),
-            error: nil
-        )
-
-        let api = ApiClientImpl(
-            apiEndpoint: apiEndpointURL,
-            apiKey: apiKey,
-            featureTag: "tag1",
-            defaultRequestTimeoutMills: 200,
-            session: session,
-            logger: nil
-        )
-
-        let expectation = XCTestExpectation(description: "Should retry 3 times for 499 random string")
-
-        api.send(
-            requestBody: MockRequestBody(),
-            path: path,
-            timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
-            switch result {
-            case .success((_, _)):
-                XCTFail("should not succeed")
-            case .failure(let error):
-                guard let error = error as? ResponseError,
-                      case .unacceptableCode(let code, _) = error, code == 499 else {
-                    XCTFail("should be 499 unacceptable code error")
-                    return
-                }
-                XCTAssertEqual(requestCount, 3, "Should attempt exactly 3 times for 499")
-            }
-            expectation.fulfill()
-        }
-
-        wait(for: [expectation], timeout: 5)
-    }
-
-    // MARK: - Test Case 3: Retriable with 499 - Nil Body Response
-    func testRetriableWith499StatusCode_NilBody() throws {
-        let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
-        let apiKey = "x:api-key"
-
-        var requestCount = 0
-
-        let session = MockSession(
-            configuration: .default,
-            requestHandler: { _ in
-                requestCount += 1
-            },
-            data: nil,
-            response: HTTPURLResponse(
-                url: apiEndpointURL.appendingPathComponent(path),
-                statusCode: 499,
-                httpVersion: nil,
-                headerFields: nil
-            ),
-            error: nil
-        )
-
-        let api = ApiClientImpl(
-            apiEndpoint: apiEndpointURL,
-            apiKey: apiKey,
-            featureTag: "tag1",
-            defaultRequestTimeoutMills: 200,
-            session: session,
-            logger: nil
-        )
-
-        let expectation = XCTestExpectation(description: "Should retry 3 times for 499 nil body")
-
-        api.send(
-            requestBody: MockRequestBody(),
-            path: path,
-            timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
-            switch result {
-            case .success((_, _)):
-                XCTFail("should not succeed")
-            case .failure(let error):
-                guard let error = error as? ResponseError,
-                      case .unacceptableCode(let code, _) = error, code == 499 else {
-                    XCTFail("should be 499 unacceptable code error")
-                    return
-                }
-                XCTAssertEqual(requestCount, 3, "Should attempt exactly 3 times for 499")
-            }
-            expectation.fulfill()
-        }
-
-        wait(for: [expectation], timeout: 5)
-    }
-
-    // MARK: - Test Case 4: Retriable with 499 - Valid JSON Response
-    func testRetriableWith499StatusCode_ValidJSON() throws {
+    // MARK: - Test Case: Retriable with 499 - Valid JSON Response
+    func testRetriableWith499StatusCode() throws {
         let mockDataResponse = try JSONEncoder().encode(MockResponse())
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "path"
         let apiKey = "x:api-key"
 
-        var requestCount = 0
-
         let session = MockSession(
             configuration: .default,
-            requestHandler: { _ in
-                requestCount += 1
-            },
             data: mockDataResponse,
             response: HTTPURLResponse(
                 url: apiEndpointURL.appendingPathComponent(path),
@@ -239,7 +66,7 @@ class ApiClientRetriableTests: XCTestCase {
                     XCTFail("should be 499 unacceptable code error")
                     return
                 }
-                XCTAssertEqual(requestCount, 3, "Should attempt exactly 3 times for 499")
+                XCTAssertEqual(session.requestCount(), 3, "Should attempt exactly 3 times for 499")
             }
             expectation.fulfill()
         }
@@ -247,19 +74,14 @@ class ApiClientRetriableTests: XCTestCase {
         wait(for: [expectation], timeout: 5)
     }
 
-    // MARK: - Test Case 5: Non-Retriable with 300 Status Code
+    // MARK: - Test Case: Non-Retriable with 300 Status Code
     func testNonRetriableStatusCode_300() throws {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "path"
         let apiKey = "x:api-key"
 
-        var requestCount = 0
-
         let session = MockSession(
             configuration: .default,
-            requestHandler: { _ in
-                requestCount += 1
-            },
             data: Data("".utf8),
             response: HTTPURLResponse(
                 url: apiEndpointURL.appendingPathComponent(path),
@@ -295,7 +117,7 @@ class ApiClientRetriableTests: XCTestCase {
                     return
                 }
                 // Should only attempt once (no retry for 300)
-                XCTAssertEqual(requestCount, 1, "Should only attempt once for 300 (not retriable)")
+                XCTAssertEqual(session.requestCount(), 1, "Should only attempt once for 300 (not retriable)")
             }
             expectation.fulfill()
         }
@@ -303,19 +125,14 @@ class ApiClientRetriableTests: XCTestCase {
         wait(for: [expectation], timeout: 5)
     }
 
-    // MARK: - Test Case 6: Non-Retriable with 400 Status Code
+    // MARK: - Test Case: Non-Retriable with 400 Status Code
     func testNonRetriableStatusCode_400() throws {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "path"
         let apiKey = "x:api-key"
 
-        var requestCount = 0
-
         let session = MockSession(
             configuration: .default,
-            requestHandler: { _ in
-                requestCount += 1
-            },
             data: Data("".utf8),
             response: HTTPURLResponse(
                 url: apiEndpointURL.appendingPathComponent(path),
@@ -351,7 +168,7 @@ class ApiClientRetriableTests: XCTestCase {
                     return
                 }
                 // Should only attempt once (no retry for 400)
-                XCTAssertEqual(requestCount, 1, "Should only attempt once for 400 (not retriable)")
+                XCTAssertEqual(session.requestCount(), 1, "Should only attempt once for 400 (not retriable)")
             }
             expectation.fulfill()
         }
@@ -359,19 +176,14 @@ class ApiClientRetriableTests: XCTestCase {
         wait(for: [expectation], timeout: 5)
     }
 
-    // MARK: - Test Case 7: Non-Retriable with 500 Status Code
+    // MARK: - Test Case: Non-Retriable with 500 Status Code
     func testNonRetriableStatusCode_500() throws {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "path"
         let apiKey = "x:api-key"
 
-        var requestCount = 0
-
         let session = MockSession(
             configuration: .default,
-            requestHandler: { _ in
-                requestCount += 1
-            },
             data: Data("".utf8),
             response: HTTPURLResponse(
                 url: apiEndpointURL.appendingPathComponent(path),
@@ -407,7 +219,7 @@ class ApiClientRetriableTests: XCTestCase {
                     return
                 }
                 // Should only attempt once (no retry for 500)
-                XCTAssertEqual(requestCount, 1, "Should only attempt once for 500 (not retriable)")
+                XCTAssertEqual(session.requestCount(), 1, "Should only attempt once for 500 (not retriable)")
             }
             expectation.fulfill()
         }
@@ -415,20 +227,15 @@ class ApiClientRetriableTests: XCTestCase {
         wait(for: [expectation], timeout: 5)
     }
 
-    // MARK: - Test Case 8: Successful Response Should Not Retry
+    // MARK: - Test Case: Successful Response Should Not Retry
     func testSuccessStatusCode_DoesNotRetry() throws {
         let mockResponse = try JSONEncoder().encode(MockResponse())
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "path"
         let apiKey = "x:api-key"
 
-        var requestCount = 0
-
         let session = MockSession(
             configuration: .default,
-            requestHandler: { _ in
-                requestCount += 1
-            },
             data: mockResponse,
             response: HTTPURLResponse(
                 url: apiEndpointURL.appendingPathComponent(path),
@@ -458,7 +265,7 @@ class ApiClientRetriableTests: XCTestCase {
             case .success((let response, _)):
                 XCTAssertEqual(response.value, "response")
                 // Should only attempt once (success on first try)
-                XCTAssertEqual(requestCount, 1, "Should only attempt once for 200 success")
+                XCTAssertEqual(session.requestCount(), 1, "Should only attempt once for 200 success")
             case .failure(let error):
                 XCTFail("should not fail: \(error)")
             }
@@ -468,89 +275,14 @@ class ApiClientRetriableTests: XCTestCase {
         wait(for: [expectation], timeout: 5)
     }
 
-    // MARK: - Test Case 9: Comprehensive Test - All 499 Response Types Combined
-    func testRetriableWith499StatusCode_AllCases() throws {
-        let mockDataResponse = try JSONEncoder().encode(MockResponse())
-
-        let cases = [
-            ("empty string", Data("".utf8)),
-            ("random string", Data("okay random string".utf8)),
-            ("nil body", Data()),
-            ("valid JSON", mockDataResponse)
-        ]
-
-        var expectations = [XCTestExpectation]()
-
-        for (caseName, data) in cases {
-            let expectation = XCTestExpectation(description: "Should retry 3 times for 499 - \(caseName)")
-
-            let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-            let path = "path"
-            let apiKey = "x:api-key"
-
-            var requestCount = 0
-
-            let session = MockSession(
-                configuration: .default,
-                requestHandler: { _ in
-                    requestCount += 1
-                },
-                data: data,
-                response: HTTPURLResponse(
-                    url: apiEndpointURL.appendingPathComponent(path),
-                    statusCode: 499,
-                    httpVersion: nil,
-                    headerFields: nil
-                ),
-                error: nil
-            )
-
-            let api = ApiClientImpl(
-                apiEndpoint: apiEndpointURL,
-                apiKey: apiKey,
-                featureTag: "tag1",
-                defaultRequestTimeoutMills: 200,
-                session: session,
-                logger: nil
-            )
-
-            api.send(
-                requestBody: MockRequestBody(),
-                path: path,
-                timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
-                switch result {
-                case .success((_, _)):
-                    XCTFail("should not succeed for \(caseName)")
-                case .failure(let error):
-                    guard let error = error as? ResponseError,
-                          case .unacceptableCode(let code, _) = error, code == 499 else {
-                        XCTFail("should be 499 unacceptable code error for \(caseName)")
-                        return
-                    }
-                    XCTAssertEqual(requestCount, 3, "Should attempt exactly 3 times for 499 - \(caseName)")
-                }
-                expectation.fulfill()
-            }
-
-            expectations.append(expectation)
-        }
-
-        wait(for: expectations, timeout: 10)
-    }
-
-    // MARK: - Test Case 10: Sequential Status Codes - 499, then 4xx
+    // MARK: - Test Case: Sequential Status Codes - 499, then 4xx
     func testSequentialStatusCodes_499_Then_4xx() throws {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "path"
         let apiKey = "x:api-key"
 
-        var requestCount = 0
-
         var session = MockSession(
             configuration: .default,
-            requestHandler: { _ in
-                requestCount += 1
-            },
             data: Data("".utf8),
             response: HTTPURLResponse(
                 url: apiEndpointURL.appendingPathComponent(path),
@@ -597,7 +329,7 @@ class ApiClientRetriableTests: XCTestCase {
                     XCTFail("should be 400 unacceptable code error")
                     return
                 }
-                XCTAssertEqual(requestCount, 2, "Should attempt exactly 2 times: 499 then 4xx")
+                XCTAssertEqual(session.requestCount(), 2, "Should attempt exactly 2 times: 499 then 4xx")
             }
             expectation.fulfill()
         }
@@ -605,20 +337,15 @@ class ApiClientRetriableTests: XCTestCase {
         wait(for: [expectation], timeout: 5)
     }
 
-    // MARK: - Test Case 11: Sequential Status Codes - 499, then 2xx (success)
+    // MARK: - Test Case: Sequential Status Codes - 499, then 2xx (success)
     func testSequentialStatusCodes_499_Then_2xx() throws {
         let mockResponse = try JSONEncoder().encode(MockResponse())
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "path"
         let apiKey = "x:api-key"
 
-        var requestCount = 0
-
         var session = MockSession(
             configuration: .default,
-            requestHandler: { _ in
-                requestCount += 1
-            },
             data: Data("".utf8),
             response: HTTPURLResponse(
                 url: apiEndpointURL.appendingPathComponent(path),
@@ -660,7 +387,7 @@ class ApiClientRetriableTests: XCTestCase {
             switch result {
             case .success((let response, _)):
                 XCTAssertEqual(response.value, "response")
-                XCTAssertEqual(requestCount, 2, "Should attempt exactly 2 times: 499 then 200")
+                XCTAssertEqual(session.requestCount(), 2, "Should attempt exactly 2 times: 499 then 200")
             case .failure(let error):
                 XCTFail("should not fail: \(error)")
             }
@@ -670,19 +397,14 @@ class ApiClientRetriableTests: XCTestCase {
         wait(for: [expectation], timeout: 5)
     }
 
-    // MARK: - Test Case 12: Sequential Status Codes - 499, 499, then 4xx
+    // MARK: - Test Case: Sequential Status Codes - 499, 499, then 4xx
     func testSequentialStatusCodes_499_499_Then_4xx() throws {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "path"
         let apiKey = "x:api-key"
 
-        var requestCount = 0
-
         var session = MockSession(
             configuration: .default,
-            requestHandler: { _ in
-                requestCount += 1
-            },
             data: Data("".utf8),
             response: HTTPURLResponse(
                 url: apiEndpointURL.appendingPathComponent(path),
@@ -729,7 +451,7 @@ class ApiClientRetriableTests: XCTestCase {
                     XCTFail("should be 400 unacceptable code error")
                     return
                 }
-                XCTAssertEqual(requestCount, 3, "Should attempt exactly 3 times: 499, 499, then 4xx")
+                XCTAssertEqual(session.requestCount(), 3, "Should attempt exactly 3 times: 499, 499, then 4xx")
             }
             expectation.fulfill()
         }
@@ -737,20 +459,15 @@ class ApiClientRetriableTests: XCTestCase {
         wait(for: [expectation], timeout: 5)
     }
 
-    // MARK: - Test Case 13: Sequential Status Codes - 499, 499, then 2xx (success)
+    // MARK: - Test Case: Sequential Status Codes - 499, 499, then 2xx (success)
     func testSequentialStatusCodes_499_499_Then_2xx() throws {
         let mockResponse = try JSONEncoder().encode(MockResponse())
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "path"
         let apiKey = "x:api-key"
 
-        var requestCount = 0
-
         var session = MockSession(
             configuration: .default,
-            requestHandler: { _ in
-                requestCount += 1
-            },
             data: Data("".utf8),
             response: HTTPURLResponse(
                 url: apiEndpointURL.appendingPathComponent(path),
@@ -792,7 +509,7 @@ class ApiClientRetriableTests: XCTestCase {
             switch result {
             case .success((let response, _)):
                 XCTAssertEqual(response.value, "response")
-                XCTAssertEqual(requestCount, 3, "Should attempt exactly 3 times: 499, 499, then 200")
+                XCTAssertEqual(session.requestCount(), 3, "Should attempt exactly 3 times: 499, 499, then 200")
             case .failure(let error):
                 XCTFail("should not fail: \(error)")
             }

@@ -2,10 +2,15 @@ import Foundation
 @testable import Bucketeer
 
 class MockSessionCounter {
-    var count: Int = 0
+    private let syncQueue = DispatchQueue(label: "io.bucketeer.MockSessionCounter.sync")
+    private var _count: Int = 0
 
-    func increment() {
-        count += 1
+    var count: Int {
+        return syncQueue.sync { _count }
+    }
+
+    fileprivate func increment() {
+        syncQueue.async { self._count += 1 }
     }
 }
 
@@ -19,6 +24,10 @@ struct MockSession: Session {
     var invalidateAndCancelHandler: (() -> Void)?
     var responseProvider: ((URLRequest, Int) -> MockResponseData)?
     var taskCounter: MockSessionCounter = MockSessionCounter()
+
+    func requestCount() -> Int {
+        return taskCounter.count
+    }
 
     func task(with request: URLRequest, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) {
         networkQueue.async {

@@ -1,10 +1,11 @@
 import Foundation
 
-let CLIENT_CLOSED_THE_CONNECTION_CODE: Int = 499
-
 final class ApiClientImpl: ApiClient {
 
     static let DEFAULT_REQUEST_TIMEOUT_MILLIS: Int64 = 30_000
+    static let CLIENT_CLOSED_THE_CONNECTION_CODE: Int = 499
+    static let DEFAULT_MAX_RETRIES: Int = 3
+    static let DEFAULT_BASE_DELAY = 0.1 // in seconds
 
     private let apiEndpoint: URL
     private let apiKey: String
@@ -126,7 +127,6 @@ final class ApiClientImpl: ApiClient {
             return
         }
 
-        // sendRetriable is non-throwing function
         let result: Result<(Response, URLResponse), Error> = sendRetriable(
             requestBody: requestBody,
             path: path,
@@ -141,13 +141,13 @@ final class ApiClientImpl: ApiClient {
         path: String,
         timeoutMillis: Int64,
         encoder: JSONEncoder = JSONEncoder()) -> Result<(Response, URLResponse), Error> {
-        // This implementation uses the existing `send` method which is synchronous
+        // This implementation uses the existing `sendInternal` method which is synchronous
         // (it waits on an internal semaphore). We call it and capture the result,
         // then decide whether to retry on transient/network/server errors.
         var finalResult: Result<(Response, URLResponse), Error>?
 
         // simple retry policy: try up to 3 attempts (initial + 2 retries)
-        let maxAttempts = 3
+        let maxAttempts = ApiClientImpl.DEFAULT_MAX_RETRIES
         var attempt = 0
 
         while attempt < maxAttempts {
@@ -173,7 +173,7 @@ final class ApiClientImpl: ApiClient {
                 if let respErr = error as? ResponseError {
                     switch respErr {
                     case .unacceptableCode(let code, _):
-                        if code == CLIENT_CLOSED_THE_CONNECTION_CODE { shouldRetry = true }
+                        if code == ApiClientImpl.CLIENT_CLOSED_THE_CONNECTION_CODE { shouldRetry = true }
                     default:
                         break
                     }
@@ -185,11 +185,10 @@ final class ApiClientImpl: ApiClient {
             }
 
             // Backoff before retrying (exponential: 100ms, 200ms, ...)
-            let backoff = pow(2.0, Double(attempt - 1)) * 0.1
+            let backoff = pow(2.0, Double(attempt - 1)) * ApiClientImpl.DEFAULT_BASE_DELAY
             Thread.sleep(forTimeInterval: backoff)
         }
 
-        // finalResult should be set, but if not, return a safe illegalState error
         if let res = finalResult {
             return res
         }
