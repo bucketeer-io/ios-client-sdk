@@ -5,7 +5,7 @@ final class ApiClientImpl: ApiClient {
     static let DEFAULT_REQUEST_TIMEOUT_MILLIS: Int64 = 30_000
     static let CLIENT_CLOSED_THE_CONNECTION_CODE: Int = 499
     static let DEFAULT_MAX_ATTEMPTS: Int = 3
-    static let DEFAULT_BASE_DELAY = 0.1 // in seconds
+    static let DEFAULT_BASE_DELAY = 1.0 // in seconds
 
     private let apiEndpoint: URL
     private let apiKey: String
@@ -164,6 +164,7 @@ final class ApiClientImpl: ApiClient {
                 if let respErr = error as? ResponseError {
                     switch respErr {
                     case .unacceptableCode(let code, _):
+                        // Should retry for 499 status code
                         if code == ApiClientImpl.CLIENT_CLOSED_THE_CONNECTION_CODE { shouldRetry = true }
                     default:
                         break
