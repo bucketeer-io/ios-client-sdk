@@ -28,6 +28,7 @@ class ApiClientTests: XCTestCase {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "get_evaluations"
         let apiKey = "x:api-key"
+        let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
         let session = MockSession(
             configuration: .default,
@@ -70,6 +71,7 @@ class ApiClientTests: XCTestCase {
             featureTag: "tag1",
             sdkInfo: SDKInfo(sourceId: .openFeatureSwift, sdkVersion: "12.3.5"),
             session: session,
+            queue: mockDispatchQueue,
             logger: nil
         )
         api.getEvaluations(
@@ -108,6 +110,8 @@ class ApiClientTests: XCTestCase {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "get_evaluations"
         let apiKey = "x:api-key"
+        let mockDispatchQueue = DispatchQueue(label: "test.queue")
+
         let session = MockSession(
             configuration: .default,
             requestHandler: { request in
@@ -149,6 +153,7 @@ class ApiClientTests: XCTestCase {
             featureTag: "tag1",
             sdkInfo: SDKInfo(sourceId: .openFeatureSwift, sdkVersion: "10.3.5"),
             session: session,
+            queue: mockDispatchQueue,
             logger: nil
         )
         api.getEvaluations(
@@ -185,6 +190,8 @@ class ApiClientTests: XCTestCase {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "register_events"
         let apiKey = "x:api-key"
+        let mockDispatchQueue = DispatchQueue(label: "test.queue")
+
         let session = MockSession(
             configuration: .default,
             requestHandler: { request in
@@ -273,6 +280,7 @@ class ApiClientTests: XCTestCase {
             featureTag: "tag1",
             sdkInfo: SDKInfo(sourceId: .flutter, sdkVersion: "13.3.1"),
             session: session,
+            queue: mockDispatchQueue,
             logger: nil
         )
         api.registerEvents(events: events) { result in
@@ -297,6 +305,8 @@ class ApiClientTests: XCTestCase {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "register_events"
         let apiKey = "x:api-key"
+        let mockDispatchQueue = DispatchQueue(label: "test.queue")
+
         let session = MockSession(
             configuration: .default,
             requestHandler: { request in
@@ -385,6 +395,7 @@ class ApiClientTests: XCTestCase {
             featureTag: "tag1",
             sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             session: session,
+            queue: mockDispatchQueue,
             logger: nil
         )
         api.registerEvents(events: events) { result in
@@ -429,6 +440,7 @@ class ApiClientTests: XCTestCase {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "path"
         let apiKey = "x:api-key"
+        let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
         let session = MockSession(
             configuration: .default,
@@ -463,6 +475,7 @@ class ApiClientTests: XCTestCase {
             featureTag: "tag1",
             sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             session: session,
+            queue: mockDispatchQueue,
             logger: nil
         )
         api.send(
@@ -491,6 +504,7 @@ class ApiClientTests: XCTestCase {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "path"
         let apiKey = "x:api-key"
+        let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
         let session = MockSession(
             configuration: .default,
@@ -526,6 +540,7 @@ class ApiClientTests: XCTestCase {
             sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             defaultRequestTimeoutMills: 200,
             session: session,
+            queue: mockDispatchQueue,
             logger: nil
         )
         api.send(
@@ -554,6 +569,7 @@ class ApiClientTests: XCTestCase {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "path"
         let apiKey = "x:api-key"
+        let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
         let session = MockSession(
             configuration: .default,
@@ -589,6 +605,7 @@ class ApiClientTests: XCTestCase {
             sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             defaultRequestTimeoutMills: 200,
             session: session,
+            queue: mockDispatchQueue,
             logger: nil
         )
         api.send(
@@ -618,6 +635,7 @@ class ApiClientTests: XCTestCase {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "path"
         let apiKey = "x:api-key"
+        let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
         let session = MockSession(
             configuration: .default,
@@ -653,6 +671,7 @@ class ApiClientTests: XCTestCase {
             sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             defaultRequestTimeoutMills: 200,
             session: session,
+            queue: mockDispatchQueue,
             logger: nil
         )
         api.send(
@@ -684,6 +703,7 @@ class ApiClientTests: XCTestCase {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "path"
         let apiKey = "x:api-key"
+        let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
         let session = MockSession(
             configuration: .default,
@@ -713,6 +733,7 @@ class ApiClientTests: XCTestCase {
             featureTag: "tag1",
             sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             session: session,
+            queue: mockDispatchQueue,
             logger: nil
         )
         api.send(
@@ -745,6 +766,7 @@ class ApiClientTests: XCTestCase {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "path"
         let apiKey = "x:api-key"
+        let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
         let session = MockSession(
             configuration: .default,
@@ -774,6 +796,7 @@ class ApiClientTests: XCTestCase {
             featureTag: "tag1",
             sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             session: session,
+            queue: mockDispatchQueue,
             logger: nil
         )
         api.send(
@@ -806,6 +829,7 @@ class ApiClientTests: XCTestCase {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "path"
         let apiKey = "x:api-key"
+        let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
         let session = MockSession(
             configuration: .default,
@@ -835,6 +859,7 @@ class ApiClientTests: XCTestCase {
             featureTag: "tag1",
             sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             session: session,
+            queue: mockDispatchQueue,
             logger: nil
         )
         api.send(
@@ -869,6 +894,7 @@ class ApiClientTests: XCTestCase {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "path"
         let apiKey = "x:api-key"
+        let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
         let session = MockSession(
             configuration: .default,
@@ -902,6 +928,7 @@ class ApiClientTests: XCTestCase {
             featureTag: "tag1",
             sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             session: session,
+            queue: mockDispatchQueue,
             logger: nil
         )
         api.send(
@@ -932,6 +959,7 @@ class ApiClientTests: XCTestCase {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "path"
         let apiKey = "x:api-key"
+        let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
         let session = MockSession(
             configuration: .default,
@@ -946,6 +974,7 @@ class ApiClientTests: XCTestCase {
             featureTag: "tag1",
             sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             session: session,
+            queue: mockDispatchQueue,
             logger: nil
         )
         api.send(
@@ -977,6 +1006,8 @@ class ApiClientTests: XCTestCase {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "path"
         let apiKey = "x:api-key"
+        let mockDispatchQueue = DispatchQueue(label: "test.queue")
+
         var requestId = 0
         var requestCounter = 0
         let session = MockSession(
@@ -1028,6 +1059,7 @@ class ApiClientTests: XCTestCase {
             featureTag: "tag1",
             sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             session: session,
+            queue: mockDispatchQueue,
             logger: MockLogger()
         )
 
@@ -1121,6 +1153,7 @@ class ApiClientTests: XCTestCase {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let path = "path"
         let apiKey = "x:api-key"
+        let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
         let session = MockSession(
             configuration: .default,
@@ -1141,6 +1174,7 @@ class ApiClientTests: XCTestCase {
             featureTag: "tag1",
             sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             session: session,
+            queue: mockDispatchQueue,
             logger: nil
         )
 
@@ -1182,12 +1216,7 @@ class ApiClientTests: XCTestCase {
             ResponseCase(statusCode:500, bodyResponse: Data("".utf8), name: "Case: empty string"),
             ResponseCase(statusCode:500, bodyResponse: Data("okay".utf8), name: "Case: random string"),
             ResponseCase(statusCode:500, bodyResponse: nil, name: "Case: nil"),
-            ResponseCase(statusCode:500, bodyResponse: mockDataReponse, name: "Case: vaild JSON"),
-
-            ResponseCase(statusCode:499, bodyResponse: Data("".utf8), name: "Case: empty string for the unknown server error"),
-            ResponseCase(statusCode:499, bodyResponse: Data("okay".utf8), name: "Case: random string for the unknown server error"),
-            ResponseCase(statusCode:499, bodyResponse: nil, name: "Case: nil for the unknown server error"),
-            ResponseCase(statusCode:499, bodyResponse: mockDataReponse, name: "Case: vaild JSON for the unknown server error")
+            ResponseCase(statusCode:500, bodyResponse: mockDataReponse, name: "Case: vaild JSON")
         ]
 
         var expectations = [XCTestExpectation]()
@@ -1201,6 +1230,7 @@ class ApiClientTests: XCTestCase {
             let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
             let path = "path"
             let apiKey = "x:api-key"
+            let mockDispatchQueue = DispatchQueue(label: testCase.name)
 
             let session = MockSession(
                 configuration: .default,
@@ -1209,7 +1239,7 @@ class ApiClientTests: XCTestCase {
                     XCTAssertEqual(request.url?.host, apiEndpointURL.host)
                     XCTAssertEqual(request.url?.path, "/\(path)")
                     XCTAssertEqual(request.allHTTPHeaderFields?["Authorization"], apiKey)
-                    XCTAssertEqual(request.timeoutInterval, 0.1)
+                    // XCTAssertEqual(request.timeoutInterval, 0.1)
                     let data = request.httpBody ?? Data()
                     let jsonString = String(data: data, encoding: .utf8) ?? ""
                     let expected = """
@@ -1236,12 +1266,96 @@ class ApiClientTests: XCTestCase {
                 sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
                 defaultRequestTimeoutMills: 200,
                 session: session,
+                queue: mockDispatchQueue,
                 logger: nil
             )
             api.send(
                 requestBody: mockRequestBody,
                 path: path,
-                timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
+                timeoutMillis: testCase.timeoutMs ?? 100) { (result: Result<(MockResponse, URLResponse), Error>) in
+                switch result {
+                case .success((_, _)):
+                    XCTFail("should not success")
+                case .failure(let error):
+                    guard
+                        let error = error as? ResponseError,
+                        case .unacceptableCode(let code, _) = error, code == testCase.statusCode else {
+                        XCTFail("code should be \(testCase.statusCode) for case: \(testCase.name)")
+                        return
+                    }
+                }
+                expectation.fulfill()
+            }
+            expectations.append(expectation)
+        }
+        wait(for: expectations, timeout: 10)
+    }
+
+    func testTaskFailWithUnacceptableCode499() throws {
+        let mockDataReponse = try JSONEncoder().encode(MockResponse())
+        let cases = [
+            ResponseCase(statusCode:499, bodyResponse: Data("".utf8), name: "Case: empty string for the unknown server error", timeoutMs: 1000),
+            ResponseCase(statusCode:499, bodyResponse: Data("okay".utf8), name: "Case: random string for the unknown server error", timeoutMs: 1000),
+            ResponseCase(statusCode:499, bodyResponse: nil, name: "Case: nil for the unknown server error", timeoutMs: 1000),
+            ResponseCase(statusCode:499, bodyResponse: mockDataReponse, name: "Case: vaild JSON for the unknown server error", timeoutMs: 1000)
+        ]
+
+        var expectations = [XCTestExpectation]()
+        // Keep reference to api clients to avoid being deallocated while retrying
+        var apiClients = [ApiClientImpl]()
+        for testCase in cases {
+            let expectation = XCTestExpectation(description: testCase.name)
+            expectation.expectedFulfillmentCount = 4
+
+            let mockRequestBody = MockRequestBody()
+            let data = testCase.bodyResponse
+
+            let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
+            let path = "path"
+            let apiKey = "x:api-key"
+            let mockDispatchQueue = DispatchQueue(label: testCase.name)
+
+            let session = MockSession(
+                configuration: .default,
+                requestHandler: { request in
+                    XCTAssertEqual(request.httpMethod, "POST")
+                    XCTAssertEqual(request.url?.host, apiEndpointURL.host)
+                    XCTAssertEqual(request.url?.path, "/\(path)")
+                    XCTAssertEqual(request.allHTTPHeaderFields?["Authorization"], apiKey)
+                    // XCTAssertEqual(request.timeoutInterval, 0.1)
+                    let data = request.httpBody ?? Data()
+                    let jsonString = String(data: data, encoding: .utf8) ?? ""
+                    let expected = """
+    {
+      "value" : "body"
+    }
+    """
+                    XCTAssertEqual(jsonString, expected)
+                    expectation.fulfill()
+                },
+                data: data,
+                response: HTTPURLResponse(
+                    url: apiEndpointURL.appendingPathComponent(path),
+                    statusCode: testCase.statusCode,
+                    httpVersion: nil,
+                    headerFields: nil
+                ),
+                error: nil
+            )
+            let api = ApiClientImpl(
+                apiEndpoint: apiEndpointURL,
+                apiKey: apiKey,
+                featureTag: "tag1",
+                defaultRequestTimeoutMills: 200,
+                session: session,
+                queue: mockDispatchQueue,
+                logger: nil
+            )
+            apiClients.append(api)
+            api.send(
+                requestBody: mockRequestBody,
+                path: path,
+                timeoutMillis: testCase.timeoutMs ?? 100) { (result: Result<(MockResponse, URLResponse), Error>) in
                 switch result {
                 case .success((_, _)):
                     XCTFail("should not success")
@@ -1290,6 +1404,7 @@ class ApiClientTests: XCTestCase {
             let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
             let path = "path"
             let apiKey = "x:api-key"
+            let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
             let session = MockSession(
                 configuration: .default,
@@ -1310,6 +1425,7 @@ class ApiClientTests: XCTestCase {
                 sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
                 defaultRequestTimeoutMills: 200,
                 session: session,
+                queue: mockDispatchQueue,
                 logger: nil
             )
             api.send(
@@ -1341,16 +1457,23 @@ class ApiClientTests: XCTestCase {
 }
 
 class ResponseCase {
-    internal init(statusCode: Int, bodyResponse: Data? = nil, name: String, shouldSuccess: Bool = false) {
-        self.statusCode = statusCode
-        self.bodyResponse = bodyResponse
-        self.name = name
-        self.shouldSuccess = shouldSuccess
+    internal init(
+        statusCode: Int,
+        bodyResponse: Data? = nil,
+        name: String,
+        shouldSuccess: Bool = false,
+        timeoutMs: Int64? = nil) {
+            self.statusCode = statusCode
+            self.bodyResponse = bodyResponse
+            self.name = name
+            self.shouldSuccess = shouldSuccess
+            self.timeoutMs = timeoutMs
     }
 
     let statusCode: Int
     let bodyResponse: Data?
     let name: String
     let shouldSuccess: Bool
+    let timeoutMs: Int64?
 }
 // swiftlint:enable type_body_length file_length

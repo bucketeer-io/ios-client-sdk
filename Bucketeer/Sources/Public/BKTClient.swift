@@ -104,7 +104,7 @@ extension BKTClient {
             }
             do {
                 let dispatchQueue = DispatchQueue(label: "io.bucketeer.taskQueue")
-                let dataModule = try DataModuleImpl(user: user.toUser(), config: config)
+                let dataModule = try DataModuleImpl(user: user.toUser(), config: config, dispatchQueue: dispatchQueue)
                 let client = BKTClient(dataModule: dataModule, dispatchQueue: dispatchQueue)
                 client.scheduleTasks()
                 client.execute { [weak client] in

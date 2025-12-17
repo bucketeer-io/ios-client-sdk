@@ -33,13 +33,12 @@ struct MockSession: Session {
         networkQueue.async {
             taskCounter.increment()
             let requestCount = taskCounter.count
+            requestHandler?(request)
             if let responseProvider = self.responseProvider {
                 // Dynamic response
                 let responseData = responseProvider(request, requestCount)
                 completionHandler(responseData.data, responseData.response, responseData.error)
                 return
-            } else {
-                requestHandler?(request)
             }
             // Fixed response
             completionHandler(data, response, error)
