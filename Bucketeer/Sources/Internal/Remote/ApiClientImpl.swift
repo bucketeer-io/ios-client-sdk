@@ -5,7 +5,7 @@ final class ApiClientImpl: ApiClient {
     static let DEFAULT_REQUEST_TIMEOUT_MILLIS: Int64 = 30_000
     static let CLIENT_CLOSED_THE_CONNECTION_CODE: Int = 499
     static let DEFAULT_MAX_ATTEMPTS: Int = 3
-    static let DEFAULT_BASE_DELAY = 1.0 // in seconds
+    static let DEFAULT_BASE_DELAY_SECONDS = 1.0 // in seconds
 
     private let apiEndpoint: URL
     private let apiKey: String
@@ -15,7 +15,8 @@ final class ApiClientImpl: ApiClient {
     private let defaultRequestTimeoutMills: Int64
     private let logger: Logger?
     private let semaphore = DispatchSemaphore(value: 0)
-    private let queue: DispatchQueue
+    // Dispatch queue for retry backoff, it should be the same with the SDK queue
+    private let dispatchQueue: DispatchQueue
     private var closed = false
 
     deinit {
@@ -41,7 +42,7 @@ final class ApiClientImpl: ApiClient {
         self.defaultRequestTimeoutMills = defaultRequestTimeoutMills
         self.session = session
         self.logger = logger
-        self.queue = queue
+        self.dispatchQueue = queue
         self.session.configuration.timeoutIntervalForRequest = TimeInterval(self.defaultRequestTimeoutMills) / 1000
     }
 
@@ -121,7 +122,6 @@ final class ApiClientImpl: ApiClient {
         )
     }
 
-    // noted: this method will run `synchronized`. It will blocking the current queue please do not call it from the app main thread
     func send<RequestBody: Encodable, Response: Decodable>(
         requestBody: RequestBody,
         path: String,
@@ -175,8 +175,8 @@ final class ApiClientImpl: ApiClient {
                 }
 
                 if shouldRetry {
-                    let backoff = pow(2.0, Double(retryCount)) * ApiClientImpl.DEFAULT_BASE_DELAY
-                    queue.asyncAfter(deadline: .now() + backoff) { [weak self] in
+                    let backoff = pow(2.0, Double(retryCount)) * ApiClientImpl.DEFAULT_BASE_DELAY_SECONDS
+                    dispatchQueue.asyncAfter(deadline: .now() + backoff) { [weak self] in
                         self?.sendRetriable(
                             requestBody: requestBody,
                             path: path,
@@ -193,6 +193,7 @@ final class ApiClientImpl: ApiClient {
         }
     }
 
+    // noted: this method will run `synchronized`. It will blocking the current queue please do not make network call from the app main thread
     private func sendInternal<RequestBody: Encodable, Response: Decodable>(
         requestBody: RequestBody,
         path: String,
