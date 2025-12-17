@@ -10,7 +10,7 @@ class MockSessionCounter {
     }
 
     fileprivate func increment() {
-        syncQueue.async { self._count += 1 }
+        syncQueue.sync { self._count += 1 }
     }
 }
 
@@ -32,17 +32,17 @@ struct MockSession: Session {
     func task(with request: URLRequest, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) {
         networkQueue.async {
             taskCounter.increment()
-            requestHandler?(request)
-            networkQueue.asyncAfter(deadline: .now() + 0.1) {
-                if let responseProvider = self.responseProvider {
-                    // Dynamic response
-                    let responseData = responseProvider(request, taskCounter.count)
-                    completionHandler(responseData.data, responseData.response, responseData.error)
-                    return
-                }
-                // Fixed response
-                completionHandler(data, response, error)
+            let requestCount = taskCounter.count
+            if let responseProvider = self.responseProvider {
+                // Dynamic response
+                let responseData = responseProvider(request, requestCount)
+                completionHandler(responseData.data, responseData.response, responseData.error)
+                return
+            } else {
+                requestHandler?(request)
             }
+            // Fixed response
+            completionHandler(data, response, error)
         }
     }
 

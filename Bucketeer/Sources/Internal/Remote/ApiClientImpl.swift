@@ -4,7 +4,7 @@ final class ApiClientImpl: ApiClient {
 
     static let DEFAULT_REQUEST_TIMEOUT_MILLIS: Int64 = 30_000
     static let CLIENT_CLOSED_THE_CONNECTION_CODE: Int = 499
-    static let DEFAULT_MAX_RETRIES: Int = 3
+    static let DEFAULT_MAX_ATTEMPTS: Int = 3
     static let DEFAULT_BASE_DELAY = 0.1 // in seconds
 
     private let apiEndpoint: URL
@@ -147,7 +147,7 @@ final class ApiClientImpl: ApiClient {
         var finalResult: Result<(Response, URLResponse), Error>?
 
         // simple retry policy: try up to 3 attempts (initial + 2 retries)
-        let maxAttempts = ApiClientImpl.DEFAULT_MAX_RETRIES
+        let maxAttempts = ApiClientImpl.DEFAULT_MAX_ATTEMPTS
         var attempt = 0
 
         while attempt < maxAttempts {
