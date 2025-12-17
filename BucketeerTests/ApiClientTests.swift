@@ -1281,7 +1281,7 @@ class ApiClientTests: XCTestCase {
             ResponseCase(statusCode:499, bodyResponse: Data("".utf8), name: "Case: empty string for the unknown server error", timeoutMs: 1000),
             ResponseCase(statusCode:499, bodyResponse: Data("okay".utf8), name: "Case: random string for the unknown server error", timeoutMs: 1000),
             ResponseCase(statusCode:499, bodyResponse: nil, name: "Case: nil for the unknown server error", timeoutMs: 1000),
-            ResponseCase(statusCode:499, bodyResponse: mockDataReponse, name: "Case: vaild JSON for the unknown server error", timeoutMs: 1000)
+            ResponseCase(statusCode:499, bodyResponse: mockDataReponse, name: "Case: valid JSON for the unknown server error", timeoutMs: 1000)
         ]
 
         var expectations = [XCTestExpectation]()

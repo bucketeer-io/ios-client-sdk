@@ -33,7 +33,7 @@ final class E2EBKTClientForceUpdateTests: XCTestCase {
         let user = try BKTUser.Builder().with(id: USER_ID).build()
 
         // note: we need prepare the context before initialize the BKTClient
-        // because on initialize() the BKTClient will auto fetch the evalutation
+        // because on initialize() the BKTClient will auto fetch the evaluation
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
         let internalDataModule = try DataModuleImpl(user: user.toUser(), config: config, dispatchQueue: mockDispatchQueue)
         let internalEvaluationStorage = internalDataModule.evaluationStorage
