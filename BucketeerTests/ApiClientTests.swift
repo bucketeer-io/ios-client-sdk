@@ -1336,7 +1336,7 @@ class ApiClientTests: XCTestCase {
                 logger: nil
             )
             apiClients.append(api)
-            // Note: Send request in the same queue with the retriable logic trigger by 499 code
+            // Note: Send request in the same queue with the retriable logic triggered by 499 code
             mockDispatchQueue.async {
                 api.send(
                     requestBody: mockRequestBody,
