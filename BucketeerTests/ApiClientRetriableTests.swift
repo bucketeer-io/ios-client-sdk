@@ -20,7 +20,7 @@ class ApiClientRetriableTests: XCTestCase {
         var value = "response"
     }
 
-    // Verify that ApiClientImpl fails with .unacceptableCode (499) should be retriable at least 3 times
+    // Verify that ApiClientImpl fails with .unacceptableCode (499) should be retriable 3 times
     // List test cases with different body responses
 
     // MARK: - Test Case: Retriable with 499 - Valid JSON Response
