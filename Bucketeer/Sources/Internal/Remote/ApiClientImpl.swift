@@ -200,16 +200,17 @@ final class ApiClientImpl: ApiClient {
                 if shouldRetry {
                     // Exponential backoff: 1s, 2s, 4s for attempts 1, 2, 3
                     let backoff = pow(2.0, Double(retryCount)) * ApiClientImpl.DEFAULT_BASE_DELAY_SECONDS
-                    dispatchQueue.asyncAfter(deadline: .now() + backoff) { [weak self] in
-                        self?.sendRetriable(
-                            requestBody: requestBody,
-                            path: path,
-                            timeoutMillis: timeoutMillis,
-                            encoder: encoder,
-                            retryCount: retryCount + 1,
-                            completion: completion
-                        )
-                    }
+                    let workItem = DispatchWorkItem { [weak self] in
+                            self?.sendRetriable(
+                                requestBody: requestBody,
+                                path: path,
+                                timeoutMillis: timeoutMillis,
+                                encoder: encoder,
+                                retryCount: retryCount + 1,
+                                completion: completion
+                            )
+                        }
+                    dispatchQueue.asyncAfter(deadline: .now() + backoff, execute: workItem)
                     return
                 }
             }
