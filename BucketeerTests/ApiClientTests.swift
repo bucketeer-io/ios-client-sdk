@@ -1224,7 +1224,7 @@ class ApiClientTests: XCTestCase {
                     XCTAssertEqual(request.url?.host, apiEndpointURL.host)
                     XCTAssertEqual(request.url?.path, "/\(path)")
                     XCTAssertEqual(request.allHTTPHeaderFields?["Authorization"], apiKey)
-                    // XCTAssertEqual(request.timeoutInterval, 0.1)
+                    XCTAssertEqual(request.timeoutInterval, 0.1)
                     let data = request.httpBody ?? Data()
                     let jsonString = String(data: data, encoding: .utf8) ?? ""
                     let expected = """
@@ -1256,7 +1256,7 @@ class ApiClientTests: XCTestCase {
             api.send(
                 requestBody: mockRequestBody,
                 path: path,
-                timeoutMillis: testCase.timeoutMs ?? 100) { (result: Result<(MockResponse, URLResponse), Error>) in
+                timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
                 switch result {
                 case .success((_, _)):
                     XCTFail("should not success")
@@ -1278,10 +1278,10 @@ class ApiClientTests: XCTestCase {
     func testTaskFailWithUnacceptableCode499() throws {
         let mockDataReponse = try JSONEncoder().encode(MockResponse())
         let cases = [
-            ResponseCase(statusCode:499, bodyResponse: Data("".utf8), name: "Case: empty string for the unknown server error", timeoutMs: 1000),
-            ResponseCase(statusCode:499, bodyResponse: Data("okay".utf8), name: "Case: random string for the unknown server error", timeoutMs: 1000),
-            ResponseCase(statusCode:499, bodyResponse: nil, name: "Case: nil for the unknown server error", timeoutMs: 1000),
-            ResponseCase(statusCode:499, bodyResponse: mockDataReponse, name: "Case: valid JSON for the unknown server error", timeoutMs: 1000)
+            ResponseCase(statusCode:499, bodyResponse: Data("".utf8), name: "Case: empty string for the unknown server error"),
+            ResponseCase(statusCode:499, bodyResponse: Data("okay".utf8), name: "Case: random string for the unknown server error"),
+            ResponseCase(statusCode:499, bodyResponse: nil, name: "Case: nil for the unknown server error"),
+            ResponseCase(statusCode:499, bodyResponse: mockDataReponse, name: "Case: valid JSON for the unknown server error")
         ]
 
         var expectations = [XCTestExpectation]()
@@ -1306,7 +1306,7 @@ class ApiClientTests: XCTestCase {
                     XCTAssertEqual(request.url?.host, apiEndpointURL.host)
                     XCTAssertEqual(request.url?.path, "/\(path)")
                     XCTAssertEqual(request.allHTTPHeaderFields?["Authorization"], apiKey)
-                    // XCTAssertEqual(request.timeoutInterval, 0.1)
+                    XCTAssertEqual(request.timeoutInterval, 0.1)
                     let data = request.httpBody ?? Data()
                     let jsonString = String(data: data, encoding: .utf8) ?? ""
                     let expected = """
@@ -1339,7 +1339,7 @@ class ApiClientTests: XCTestCase {
             api.send(
                 requestBody: mockRequestBody,
                 path: path,
-                timeoutMillis: testCase.timeoutMs ?? 100) { (result: Result<(MockResponse, URLResponse), Error>) in
+                timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
                 switch result {
                 case .success((_, _)):
                     XCTFail("should not success")
@@ -1440,23 +1440,16 @@ class ApiClientTests: XCTestCase {
 }
 
 class ResponseCase {
-    internal init(
-        statusCode: Int,
-        bodyResponse: Data? = nil,
-        name: String,
-        shouldSuccess: Bool = false,
-        timeoutMs: Int64? = nil) {
-            self.statusCode = statusCode
-            self.bodyResponse = bodyResponse
-            self.name = name
-            self.shouldSuccess = shouldSuccess
-            self.timeoutMs = timeoutMs
+    internal init(statusCode: Int, bodyResponse: Data? = nil, name: String, shouldSuccess: Bool = false) {
+        self.statusCode = statusCode
+        self.bodyResponse = bodyResponse
+        self.name = name
+        self.shouldSuccess = shouldSuccess
     }
 
     let statusCode: Int
     let bodyResponse: Data?
     let name: String
     let shouldSuccess: Bool
-    let timeoutMs: Int64?
 }
 // swiftlint:enable type_body_length file_length
