@@ -1186,22 +1186,22 @@ class ApiClientTests: XCTestCase {
     }
 
     func testTaskFailWithUnacceptableCode() throws {
-        let mockDataReponse = try JSONEncoder().encode(MockResponse())
+        let mockDataResponse = try JSONEncoder().encode(MockResponse())
         let cases = [
             ResponseCase(statusCode:300, bodyResponse: Data("".utf8), name: "Case: empty string"),
             ResponseCase(statusCode:300, bodyResponse: Data("okay".utf8), name: "Case: random string"),
             ResponseCase(statusCode:300, bodyResponse: nil, name: "Case: nil"),
-            ResponseCase(statusCode:300, bodyResponse: mockDataReponse, name: "Case: vaild JSON"),
+            ResponseCase(statusCode:300, bodyResponse: mockDataResponse, name: "Case: vaild JSON"),
 
             ResponseCase(statusCode:400, bodyResponse: Data("".utf8), name: "Case: empty string"),
             ResponseCase(statusCode:400, bodyResponse: Data("okay".utf8), name: "Case: random string"),
             ResponseCase(statusCode:400, bodyResponse: nil, name: "Case: nil"),
-            ResponseCase(statusCode:400, bodyResponse: mockDataReponse, name: "Case: vaild JSON"),
+            ResponseCase(statusCode:400, bodyResponse: mockDataResponse, name: "Case: vaild JSON"),
 
             ResponseCase(statusCode:500, bodyResponse: Data("".utf8), name: "Case: empty string"),
             ResponseCase(statusCode:500, bodyResponse: Data("okay".utf8), name: "Case: random string"),
             ResponseCase(statusCode:500, bodyResponse: nil, name: "Case: nil"),
-            ResponseCase(statusCode:500, bodyResponse: mockDataReponse, name: "Case: vaild JSON")
+            ResponseCase(statusCode:500, bodyResponse: mockDataResponse, name: "Case: vaild JSON")
         ]
 
         var expectations = [XCTestExpectation]()
@@ -1276,12 +1276,12 @@ class ApiClientTests: XCTestCase {
     }
 
     func testTaskFailWithUnacceptableCode499() throws {
-        let mockDataReponse = try JSONEncoder().encode(MockResponse())
+        let mockDataResponse = try JSONEncoder().encode(MockResponse())
         let cases = [
             ResponseCase(statusCode:499, bodyResponse: Data("".utf8), name: "Case: empty string for the unknown server error"),
             ResponseCase(statusCode:499, bodyResponse: Data("okay".utf8), name: "Case: random string for the unknown server error"),
             ResponseCase(statusCode:499, bodyResponse: nil, name: "Case: nil for the unknown server error"),
-            ResponseCase(statusCode:499, bodyResponse: mockDataReponse, name: "Case: valid JSON for the unknown server error")
+            ResponseCase(statusCode:499, bodyResponse: mockDataResponse, name: "Case: valid JSON for the unknown server error")
         ]
 
         var expectations = [XCTestExpectation]()
@@ -1362,22 +1362,22 @@ class ApiClientTests: XCTestCase {
     }
 
     func testTaskSuccessWithAcceptableCode() throws {
-        let mockDataReponse = try JSONEncoder().encode(MockResponse())
+        let mockDataResponse = try JSONEncoder().encode(MockResponse())
         let cases = [
             ResponseCase(statusCode:200, bodyResponse: Data("".utf8), name: "Case: empty string"),
             ResponseCase(statusCode:200, bodyResponse: Data("okay".utf8), name: "Case: random string"),
             ResponseCase(statusCode:200, bodyResponse: nil, name: "Case: nil"),
-            ResponseCase(statusCode:200, bodyResponse: mockDataReponse, name: "Case: vaild JSON", shouldSuccess: true),
+            ResponseCase(statusCode:200, bodyResponse: mockDataResponse, name: "Case: vaild JSON", shouldSuccess: true),
 
             ResponseCase(statusCode:201, bodyResponse: Data("".utf8), name: "Case: empty string"),
             ResponseCase(statusCode:201, bodyResponse: Data("okay".utf8), name: "Case: random string"),
             ResponseCase(statusCode:201, bodyResponse: nil, name: "Case: nil"),
-            ResponseCase(statusCode:201, bodyResponse: mockDataReponse, name: "Case: vaild JSON", shouldSuccess: true),
+            ResponseCase(statusCode:201, bodyResponse: mockDataResponse, name: "Case: vaild JSON", shouldSuccess: true),
 
             ResponseCase(statusCode:204, bodyResponse: Data("".utf8), name: "Case: empty string"),
             ResponseCase(statusCode:204, bodyResponse: Data("okay".utf8), name: "Case: random string"),
             ResponseCase(statusCode:204, bodyResponse: nil, name: "Case: nil"),
-            ResponseCase(statusCode:204, bodyResponse: mockDataReponse, name: "Case: vaild JSON", shouldSuccess: true)
+            ResponseCase(statusCode:204, bodyResponse: mockDataResponse, name: "Case: vaild JSON", shouldSuccess: true)
         ]
 
         var expectations = [XCTestExpectation]()
