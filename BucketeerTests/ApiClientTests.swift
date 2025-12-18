@@ -1206,17 +1206,17 @@ class ApiClientTests: XCTestCase {
             ResponseCase(statusCode:300, bodyResponse: Data("".utf8), name: "Case: empty string"),
             ResponseCase(statusCode:300, bodyResponse: Data("okay".utf8), name: "Case: random string"),
             ResponseCase(statusCode:300, bodyResponse: nil, name: "Case: nil"),
-            ResponseCase(statusCode:300, bodyResponse: mockDataResponse, name: "Case: vaild JSON"),
+            ResponseCase(statusCode:300, bodyResponse: mockDataResponse, name: "Case: valid JSON"),
 
             ResponseCase(statusCode:400, bodyResponse: Data("".utf8), name: "Case: empty string"),
             ResponseCase(statusCode:400, bodyResponse: Data("okay".utf8), name: "Case: random string"),
             ResponseCase(statusCode:400, bodyResponse: nil, name: "Case: nil"),
-            ResponseCase(statusCode:400, bodyResponse: mockDataResponse, name: "Case: vaild JSON"),
+            ResponseCase(statusCode:400, bodyResponse: mockDataResponse, name: "Case: valid JSON"),
 
             ResponseCase(statusCode:500, bodyResponse: Data("".utf8), name: "Case: empty string"),
             ResponseCase(statusCode:500, bodyResponse: Data("okay".utf8), name: "Case: random string"),
             ResponseCase(statusCode:500, bodyResponse: nil, name: "Case: nil"),
-            ResponseCase(statusCode:500, bodyResponse: mockDataResponse, name: "Case: vaild JSON")
+            ResponseCase(statusCode:500, bodyResponse: mockDataResponse, name: "Case: valid JSON")
         ]
 
         var expectations = [XCTestExpectation]()
@@ -1383,17 +1383,17 @@ class ApiClientTests: XCTestCase {
             ResponseCase(statusCode:200, bodyResponse: Data("".utf8), name: "Case: empty string"),
             ResponseCase(statusCode:200, bodyResponse: Data("okay".utf8), name: "Case: random string"),
             ResponseCase(statusCode:200, bodyResponse: nil, name: "Case: nil"),
-            ResponseCase(statusCode:200, bodyResponse: mockDataResponse, name: "Case: vaild JSON", shouldSuccess: true),
+            ResponseCase(statusCode:200, bodyResponse: mockDataResponse, name: "Case: valid JSON", shouldSuccess: true),
 
             ResponseCase(statusCode:201, bodyResponse: Data("".utf8), name: "Case: empty string"),
             ResponseCase(statusCode:201, bodyResponse: Data("okay".utf8), name: "Case: random string"),
             ResponseCase(statusCode:201, bodyResponse: nil, name: "Case: nil"),
-            ResponseCase(statusCode:201, bodyResponse: mockDataResponse, name: "Case: vaild JSON", shouldSuccess: true),
+            ResponseCase(statusCode:201, bodyResponse: mockDataResponse, name: "Case: valid JSON", shouldSuccess: true),
 
             ResponseCase(statusCode:204, bodyResponse: Data("".utf8), name: "Case: empty string"),
             ResponseCase(statusCode:204, bodyResponse: Data("okay".utf8), name: "Case: random string"),
             ResponseCase(statusCode:204, bodyResponse: nil, name: "Case: nil"),
-            ResponseCase(statusCode:204, bodyResponse: mockDataResponse, name: "Case: vaild JSON", shouldSuccess: true)
+            ResponseCase(statusCode:204, bodyResponse: mockDataResponse, name: "Case: valid JSON", shouldSuccess: true)
         ]
 
         var expectations = [XCTestExpectation]()

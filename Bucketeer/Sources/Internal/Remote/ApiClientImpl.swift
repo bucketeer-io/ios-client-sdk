@@ -198,7 +198,7 @@ final class ApiClientImpl: ApiClient {
                 }
 
                 if shouldRetry {
-                    // Exponential backoff: 1s, 2s, 4s for attempts 1, 2, 3
+                    // Exponential backoff delay in seconds: 2^retryCount (e.g., 1s before the 1st retry, 2s before the 2nd retry)
                     let backoff = pow(2.0, Double(retryCount)) * ApiClientImpl.DEFAULT_BASE_DELAY_SECONDS
                     let workItem = DispatchWorkItem { [weak self] in
                         // IMPORTANT: [weak self] is intentional here.
