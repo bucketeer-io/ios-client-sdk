@@ -142,7 +142,7 @@ final class ApiClientImpl: ApiClient {
     /// Sends a network request with automatic retry logic for transient failures.
     ///
     /// This method implements an exponential backoff retry strategy for specific error conditions.
-    /// Retries are only triggered for HTTP 499 (client closed connection) errors.
+    /// Retries are only triggered on deployment-related 499 errors
     ///
     /// - Parameters:
     ///   - requestBody: The request body to encode and send
