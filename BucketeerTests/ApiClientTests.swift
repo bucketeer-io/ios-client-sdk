@@ -1336,22 +1336,25 @@ class ApiClientTests: XCTestCase {
                 logger: nil
             )
             apiClients.append(api)
-            api.send(
-                requestBody: mockRequestBody,
-                path: path,
-                timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
-                switch result {
-                case .success((_, _)):
-                    XCTFail("should not success")
-                case .failure(let error):
-                    guard
-                        let error = error as? ResponseError,
-                        case .unacceptableCode(let code, _) = error, code == testCase.statusCode else {
-                        XCTFail("code should be \(testCase.statusCode) for case: \(testCase.name)")
-                        return
+            // Note: Send request in the same queue with the retriable logic trigger by 499 code
+            mockDispatchQueue.async {
+                api.send(
+                    requestBody: mockRequestBody,
+                    path: path,
+                    timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
+                    switch result {
+                    case .success((_, _)):
+                        XCTFail("should not success")
+                    case .failure(let error):
+                        guard
+                            let error = error as? ResponseError,
+                            case .unacceptableCode(let code, _) = error, code == testCase.statusCode else {
+                            XCTFail("code should be \(testCase.statusCode) for case: \(testCase.name)")
+                            return
+                        }
                     }
+                    expectation.fulfill()
                 }
-                expectation.fulfill()
             }
             expectations.append(expectation)
         }
