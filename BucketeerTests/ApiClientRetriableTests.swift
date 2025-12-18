@@ -623,7 +623,7 @@ class ApiClientRetriableTests: XCTestCase {
         }
 
         // Cancel after a brief delay to allow first request to complete
-        mockDispatchQueue.asyncAfter(deadline: .now() + 1) {
+        mockDispatchQueue.asyncAfter(deadline: .now() + 2) {
             api.cancelAllOngoingRequest()
         }
 
