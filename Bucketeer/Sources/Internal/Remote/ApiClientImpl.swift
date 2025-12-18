@@ -142,6 +142,29 @@ final class ApiClientImpl: ApiClient {
         )
     }
 
+    /// Sends a network request with automatic retry logic for transient failures.
+    ///
+    /// This method implements an exponential backoff retry strategy for specific error conditions.
+    /// Retries are only triggered for HTTP 499 (client closed connection) errors.
+    ///
+    /// - Parameters:
+    ///   - requestBody: The request body to encode and send
+    ///   - path: The API endpoint path to append to the base URL
+    ///   - timeoutMillis: Request timeout in milliseconds
+    ///   - encoder: JSON encoder for the request body (default: JSONEncoder())
+    ///   - retryCount: Current retry attempt number (default: 0, used internally)
+    ///   - completion: Callback with the result of the request
+    ///
+    /// - Retry Behavior:
+    ///   - **Maximum Attempts**: 3 total attempts (initial + 2 retries)
+    ///   - **Retry Condition**: Only HTTP 499 status code
+    ///   - **Backoff Strategy**: Exponential with base delay of 1 second
+    ///     - 1st retry: 1 second delay
+    ///     - 2nd retry: 2 seconds delay
+    ///   - **Queue**: Retries are scheduled asynchronously on the dispatch queue provided during initialization
+    ///
+    /// - Note: All other errors (network failures, HTTP 4xx/5xx codes except 499) will not trigger retries
+    ///         and will be returned immediately via the completion handler.
     private func sendRetriable<RequestBody: Encodable, Response: Decodable>(
         requestBody: RequestBody,
         path: String,
@@ -175,6 +198,7 @@ final class ApiClientImpl: ApiClient {
                 }
 
                 if shouldRetry {
+                    // Exponential backoff: 1s, 2s, 4s for attempts 1, 2, 3
                     let backoff = pow(2.0, Double(retryCount)) * ApiClientImpl.DEFAULT_BASE_DELAY_SECONDS
                     dispatchQueue.asyncAfter(deadline: .now() + backoff) { [weak self] in
                         self?.sendRetriable(
@@ -264,6 +288,11 @@ final class ApiClientImpl: ApiClient {
                 self?.semaphore.signal()
             }
 
+            // session.task runs asynchronously on URLSession's background thread/queue, NOT on io.bucketeer.taskQueue.
+            // Without semaphore.wait() below, sendInternal would return immediately, allowing the next queued operation
+            // on io.bucketeer.taskQueue to execute before this network request completes.
+            // The semaphore blocks io.bucketeer.taskQueue until the completion handler calls semaphore.signal(),
+            // ensuring serial execution of network requests across the SDK.
             session.task(with: request) { data, urlResponse, error in
                 let output = responseParser(data, urlResponse, error)
                 requestHandler(output)
