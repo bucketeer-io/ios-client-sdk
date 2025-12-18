@@ -201,7 +201,9 @@ final class ApiClientImpl: ApiClient {
                     // Exponential backoff: 1s, 2s, 4s for attempts 1, 2, 3
                     let backoff = pow(2.0, Double(retryCount)) * ApiClientImpl.DEFAULT_BASE_DELAY_SECONDS
                     let workItem = DispatchWorkItem { [weak self] in
-                            self?.sendRetriable(
+                        // IMPORTANT: [weak self] is intentional here.
+                        // If ApiClient is deallocated during retry backoff, the retry should be cancelled.
+                        self?.sendRetriable(
                                 requestBody: requestBody,
                                 path: path,
                                 timeoutMillis: timeoutMillis,
