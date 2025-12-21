@@ -200,6 +200,7 @@ final class ApiClientImpl: ApiClient {
                     let workItem = DispatchWorkItem { [weak self] in
                         // IMPORTANT: [weak self] is intentional here.
                         // If ApiClient is deallocated during retry backoff, the retry should be cancelled.
+                        // No callback should be invoked after ApiClient is deallocated.
                         self?.sendRetriable(
                                 requestBody: requestBody,
                                 path: path,
