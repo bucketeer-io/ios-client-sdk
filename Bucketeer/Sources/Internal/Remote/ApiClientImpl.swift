@@ -4,7 +4,7 @@ final class ApiClientImpl: ApiClient {
 
     static let DEFAULT_REQUEST_TIMEOUT_MILLIS: Int64 = 30_000
     static let CLIENT_CLOSED_THE_CONNECTION_CODE: Int = 499
-    static let DEFAULT_MAX_ATTEMPTS: Int = 3
+    static let DEFAULT_MAX_RETRY_ATTEMPTS: Int = 3
     static let DEFAULT_BASE_DELAY_SECONDS = 1.0 // in seconds
 
     private let apiEndpoint: URL
@@ -12,7 +12,7 @@ final class ApiClientImpl: ApiClient {
     private let featureTag: String
     private let sdkInfo: SDKInfo
     private let session: Session
-    private let defaultRequestTimeoutMills: Int64
+    private let defaultRequestTimeoutMillis: Int64
     private let logger: Logger?
     private let semaphore = DispatchSemaphore(value: 0)
     // Dispatch queue for retry backoff, it should be the same with the SDK queue
@@ -39,11 +39,11 @@ final class ApiClientImpl: ApiClient {
         self.apiKey = apiKey
         self.featureTag = featureTag
         self.sdkInfo = sdkInfo
-        self.defaultRequestTimeoutMills = defaultRequestTimeoutMills
+        self.defaultRequestTimeoutMillis = defaultRequestTimeoutMills
         self.session = session
         self.logger = logger
         self.dispatchQueue = queue
-        self.session.configuration.timeoutIntervalForRequest = TimeInterval(self.defaultRequestTimeoutMills) / 1000
+        self.session.configuration.timeoutIntervalForRequest = TimeInterval(self.defaultRequestTimeoutMillis) / 1000
     }
 
     func getEvaluations(
@@ -65,7 +65,7 @@ final class ApiClientImpl: ApiClient {
             sdkVersion: sdkInfo.sdkVersion
         )
         let featureTag = self.featureTag
-        let timeoutMillisValue = timeoutMillis ?? defaultRequestTimeoutMills
+        let timeoutMillisValue = timeoutMillis ?? defaultRequestTimeoutMillis
         logger?.debug(message: "[API] Fetch Evaluation: \(requestBody)")
         send(
             requestBody: requestBody,
@@ -106,17 +106,18 @@ final class ApiClientImpl: ApiClient {
             return keys.last ?? keys[0]
         })
 
+        let timeoutMillisValue = defaultRequestTimeoutMillis
         send(
             requestBody: requestBody,
             path: "register_events",
-            timeoutMillis: defaultRequestTimeoutMills,
+            timeoutMillis: defaultRequestTimeoutMillis,
             encoder: encoder,
-            completion: { [self] (result: Result<(RegisterEventsResponse, URLResponse), Error>) in
+            completion: { (result: Result<(RegisterEventsResponse, URLResponse), Error>) in
                 switch result {
                 case .success((let response, _)):
                     completion?(.success(response))
                 case .failure(let error):
-                    completion?(.failure(.init(error: error).copyWith(timeoutMillis: defaultRequestTimeoutMills)))
+                    completion?(.failure(.init(error: error).copyWith(timeoutMillis: timeoutMillisValue)))
                 }
             }
         )
@@ -128,7 +129,7 @@ final class ApiClientImpl: ApiClient {
         timeoutMillis: Int64,
         encoder: JSONEncoder = JSONEncoder(),
         completion: ((Result<(Response, URLResponse), Error>) -> Void)?) {
-        if (closed) {
+        if closed {
             completion?(.failure(BKTError.illegalState(message: "API Client has been closed")))
             return
         }
@@ -184,8 +185,9 @@ final class ApiClientImpl: ApiClient {
         case .success:
             completion?(result)
         case .failure(let error):
-            let maxAttempts = ApiClientImpl.DEFAULT_MAX_ATTEMPTS
-            if retryCount < maxAttempts - 1 {
+            // total attempts = initial request + ApiClientImpl.DEFAULT_MAX_RETRY_ATTEMPTS (3) = 4
+            let maxAttempts = ApiClientImpl.DEFAULT_MAX_RETRY_ATTEMPTS
+            if retryCount < maxAttempts {
                 var shouldRetry = false
                 if let respErr = error as? ResponseError {
                     switch respErr {
@@ -227,7 +229,7 @@ final class ApiClientImpl: ApiClient {
         path: String,
         timeoutMillis: Int64,
         encoder: JSONEncoder = JSONEncoder()) -> (Result<(Response, URLResponse), Error>) {
-        if (closed) {
+        if closed {
             return .failure(BKTError.illegalState(message: "API Client has been closed"))
         }
 
