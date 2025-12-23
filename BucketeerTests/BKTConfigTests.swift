@@ -3,6 +3,8 @@ import XCTest
 
 final class BKTConfigTests: XCTestCase {
 
+    let flutterSourceId = 8
+
     func testCreateConfig() {
         let logger = MockLogger()
         // Not set interval values
@@ -246,7 +248,7 @@ final class BKTConfigTests: XCTestCase {
             .with(apiEndpoint: "https://test.bucketeer.io")
             .with(featureTag: "featureTag")
             .with(appVersion: "1.0.0")
-            .with(wrapperSdkSourceId: 8)
+            .with(wrapperSdkSourceId: flutterSourceId)
             .with(wrapperSdkVersion: "1.2.3")
 
         do {
@@ -286,7 +288,7 @@ final class BKTConfigTests: XCTestCase {
             .with(apiEndpoint: "https://test.bucketeer.io")
             .with(featureTag: "featureTag")
             .with(appVersion: "1.0.0")
-            .with(wrapperSdkSourceId: 8)
+            .with(wrapperSdkSourceId: flutterSourceId)
 
         do {
             _ = try builder.build()

@@ -195,7 +195,7 @@ private func resolveSdkSourceId(wrapperSdkSourceId: Int?) throws -> SourceID {
         return .ios // native
     }
     // There is only one supported wrapperSdkSourceId (flutter) for now
-    if let sourceId = SourceID(rawValue: wrapperSdkSourceId), sourceId == .flutter {
+    if let sourceId = SourceID(rawValue: wrapperSdkSourceId), supportedWrapperSdkSourceIds.contains(sourceId) {
         return .flutter
     }
     throw BKTError.illegalArgument(message: "Unsupported wrapperSdkSourceId: \(wrapperSdkSourceId)")
@@ -210,6 +210,8 @@ private func resolveSdkVersion(resolveSdkSourceId: SourceID, wrapperSdkVersion: 
     }
     return Version.current
 }
+
+private let supportedWrapperSdkSourceIds: [SourceID] = [.flutter, .openFeatureSwift]
 
 fileprivate extension String {
     func isNotEmpty() -> Bool {
