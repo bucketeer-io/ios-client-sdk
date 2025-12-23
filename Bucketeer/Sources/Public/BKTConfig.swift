@@ -11,6 +11,8 @@ public struct BKTConfig {
     let sdkVersion: String
     let appVersion: String
     let logger: BKTLogger?
+    let wrapperSdkVersion: String?
+    let wrapperSdkSourceId: Int?
 
     public class Builder {
         private(set) var apiKey: String?
@@ -22,6 +24,8 @@ public struct BKTConfig {
         private(set) var backgroundPollingInterval: Int64?
         private(set) var appVersion: String?
         private(set) var logger: BKTLogger?
+        private(set) var wrapperSdkVersion: String?
+        private(set) var wrapperSdkSourceId: Int?
 
         public init() {}
 
@@ -62,6 +66,16 @@ public struct BKTConfig {
 
         public func with(appVersion: String) -> Builder {
             self.appVersion = appVersion
+            return self
+        }
+        
+        public func with(wrapperSdkVersion: String) -> Builder {
+            self.wrapperSdkVersion = wrapperSdkVersion
+            return self
+        }
+        
+        public func with(wrapperSdkSourceId: Int) -> Builder {
+            self.wrapperSdkSourceId = wrapperSdkSourceId
             return self
         }
 
@@ -126,7 +140,10 @@ extension BKTConfig {
         self.sdkVersion = Version.current
         self.appVersion = appVersion
         self.logger = logger
+        self.wrapperSdkVersion = nil
+        self.wrapperSdkSourceId = nil
     }
+
 
     private init(with builder: Builder) throws {
         guard let apiKey = builder.apiKey, apiKey.isNotEmpty() else {
@@ -139,25 +156,53 @@ extension BKTConfig {
             throw BKTError.illegalArgument(message: "appVersion is required")
         }
 
+        // refs: JS SDK PR https://github.com/bucketeer-io/javascript-client-sdk/pull/91
+        // Allow Builder.featureTag could be nill
+        // So the default value of the BKTConfig will be ""
+        let featureTag = builder.featureTag ?? ""
+        let logger = builder.logger
         // Set default intervals if needed
-        let pollingInterval: Int64 = builder.pollingInterval ?? Constant.MINIMUM_POLLING_INTERVAL_MILLIS
-        let backgroundPollingInterval: Int64 = builder.backgroundPollingInterval ?? Constant.MINIMUM_BACKGROUND_POLLING_INTERVAL_MILLIS
-        let eventsFlushInterval: Int64 = builder.eventsFlushInterval ?? Constant.DEFAULT_FLUSH_INTERVAL_MILLIS
-        let eventsMaxQueueSize = builder.eventsMaxQueueSize ?? Constant.DEFAULT_MAX_QUEUE_SIZE
+        var pollingInterval: Int64 = builder.pollingInterval ?? Constant.MINIMUM_POLLING_INTERVAL_MILLIS
+        var backgroundPollingInterval: Int64 = builder.backgroundPollingInterval ?? Constant.MINIMUM_BACKGROUND_POLLING_INTERVAL_MILLIS
+        var eventsFlushInterval: Int64 = builder.eventsFlushInterval ?? Constant.DEFAULT_FLUSH_INTERVAL_MILLIS
+        var eventsMaxQueueSize = builder.eventsMaxQueueSize ?? Constant.DEFAULT_MAX_QUEUE_SIZE
+        
+        guard !apiKey.isEmpty else {
+            throw BKTError.illegalArgument(message: "apiKey is required")
+        }
+        guard let apiEndpointURL = URL(string: apiEndpoint) else {
+            throw BKTError.illegalArgument(message: "apiEndpoint is required")
+        }
+        guard !appVersion.isEmpty else {
+            throw BKTError.illegalArgument(message: "appVersion is required")
+        }
 
-        // Use the current init method
-        try self.init(apiKey: apiKey,
-                      apiEndpoint: apiEndpoint,
-                      // refs: JS SDK PR https://github.com/bucketeer-io/javascript-client-sdk/pull/91
-                      // Allow Builder.featureTag could be nill
-                      // So the default value of the BKTConfig will be ""
-                      featureTag: builder.featureTag ?? "",
-                      eventsFlushInterval: eventsFlushInterval,
-                      eventsMaxQueueSize: eventsMaxQueueSize,
-                      pollingInterval: pollingInterval,
-                      backgroundPollingInterval: backgroundPollingInterval,
-                      appVersion: appVersion,
-                      logger: builder.logger)
+        if pollingInterval < Constant.MINIMUM_POLLING_INTERVAL_MILLIS {
+            logger?.warn(message: "pollingInterval: \(pollingInterval) is set but must be above \(Constant.MINIMUM_POLLING_INTERVAL_MILLIS)")
+            pollingInterval = Constant.MINIMUM_POLLING_INTERVAL_MILLIS
+        }
+
+        if backgroundPollingInterval < Constant.MINIMUM_BACKGROUND_POLLING_INTERVAL_MILLIS {
+            logger?.warn(message: "backgroundPollingInterval: \(backgroundPollingInterval) is set but must be above \(Constant.MINIMUM_BACKGROUND_POLLING_INTERVAL_MILLIS)")
+            backgroundPollingInterval = Constant.MINIMUM_BACKGROUND_POLLING_INTERVAL_MILLIS
+        }
+
+        if eventsFlushInterval < Constant.MINIMUM_FLUSH_INTERVAL_MILLIS {
+            logger?.warn(message: "eventsFlushInterval: \(eventsFlushInterval) is set but must be above \(Constant.MINIMUM_FLUSH_INTERVAL_MILLIS)")
+            eventsFlushInterval = Constant.DEFAULT_FLUSH_INTERVAL_MILLIS
+        }
+        self.apiKey = apiKey
+        self.apiEndpoint = apiEndpointURL
+        self.featureTag = featureTag
+        self.eventsFlushInterval = eventsFlushInterval
+        self.eventsMaxQueueSize = eventsMaxQueueSize
+        self.pollingInterval = pollingInterval
+        self.backgroundPollingInterval = backgroundPollingInterval
+        self.sdkVersion = Version.current
+        self.appVersion = appVersion
+        self.logger = logger
+        self.wrapperSdkVersion = builder.wrapperSdkVersion
+        self.wrapperSdkSourceId = builder.wrapperSdkSourceId
     }
 }
 
