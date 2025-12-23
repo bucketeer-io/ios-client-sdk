@@ -20,9 +20,12 @@ extension BKTConfig {
             eventsMaxQueueSize: eventsMaxQueueSize,
             pollingInterval: pollingInterval,
             backgroundPollingInterval: backgroundPollingInterval,
+            sourceId: .ios,
             sdkVersion: "0.0.2",
             appVersion: "1.2.3",
-            logger: MockLogger()
+            logger: MockLogger(),
+            wrapperSdkVersion: nil,
+            wrapperSdkSourceId: nil,
         )
     }
 }

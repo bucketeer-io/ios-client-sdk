@@ -223,4 +223,89 @@ final class BKTConfigTests: XCTestCase {
         }
         wait(for: [expectation], timeout: 0.1)
     }
+
+    func testDefaultSourceIdIsIOS() {
+        let builder = BKTConfig.Builder()
+            .with(apiKey: "api_key_value")
+            .with(apiEndpoint: "https://test.bucketeer.io")
+            .with(featureTag: "featureTag")
+            .with(appVersion: "1.0.0")
+
+        do {
+            let config = try builder.build()
+            XCTAssertEqual(config.sourceId, SourceID.ios)
+            XCTAssertEqual(config.sdkVersion, Version.current)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+
+    func testResovleSourceIdFromWrapperSDKSourceId() {
+        let builder = BKTConfig.Builder()
+            .with(apiKey: "api_key_value")
+            .with(apiEndpoint: "https://test.bucketeer.io")
+            .with(featureTag: "featureTag")
+            .with(appVersion: "1.0.0")
+            .with(wrapperSdkSourceId: 8)
+            .with(wrapperSdkVersion: "1.2.3")
+
+        do {
+            let config = try builder.build()
+            XCTAssertEqual(config.sourceId, SourceID.flutter)
+            XCTAssertEqual(config.sdkVersion, "1.2.3")
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+
+    func testOnlyAllowSupportedWrapperSDKs() {
+        let unsupportedIds = [0, 1, 3, 999, -1]
+        for id in unsupportedIds {
+            let builder = BKTConfig.Builder()
+                .with(apiKey: "api_key_value")
+                .with(apiEndpoint: "https://test.bucketeer.io")
+                .with(featureTag: "featureTag")
+                .with(appVersion: "1.0.0")
+                .with(wrapperSdkSourceId: id)
+                .with(wrapperSdkVersion: "1.0.0")
+            do {
+                _ = try builder.build()
+                XCTFail("Expected failure for wrapperSdkSourceId \(id)")
+            } catch BKTError.illegalArgument(let message) {
+                XCTAssertEqual("Unsupported wrapperSdkSourceId: \(id)", message)
+            } catch {
+                XCTFail("Unexpected error: \(error)")
+            }
+        }
+    }
+
+    func testWrapperSDKVersionIsRequiredIfWrapperSDKSourceIdSet() {
+        // Case 1: missing wrapperSdkVersion
+        var builder = BKTConfig.Builder()
+            .with(apiKey: "api_key_value")
+            .with(apiEndpoint: "https://test.bucketeer.io")
+            .with(featureTag: "featureTag")
+            .with(appVersion: "1.0.0")
+            .with(wrapperSdkSourceId: 8)
+
+        do {
+            _ = try builder.build()
+            XCTFail("Expected failure when wrapperSdkVersion is missing")
+        } catch BKTError.illegalArgument(let message) {
+            XCTAssertEqual("wrapperSdkVersion is required when sourceId is not iOS", message)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+
+        // Case 2: empty wrapperSdkVersion
+        builder = builder.with(wrapperSdkVersion: "")
+        do {
+            _ = try builder.build()
+            XCTFail("Expected failure when wrapperSdkVersion is empty")
+        } catch BKTError.illegalArgument(let message) {
+            XCTAssertEqual("wrapperSdkVersion is required when sourceId is not iOS", message)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
 }
