@@ -3,8 +3,6 @@ import XCTest
 
 final class BKTConfigTests: XCTestCase {
 
-    let flutterSourceId = 8
-
     func testCreateConfig() {
         let logger = MockLogger()
         // Not set interval values
@@ -242,26 +240,28 @@ final class BKTConfigTests: XCTestCase {
         }
     }
 
-    func testResovleSourceIdFromWrapperSDKSourceId() {
-        let builder = BKTConfig.Builder()
-            .with(apiKey: "api_key_value")
-            .with(apiEndpoint: "https://test.bucketeer.io")
-            .with(featureTag: "featureTag")
-            .with(appVersion: "1.0.0")
-            .with(wrapperSdkSourceId: flutterSourceId)
-            .with(wrapperSdkVersion: "1.2.3")
-
-        do {
-            let config = try builder.build()
-            XCTAssertEqual(config.sourceId, SourceID.flutter)
-            XCTAssertEqual(config.sdkVersion, "1.2.3")
-        } catch {
-            XCTFail("Unexpected error: \(error)")
+    func testResolveSourceIdFromWrapperSDKSourceId() {
+        let supportedIds = [SourceID.flutter.rawValue, SourceID.openFeatureSwift.rawValue]
+        for id in supportedIds {
+            let builder = BKTConfig.Builder()
+                .with(apiKey: "api_key_value")
+                .with(apiEndpoint: "https://test.bucketeer.io")
+                .with(featureTag: "featureTag")
+                .with(appVersion: "1.0.0")
+                .with(wrapperSdkSourceId: id)
+                .with(wrapperSdkVersion: "2.3.0")
+            do {
+                let config = try builder.build()
+                XCTAssertEqual(config.sourceId, SourceID(rawValue: id))
+                XCTAssertEqual(config.sdkVersion, "2.3.0")
+            } catch {
+                XCTFail("Unexpected error: \(error)")
+            }
         }
     }
 
     func testOnlyAllowSupportedWrapperSDKs() {
-        let unsupportedIds = [0, 1, 3, 999, -1]
+        let unsupportedIds = [0, 1, 2, 3, 4, 5, 6, 9, 10, 100, 102, 103, 104, 999, -1]
         for id in unsupportedIds {
             let builder = BKTConfig.Builder()
                 .with(apiKey: "api_key_value")
@@ -288,7 +288,7 @@ final class BKTConfigTests: XCTestCase {
             .with(apiEndpoint: "https://test.bucketeer.io")
             .with(featureTag: "featureTag")
             .with(appVersion: "1.0.0")
-            .with(wrapperSdkSourceId: flutterSourceId)
+            .with(wrapperSdkSourceId: SourceID.flutter.rawValue)
 
         do {
             _ = try builder.build()

@@ -196,7 +196,7 @@ private func resolveSdkSourceId(wrapperSdkSourceId: Int?) throws -> SourceID {
     }
     // There is only one supported wrapperSdkSourceId (flutter) for now
     if let sourceId = SourceID(rawValue: wrapperSdkSourceId), supportedWrapperSdkSourceIds.contains(sourceId) {
-        return .flutter
+        return sourceId
     }
     throw BKTError.illegalArgument(message: "Unsupported wrapperSdkSourceId: \(wrapperSdkSourceId)")
 }
