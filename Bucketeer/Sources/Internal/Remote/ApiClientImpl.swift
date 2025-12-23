@@ -85,7 +85,7 @@ final class ApiClientImpl: ApiClient {
         let requestBody = RegisterEventsRequestBody(
             events: events,
             sdkVersion: sdkInfo.sdkVersion,
-            sourceId: sdkInfo.sourceId,
+            sourceId: sdkInfo.sourceId
         )
         logger?.debug(message: "[API] Register events: \(requestBody)")
         let encoder = JSONEncoder()
