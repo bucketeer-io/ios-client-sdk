@@ -25,7 +25,7 @@ extension BKTConfig {
             appVersion: "1.2.3",
             logger: MockLogger(),
             wrapperSdkVersion: nil,
-            wrapperSdkSourceId: nil,
+            wrapperSdkSourceId: nil
         )
     }
 }
