@@ -11,7 +11,7 @@ final class EventInteractorTests: XCTestCase {
         let clock = MockClock(timestamp: 1)
         let logger = MockLogger()
         return EventInteractorImpl(
-            sdkVersion: "0.0.2",
+            sdkInfo: .init(sourceId: .ios, sdkVersion: "0.0.2"),
             appVersion: "1.2.3",
             device: MockDevice(),
             eventsMaxBatchQueueCount: 3,

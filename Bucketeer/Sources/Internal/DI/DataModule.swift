@@ -33,6 +33,7 @@ final class DataModuleImpl: DataModule {
         apiEndpoint: config.apiEndpoint,
         apiKey: self.config.apiKey,
         featureTag: self.config.featureTag,
+        sdkInfo: .init(sourceId: self.config.sourceId, sdkVersion: self.config.sdkVersion),
         session: URLSession(configuration: .default),
         logger: self.config.logger
     )
