@@ -37,8 +37,8 @@ class ApiClientTests: XCTestCase {
                 let jsonString = String(data: data, encoding: .utf8) ?? ""
                 let expected = """
 {
-  "sdkVersion" : "\(Version.current)",
-  "sourceId" : 2,
+  "sdkVersion" : "12.3.5",
+  "sourceId" : 101,
   "tag" : "tag1",
   "user" : {
     "data" : {
@@ -68,7 +68,7 @@ class ApiClientTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
-            sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
+            sdkInfo: SDKInfo(sourceId: .openFeatureSwift, sdkVersion: "12.3.5"),
             session: session,
             logger: nil
         )

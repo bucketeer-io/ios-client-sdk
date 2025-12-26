@@ -6,12 +6,13 @@ final class EventInteractorTests: XCTestCase {
     private func eventInteractor(api: ApiClient = MockApiClient(),
                                  dao: EventSQLDao = MockEventSQLDao(),
                                  config: BKTConfig = BKTConfig.mock(),
-                                 idGenerator: IdGenerator = MockIdGenerator(identifier: "id")
+                                 idGenerator: IdGenerator = MockIdGenerator(identifier: "id"),
+                                 sdkInfo: SDKInfo = .init(sourceId: .ios, sdkVersion: "0.0.2")
     ) -> EventInteractor {
         let clock = MockClock(timestamp: 1)
         let logger = MockLogger()
         return EventInteractorImpl(
-            sdkInfo: .init(sourceId: .ios, sdkVersion: "0.0.2"),
+            sdkInfo: sdkInfo,
             appVersion: "1.2.3",
             device: MockDevice(),
             eventsMaxBatchQueueCount: 3,
@@ -24,10 +25,19 @@ final class EventInteractorTests: XCTestCase {
         )
     }
 
+    private func sdkInfoTestSample() -> SDKInfo {
+        // random sourceId and sdkVersion for testing
+        let sourceIds: [SourceID] = [.unknown, .android, .ios, .flutter, .react, .openFeatureKotlin, .openFeatureSwift]
+        let randomSourceId = sourceIds.randomElement() ?? .ios
+        let randomSdkVersion = "test-\(Int.random(in: 1...100))"
+        return SDKInfo(sourceId: randomSourceId, sdkVersion: randomSdkVersion)
+    }
+
     func testTrackEvaluationEvent() throws {
         let expectation = XCTestExpectation()
         expectation.assertForOverFulfill = true
-        let interactor = self.eventInteractor()
+        let sdkInfo = self.sdkInfoTestSample()
+        let interactor = self.eventInteractor(sdkInfo: sdkInfo)
         let listener = MockEventUpdateListener { events in
             XCTAssertEqual(events.count, 1)
             let expected = Event(
@@ -41,8 +51,8 @@ final class EventInteractorTests: XCTestCase {
                     user: .mock1,
                     reason: Evaluation.mock1.reason,
                     tag: "featureTag1",
-                    sourceId: .ios,
-                    sdkVersion: "0.0.2",
+                    sourceId: sdkInfo.sourceId,
+                    sdkVersion: sdkInfo.sdkVersion,
                     metadata: [
                         "app_version": "1.2.3",
                         "os_version": "16.0",
@@ -68,7 +78,8 @@ final class EventInteractorTests: XCTestCase {
         let expectation = XCTestExpectation()
         expectation.assertForOverFulfill = true
 
-        let interactor = self.eventInteractor()
+        let sdkInfo = self.sdkInfoTestSample()
+        let interactor = self.eventInteractor(sdkInfo: sdkInfo)
         let listener = MockEventUpdateListener { events in
             XCTAssertEqual(events.count, 1)
             let expected = Event(
@@ -80,8 +91,8 @@ final class EventInteractorTests: XCTestCase {
                     user: .mock1,
                     reason: .init(type: .client),
                     tag: "featureTag1",
-                    sourceId: .ios,
-                    sdkVersion: "0.0.2",
+                    sourceId: sdkInfo.sourceId,
+                    sdkVersion: sdkInfo.sdkVersion,
                     metadata: [
                         "app_version": "1.2.3",
                         "os_version": "16.0",
@@ -107,7 +118,8 @@ final class EventInteractorTests: XCTestCase {
         let expectation = XCTestExpectation()
         expectation.assertForOverFulfill = true
 
-        let interactor = self.eventInteractor()
+        let sdkInfo = self.sdkInfoTestSample()
+        let interactor = self.eventInteractor(sdkInfo: sdkInfo)
         let listener = MockEventUpdateListener { events in
             XCTAssertEqual(events.count, 1)
             let expected = Event(
@@ -119,8 +131,8 @@ final class EventInteractorTests: XCTestCase {
                     value: 1,
                     user: .mock1,
                     tag: "featureTag1",
-                    sourceId: .ios,
-                    sdkVersion: "0.0.2",
+                    sourceId: sdkInfo.sourceId,
+                    sdkVersion: sdkInfo.sdkVersion,
                     metadata: [
                         "app_version": "1.2.3",
                         "os_version": "16.0",
@@ -147,7 +159,8 @@ final class EventInteractorTests: XCTestCase {
         let expectation = XCTestExpectation()
         expectation.assertForOverFulfill = true
 
-        let interactor = self.eventInteractor()
+        let sdkInfo = self.sdkInfoTestSample()
+        let interactor = self.eventInteractor(sdkInfo: sdkInfo)
         let listener = MockEventUpdateListener { events in
             XCTAssertEqual(events.count, 2)
             let expected: [Event] = [
@@ -161,8 +174,8 @@ final class EventInteractorTests: XCTestCase {
                             latencySecond: .init(10)
                         )),
                         type: .responseLatency,
-                        sourceId: .ios,
-                        sdk_version: "0.0.2",
+                        sourceId: sdkInfo.sourceId,
+                        sdk_version: sdkInfo.sdkVersion,
                         metadata: [
                             "app_version": "1.2.3",
                             "os_version": "16.0",
@@ -182,8 +195,8 @@ final class EventInteractorTests: XCTestCase {
                             sizeByte: 100
                         )),
                         type: .responseSize,
-                        sourceId: .ios,
-                        sdk_version: "0.0.2",
+                        sourceId: sdkInfo.sourceId,
+                        sdk_version: sdkInfo.sdkVersion,
                         metadata: [
                             "app_version": "1.2.3",
                             "os_version": "16.0",
@@ -214,7 +227,8 @@ final class EventInteractorTests: XCTestCase {
         let expectation = XCTestExpectation()
         expectation.assertForOverFulfill = true
 
-        let interactor = self.eventInteractor()
+        let sdkInfo = self.sdkInfoTestSample()
+        let interactor = self.eventInteractor(sdkInfo: sdkInfo)
         let listener = MockEventUpdateListener { events in
             XCTAssertEqual(events.count, 1)
             let expected: [Event] = [
@@ -224,8 +238,8 @@ final class EventInteractorTests: XCTestCase {
                         timestamp: 1,
                         event: .timeoutError(.init(apiId: .getEvaluations, labels: ["tag": "featureTag1", "timeout": "3.0"])),
                         type: .timeoutError,
-                        sourceId: .ios,
-                        sdk_version: "0.0.2",
+                        sourceId: sdkInfo.sourceId,
+                        sdk_version: sdkInfo.sdkVersion,
                         metadata: [
                             "app_version": "1.2.3",
                             "os_version": "16.0",
@@ -251,7 +265,8 @@ final class EventInteractorTests: XCTestCase {
         let expectation = XCTestExpectation()
         expectation.assertForOverFulfill = true
 
-        let interactor = self.eventInteractor()
+        let sdkInfo = self.sdkInfoTestSample()
+        let interactor = self.eventInteractor(sdkInfo: sdkInfo)
         let listener = MockEventUpdateListener { events in
             XCTAssertEqual(events.count, 1)
             let expected: [Event] = [
@@ -261,8 +276,8 @@ final class EventInteractorTests: XCTestCase {
                         timestamp: 1,
                         event: .badRequestError(.init(apiId: .getEvaluations, labels: ["tag": "featureTag1"])),
                         type: .badRequestError,
-                        sourceId: .ios,
-                        sdk_version: "0.0.2",
+                        sourceId: sdkInfo.sourceId,
+                        sdk_version: sdkInfo.sdkVersion,
                         metadata: [
                             "app_version": "1.2.3",
                             "os_version": "16.0",
