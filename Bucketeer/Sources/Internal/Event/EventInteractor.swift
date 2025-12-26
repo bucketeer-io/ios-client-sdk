@@ -193,8 +193,9 @@ final class EventInteractorImpl: EventInteractor {
             labels: ["tag": featureTag],
             currentTimeSeconds: clock.currentTimeSeconds,
             sdkInfo: sdkInfo,
-            metadata: metadata,
+            metadata: metadata
         )
+
         try trackMetricsEvent(events: [
             .init(
                 id: idGenerator.id(),

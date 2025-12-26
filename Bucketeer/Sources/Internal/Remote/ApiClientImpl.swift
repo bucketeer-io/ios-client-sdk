@@ -55,7 +55,7 @@ final class ApiClientImpl: ApiClient {
                 evaluatedAt: condition.evaluatedAt,
                 userAttributesUpdated: condition.userAttributesUpdated
             ),
-            sdkVersion: Version.current
+            sdkVersion: sdkInfo.sdkVersion
         )
         let featureTag = self.featureTag
         let timeoutMillisValue = timeoutMillis ?? defaultRequestTimeoutMills

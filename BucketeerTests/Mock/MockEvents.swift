@@ -23,6 +23,27 @@ extension Event {
         type: .goal
     )
 
+    static let mockGoalSourceFlutter = Event(
+        id: "goal_event1",
+        event: .goal(.init(
+            timestamp: 1,
+            goalId: "goal1",
+            userId: User.mock1.id,
+            value: 1,
+            user: .mock1,
+            tag: "tag1",
+            sourceId: .flutter,
+            sdkVersion: "13.3.1",
+            metadata: [
+                "app_version": "1.2.3",
+                "os_version": "16.0",
+                "device_model": "iPhone14,7",
+                "device_type": "mobile"
+            ]
+        )),
+        type: .goal
+    )
+
     static let mockGoal2 = Event(
         id: "goal_event2",
         event: .goal(.init(
@@ -57,6 +78,29 @@ extension Event {
             tag: "tag1",
             sourceId: .ios,
             sdkVersion: "0.0.1",
+            metadata: [
+                "app_version": "1.2.3",
+                "os_version": "16.0",
+                "device_model": "iPhone14,7",
+                "device_type": "mobile"
+            ]
+        )),
+        type: .evaluation
+    )
+
+    static let mockEvaluationSourceFlutter = Event(
+        id: "evaluation_event1",
+        event: .evaluation(.init(
+            timestamp: 1,
+            featureId: "feature1",
+            featureVersion: 1,
+            userId: User.mock1.id,
+            variationId: "variation1",
+            user: .mock1,
+            reason: .init(type: .rule, ruleId: "rule1"),
+            tag: "tag1",
+            sourceId: .flutter,
+            sdkVersion: "13.3.1",
             metadata: [
                 "app_version": "1.2.3",
                 "os_version": "16.0",
