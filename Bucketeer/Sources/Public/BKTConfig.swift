@@ -190,11 +190,12 @@ extension BKTConfig {
     }
 }
 
+private let supportedWrapperSdkSourceIds: [SourceID] = [.flutter, .openFeatureSwift]
+
 private func resolveSdkSourceId(wrapperSdkSourceId: Int?) throws -> SourceID {
     guard let wrapperSdkSourceId = wrapperSdkSourceId else {
-        return .ios // native
+        return .ios // default ios
     }
-    // There is only one supported wrapperSdkSourceId (flutter) for now
     if let sourceId = SourceID(rawValue: wrapperSdkSourceId), supportedWrapperSdkSourceIds.contains(sourceId) {
         return sourceId
     }
@@ -210,8 +211,6 @@ private func resolveSdkVersion(resolveSdkSourceId: SourceID, wrapperSdkVersion: 
     }
     return Version.current
 }
-
-private let supportedWrapperSdkSourceIds: [SourceID] = [.flutter, .openFeatureSwift]
 
 fileprivate extension String {
     func isNotEmpty() -> Bool {

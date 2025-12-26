@@ -24,7 +24,7 @@ final class ApiClientImpl: ApiClient {
         apiEndpoint: URL,
         apiKey: String,
         featureTag: String,
-        sdkInfo: SDKInfo = SDKInfo(sourceId: .ios, sdkVersion: Version.current),
+        sdkInfo: SDKInfo,
         defaultRequestTimeoutMills: Int64 = ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS,
         session: Session,
         logger: Logger?
