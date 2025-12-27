@@ -12,8 +12,6 @@ public struct BKTConfig {
     let sdkVersion: String
     let appVersion: String
     let logger: BKTLogger?
-    let wrapperSdkVersion: String?
-    let wrapperSdkSourceId: Int?
 
     public class Builder {
         private(set) var apiKey: String?
@@ -176,13 +174,13 @@ extension BKTConfig {
         self.eventsMaxQueueSize = eventsMaxQueueSize
         self.pollingInterval = pollingInterval
         self.backgroundPollingInterval = backgroundPollingInterval
-        self.wrapperSdkVersion = builder.wrapperSdkVersion
-        self.wrapperSdkSourceId = builder.wrapperSdkSourceId
+
         let resolvedSdkSourceId = try resolveSdkSourceId(wrapperSdkSourceId: builder.wrapperSdkSourceId)
         let resolvedSdkVersion = try resolveSdkVersion(
             resolveSdkSourceId: resolvedSdkSourceId,
             wrapperSdkVersion: builder.wrapperSdkVersion
         )
+
         self.sourceId = resolvedSdkSourceId
         self.sdkVersion = resolvedSdkVersion
         self.appVersion = appVersion

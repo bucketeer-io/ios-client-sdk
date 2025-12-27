@@ -33,8 +33,27 @@ final class E2EEventTests: XCTestCase {
             let client = try BKTClient.shared
             client.assert(expectedEventCount: 2)
             client.track(goalId: GOAL_ID, value: GOAL_VALUE)
+
+            guard let component = client.component as? ComponentImpl else {
+                XCTFail("could not access client.component")
+                return
+            }
+            
             try await Task.sleep(nanoseconds: 300_000_000)
             client.assert(expectedEventCount: 3)
+            
+            let events = try component.dataModule.eventSQLDao.getEvents()
+
+            XCTAssertTrue(events.contains { event in
+                if case .goal = event.type,
+                   case .goal(let data) = event.event,
+                   case .ios = data.sourceId,
+                   data.sdkVersion == Version.current {
+                    return true
+                }
+                return false
+            })
+            
             try await client.flush()
             client.assert(expectedEventCount: 0)
         } catch {
@@ -65,8 +84,10 @@ final class E2EEventTests: XCTestCase {
             XCTAssertTrue(events.count >= 5)
             XCTAssertTrue(events.contains { event in
                 if case .evaluation = event.type,
-                    case .evaluation(let data) = event.event,
-                    case .default = data.reason.type {
+                   case .evaluation(let data) = event.event,
+                   case .default = data.reason.type,
+                   case .ios = data.sourceId,
+                   data.sdkVersion == Version.current {
                     return true
                 }
                 return false
@@ -127,8 +148,10 @@ final class E2EEventTests: XCTestCase {
             XCTAssertTrue(events.count >= 7, "Expected at least 7 events but got \(events.count)")
             XCTAssertTrue(events.contains { event in
                 if case .evaluation = event.type,
-                    case .evaluation(let data) = event.event,
-                    case .client = data.reason.type {
+                   case .evaluation(let data) = event.event,
+                   case .client = data.reason.type,
+                   case .ios = data.sourceId,
+                   data.sdkVersion == Version.current {
                     return true
                 }
                 return false
