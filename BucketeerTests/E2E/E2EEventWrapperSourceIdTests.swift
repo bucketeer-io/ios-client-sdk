@@ -5,8 +5,6 @@ import XCTest
 @available(iOS 13, *)
 final class E2EEventWrapperSourceIdTests: XCTestCase {
 
-    private var config: BKTConfig!
-
     override func setUp() async throws {
         try await super.setUp()
         UserDefaults.standard.removeObject(forKey: "bucketeer_user_evaluations_id")
@@ -130,11 +128,6 @@ final class E2EEventWrapperSourceIdTests: XCTestCase {
             XCTAssertEqual(client.intVariation(featureId: FEATURE_ID_INT, defaultValue: 100), 100)
             XCTAssertEqual(client.doubleVariation(featureId: FEATURE_ID_DOUBLE, defaultValue: 3.0), 3.0)
             XCTAssertEqual(client.boolVariation(featureId: FEATURE_ID_BOOLEAN, defaultValue: false), false)
-
-            guard let component = client.component as? ComponentImpl else {
-                XCTFail("could not access client.component")
-                return
-            }
 
             // Wait for events to be processed
             try await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds

@@ -125,7 +125,7 @@ extension BKTConfig {
         guard let apiKey = builder.apiKey, apiKey.isNotEmpty() else {
             throw BKTError.illegalArgument(message: "apiKey is required")
         }
-        guard let apiEndpoint = builder.apiEndpoint, apiEndpoint.isNotEmpty() else {
+        guard let apiEndpoint = builder.apiEndpoint, apiEndpoint.isNotEmpty(), let apiEndpointURL = URL(string: apiEndpoint) else {
             throw BKTError.illegalArgument(message: "apiEndpoint is required")
         }
         guard let appVersion = builder.appVersion, appVersion.isNotEmpty() else {
@@ -133,7 +133,7 @@ extension BKTConfig {
         }
 
         // refs: JS SDK PR https://github.com/bucketeer-io/javascript-client-sdk/pull/91
-        // Allow Builder.featureTag could be nill
+        // Allow Builder.featureTag to be nil
         // So the default value of the BKTConfig will be ""
         let featureTag = builder.featureTag ?? ""
         let logger = builder.logger
@@ -142,16 +142,6 @@ extension BKTConfig {
         var backgroundPollingInterval: Int64 = builder.backgroundPollingInterval ?? Constant.MINIMUM_BACKGROUND_POLLING_INTERVAL_MILLIS
         var eventsFlushInterval: Int64 = builder.eventsFlushInterval ?? Constant.DEFAULT_FLUSH_INTERVAL_MILLIS
         let eventsMaxQueueSize = builder.eventsMaxQueueSize ?? Constant.DEFAULT_MAX_QUEUE_SIZE
-
-        guard !apiKey.isEmpty else {
-            throw BKTError.illegalArgument(message: "apiKey is required")
-        }
-        guard let apiEndpointURL = URL(string: apiEndpoint) else {
-            throw BKTError.illegalArgument(message: "apiEndpoint is required")
-        }
-        guard !appVersion.isEmpty else {
-            throw BKTError.illegalArgument(message: "appVersion is required")
-        }
 
         if pollingInterval < Constant.MINIMUM_POLLING_INTERVAL_MILLIS {
             logger?.warn(message: "pollingInterval: \(pollingInterval) is set but must be above \(Constant.MINIMUM_POLLING_INTERVAL_MILLIS)")
@@ -177,7 +167,7 @@ extension BKTConfig {
 
         let resolvedSdkSourceId = try resolveSdkSourceId(wrapperSdkSourceId: builder.wrapperSdkSourceId)
         let resolvedSdkVersion = try resolveSdkVersion(
-            resolveSdkSourceId: resolvedSdkSourceId,
+            resolvedSdkSourceId: resolvedSdkSourceId,
             wrapperSdkVersion: builder.wrapperSdkVersion
         )
 
@@ -200,8 +190,8 @@ private func resolveSdkSourceId(wrapperSdkSourceId: Int?) throws -> SourceID {
     throw BKTError.illegalArgument(message: "Unsupported wrapperSdkSourceId: \(wrapperSdkSourceId)")
 }
 
-private func resolveSdkVersion(resolveSdkSourceId: SourceID, wrapperSdkVersion: String?) throws -> String {
-    if resolveSdkSourceId != .ios {
+private func resolveSdkVersion(resolvedSdkSourceId: SourceID, wrapperSdkVersion: String?) throws -> String {
+    if resolvedSdkSourceId != .ios {
         if let wrapperSdkVersion = wrapperSdkVersion, wrapperSdkVersion.isNotEmpty() {
             return wrapperSdkVersion
         }
