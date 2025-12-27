@@ -68,11 +68,23 @@ public struct BKTConfig {
             return self
         }
 
+        // Sets the SDK version explicitly.
+        // IMPORTANT: This option is intended for internal use only.
+        // It should NOT be set by developers directly integrating this SDK.
+        // Use this option ONLY when another SDK acts as a proxy and wraps this native SDK.
+        // In such cases, set this value to the version of the proxy SDK.
         public func with(wrapperSdkVersion: String) -> Builder {
             self.wrapperSdkVersion = wrapperSdkVersion
             return self
         }
 
+        // Sets the SDK sourceID explicitly.
+        // IMPORTANT: This option is intended for internal use only.
+        // It should NOT be set by developers directly integrating this SDK.
+        // Use this option ONLY when another SDK acts as a proxy and wraps this native SDK.
+        // In such cases, set this value to the sourceID of the proxy SDK.
+        // The wrapperSdkSourceId is used to identify the origin of the request.
+        // We don't public SourceID enum because only Flutter and OpenFeature Swift are supported currently.
         public func with(wrapperSdkSourceId: Int) -> Builder {
             self.wrapperSdkSourceId = wrapperSdkSourceId
             return self
@@ -178,6 +190,8 @@ extension BKTConfig {
     }
 }
 
+// Only Flutter (8) and OpenFeature Swift (101) are supported currently.
+// Other source IDs will throw an error as its not from iOS
 private let supportedWrapperSdkSourceIds: [SourceID] = [.flutter, .openFeatureSwift]
 
 private func resolveSdkSourceId(wrapperSdkSourceId: Int?) throws -> SourceID {

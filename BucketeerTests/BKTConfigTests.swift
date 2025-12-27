@@ -261,6 +261,7 @@ final class BKTConfigTests: XCTestCase {
     }
 
     func testOnlyAllowSupportedWrapperSDKs() {
+        // Only Flutter (8) and OpenFeature Swift (101) are supported currently
         let unsupportedIds = [0, 1, 2, 3, 4, 5, 6, 9, 10, 100, 102, 103, 104, 999, -1]
         for id in unsupportedIds {
             let builder = BKTConfig.Builder()
