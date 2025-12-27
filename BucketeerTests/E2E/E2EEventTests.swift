@@ -38,10 +38,10 @@ final class E2EEventTests: XCTestCase {
                 XCTFail("could not access client.component")
                 return
             }
-            
+
             try await Task.sleep(nanoseconds: 300_000_000)
             client.assert(expectedEventCount: 3)
-            
+
             let events = try component.dataModule.eventSQLDao.getEvents()
 
             XCTAssertTrue(events.contains { event in
@@ -53,7 +53,7 @@ final class E2EEventTests: XCTestCase {
                 }
                 return false
             })
-            
+
             try await client.flush()
             client.assert(expectedEventCount: 0)
         } catch {
