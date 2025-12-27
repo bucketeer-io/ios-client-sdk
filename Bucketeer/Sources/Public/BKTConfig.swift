@@ -78,13 +78,13 @@ public struct BKTConfig {
             return self
         }
 
-        // Sets the SDK sourceID explicitly.
+        // Sets the SDK sourceId explicitly.
         // IMPORTANT: This option is intended for internal use only.
         // It should NOT be set by developers directly integrating this SDK.
         // Use this option ONLY when another SDK acts as a proxy and wraps this native SDK.
-        // In such cases, set this value to the sourceID of the proxy SDK.
+        // In such cases, set this value to the sourceId of the proxy SDK.
         // The wrapperSdkSourceId is used to identify the origin of the request.
-        // We don't public SourceID enum because only Flutter and OpenFeature Swift are supported currently.
+        // We don't expose the SourceID enum publicly because only Flutter and OpenFeature Swift are currently supported.
         public func with(wrapperSdkSourceId: Int) -> Builder {
             self.wrapperSdkSourceId = wrapperSdkSourceId
             return self
