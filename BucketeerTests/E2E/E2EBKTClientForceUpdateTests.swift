@@ -101,34 +101,38 @@ final class E2EBKTClientForceUpdateTests: XCTestCase {
         }
 
         let evaluationStorage = component.dataModule.evaluationStorage
-        XCTAssertNotEqual(evaluationStorage.evaluatedAt, "0")
-        XCTAssertNotEqual(evaluationStorage.currentEvaluationsId, "")
+        let dispatchQueue = client.dispatchQueue
+        var tobeDeletedEvaluation: Evaluation!
+        try dispatchQueue.sync {
+            XCTAssertNotEqual(evaluationStorage.evaluatedAt, "0")
+            XCTAssertNotEqual(evaluationStorage.currentEvaluationsId, "")
 
-        let currentEvaluations = try evaluationStorage.get()
-        XCTAssertEqual(currentEvaluations.isEmpty, false)
+            let currentEvaluations = try evaluationStorage.get()
+            XCTAssertEqual(currentEvaluations.isEmpty, false)
 
-        let tobeDeletedEvaluation = Evaluation(
-            id: "evaluation1",
-            featureId: "feature1",
-            featureVersion: 1,
-            userId: USER_ID,
-            variationId: "variation1",
-            variationName: "variation name1",
-            variationValue: "variation_value1",
-            reason: .init(
-                type: .rule,
-                ruleId: "rule1"
+            tobeDeletedEvaluation = Evaluation(
+                id: "evaluation1",
+                featureId: "feature1",
+                featureVersion: 1,
+                userId: USER_ID,
+                variationId: "variation1",
+                variationName: "variation name1",
+                variationValue: "variation_value1",
+                reason: .init(
+                    type: .rule,
+                    ruleId: "rule1"
+                )
             )
-        )
 
-        let randomUserEvaluationId = "322764191351370263"
-        try evaluationStorage.update(
-            evaluationId: randomUserEvaluationId,
-            evaluations: [tobeDeletedEvaluation], archivedFeatureIds: [], evaluatedAt: "1")
-        let currentEvaluationsWithFakeData = try evaluationStorage.get()
-        XCTAssertEqual(currentEvaluationsWithFakeData.count, currentEvaluations.count + 1)
-        XCTAssertEqual(currentEvaluationsWithFakeData.contains(tobeDeletedEvaluation), true)
-        XCTAssertEqual(evaluationStorage.currentEvaluationsId, randomUserEvaluationId)
+            let randomUserEvaluationId = "322764191351370263"
+            try evaluationStorage.update(
+                evaluationId: randomUserEvaluationId,
+                evaluations: [tobeDeletedEvaluation], archivedFeatureIds: [], evaluatedAt: "1")
+            let currentEvaluationsWithFakeData = try evaluationStorage.get()
+            XCTAssertEqual(currentEvaluationsWithFakeData.count, currentEvaluations.count + 1)
+            XCTAssertEqual(currentEvaluationsWithFakeData.contains(tobeDeletedEvaluation), true)
+            XCTAssertEqual(evaluationStorage.currentEvaluationsId, randomUserEvaluationId)
+        }
 
         // Similate feature_tag changed
         try DispatchQueue.main.sync {
@@ -147,13 +151,15 @@ final class E2EBKTClientForceUpdateTests: XCTestCase {
             return
         }
 
-        let evaluationStorageWithFeatureTag = componentWithFeatureTag.dataModule.evaluationStorage
-        XCTAssertNotEqual(evaluationStorageWithFeatureTag.currentEvaluationsId, "")
+        try dispatchQueue.sync {
+            let evaluationStorageWithFeatureTag = componentWithFeatureTag.dataModule.evaluationStorage
+            XCTAssertNotEqual(evaluationStorageWithFeatureTag.currentEvaluationsId, "")
 
-        let currentEvaluationsWithOutFakeData = try evaluationStorageWithFeatureTag.get()
-        // verify if `force_update` happened
-        // if true , `tobeDeletedEvaluation` will no longer found in the cache
-        XCTAssertEqual(currentEvaluationsWithOutFakeData.contains(tobeDeletedEvaluation), false)
+            let currentEvaluationsWithOutFakeData = try evaluationStorageWithFeatureTag.get()
+            // verify if `force_update` happened
+            // if true , `tobeDeletedEvaluation` will no longer found in the cache
+            XCTAssertEqual(currentEvaluationsWithOutFakeData.contains(tobeDeletedEvaluation), false)
+        }
     }
 
     func testInitWithoutFeatureTagShouldRetrievesAllFeatures() async throws {
