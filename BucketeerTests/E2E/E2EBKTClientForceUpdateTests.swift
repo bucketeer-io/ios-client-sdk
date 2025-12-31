@@ -75,13 +75,16 @@ final class E2EBKTClientForceUpdateTests: XCTestCase {
             return
         }
 
-        let evaluationStorage = component.dataModule.evaluationStorage
-        XCTAssertNotEqual(evaluationStorage.evaluatedAt, tooOldEvaluatedAt)
-        XCTAssertNotEqual(evaluationStorage.currentEvaluationsId, randomUserEvaluationId)
+        let dispatchQueue = client.dispatchQueue
+        try dispatchQueue.sync {
+            let evaluationStorage = component.dataModule.evaluationStorage
+            XCTAssertNotEqual(evaluationStorage.evaluatedAt, tooOldEvaluatedAt)
+            XCTAssertNotEqual(evaluationStorage.currentEvaluationsId, randomUserEvaluationId)
 
-        let currentEvaluations = try evaluationStorage.get()
-        XCTAssertEqual(currentEvaluations.isEmpty, false)
-        XCTAssertFalse(currentEvaluations.contains(tobeDeletedEvaluation), "we should not have `tobeDeletedEvaluation` in the cache")
+            let currentEvaluations = try evaluationStorage.get()
+            XCTAssertEqual(currentEvaluations.isEmpty, false)
+            XCTAssertFalse(currentEvaluations.contains(tobeDeletedEvaluation), "we should not have `tobeDeletedEvaluation` in the cache")
+        }
     }
 
     // userEvaluationId is empty after feature_tag changed
