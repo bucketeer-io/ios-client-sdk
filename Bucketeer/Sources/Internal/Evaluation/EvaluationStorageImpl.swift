@@ -47,61 +47,61 @@ final class EvaluationStorageImpl: EvaluationStorage {
         evaluationId: String,
         evaluations: [Evaluation],
         evaluatedAt: String) throws {
-            try lock.withLock {
-                try forceUpdate(
-                    evaluationId: evaluationId,
-                    evaluations: evaluations,
-                    evaluatedAt: evaluatedAt
-                )
-            }
+        try lock.withLock {
+            try forceUpdate(
+                evaluationId: evaluationId,
+                evaluations: evaluations,
+                evaluatedAt: evaluatedAt
+            )
         }
+    }
 
     private func forceUpdate(
         evaluationId: String,
         evaluations: [Evaluation],
         evaluatedAt: String) throws {
-            try evaluationSQLDao.startTransaction {
-                try evaluationSQLDao.deleteAll(userId: userId)
-                try evaluationSQLDao.put(evaluations: evaluations)
-            }
-
-            evaluationUserDefaultsDao.setEvaluatedAt(value: evaluatedAt)
-            evaluationUserDefaultsDao.setCurrentEvaluationsId(value: evaluationId)
-            // Update cache directly
-            evaluationMemCacheDao.set(key: userId, value: evaluations)
+        try evaluationSQLDao.startTransaction {
+            try evaluationSQLDao.deleteAll(userId: userId)
+            try evaluationSQLDao.put(evaluations: evaluations)
         }
+
+        evaluationUserDefaultsDao.setEvaluatedAt(value: evaluatedAt)
+        evaluationUserDefaultsDao.setCurrentEvaluationsId(value: evaluationId)
+        // Update cache directly
+        evaluationMemCacheDao.set(key: userId, value: evaluations)
+    }
 
     func update(
         evaluationId: String ,
         evaluations: [Evaluation],
         archivedFeatureIds: [String],
         evaluatedAt: String) throws -> Bool {
-            try lock.withLock {
-                // 1. Get current data in db
-                var currentEvaluationsByFeatureId = try evaluationSQLDao.get(userId: userId)
-                    .reduce([String:Evaluation]()) { (input, evaluation) -> [String:Evaluation] in
-                        var output = input
-                        output[evaluation.featureId] = evaluation
-                        return output
-                    }
-                // 2. Update evaluation with new data
-                for evaluation in evaluations {
-                    currentEvaluationsByFeatureId[evaluation.featureId] = evaluation
+        try lock.withLock {
+            // 1. Get current data in db
+            var currentEvaluationsByFeatureId = try evaluationSQLDao.get(userId: userId)
+                .reduce([String:Evaluation]()) { (input, evaluation) -> [String:Evaluation] in
+                    var output = input
+                    output[evaluation.featureId] = evaluation
+                    return output
                 }
-                // 3. Filter active
-                let currentEvaluations = currentEvaluationsByFeatureId.values.filter { evaluation in
-                    !archivedFeatureIds.contains(evaluation.featureId)
-                }.map { item in
-                    item
-                }
-                // 4. Save to database
-                try forceUpdate(
-                    evaluationId: evaluationId ,
-                    evaluations: currentEvaluations,
-                    evaluatedAt: evaluatedAt)
-                return evaluations.count > 0 || archivedFeatureIds.count > 0
+            // 2. Update evaluation with new data
+            for evaluation in evaluations {
+                currentEvaluationsByFeatureId[evaluation.featureId] = evaluation
             }
+            // 3. Filter active
+            let currentEvaluations = currentEvaluationsByFeatureId.values.filter { evaluation in
+                !archivedFeatureIds.contains(evaluation.featureId)
+            }.map { item in
+                item
+            }
+            // 4. Save to database
+            try forceUpdate(
+                evaluationId: evaluationId ,
+                evaluations: currentEvaluations,
+                evaluatedAt: evaluatedAt)
+            return evaluations.count > 0 || archivedFeatureIds.count > 0
         }
+    }
 
     // getBy will return the data from the cache to speed up the response time
     func getBy(featureId: String) -> Evaluation? {
