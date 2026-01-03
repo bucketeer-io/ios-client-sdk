@@ -21,7 +21,7 @@ final class EvaluationStorageImpl: EvaluationStorage {
     private let evaluationMemCacheDao: EvaluationMemCacheDao
     // UserDefaults is thread-safe by design, no additional locking needed
     private let evaluationUserDefaultsDao: EvaluationUserDefaultsDao
-    
+
     // IMPORTANT: Why lock at Storage layer instead of InMemoryCache?
     //
     // Threading Model:
