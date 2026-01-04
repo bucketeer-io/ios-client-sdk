@@ -14,7 +14,7 @@ class InMemoryCache<T: Any>: KeyValueCache {
     func set(key: String, value: T) {
         // .barrier ensures this write waits for current reads to finish,
         // and blocks new reads until the write is done.
-        queue.async(flags: .barrier) {
+        queue.sync(flags: .barrier) {
             self.dict[key] = value
         }
     }
