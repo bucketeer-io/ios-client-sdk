@@ -21,7 +21,6 @@ final class EvaluationStorageImplConcurrencyTests: XCTestCase {
         try await super.tearDown()
     }
 
-    // Test 1: Integration test - Thread-safety for concurrent read/write access
     func testConcurrentReadAndWriteSafety() throws {
         let db = try SQLite(path: path, logger: nil)
         let storage = EvaluationStorageImpl(
@@ -59,114 +58,139 @@ final class EvaluationStorageImplConcurrencyTests: XCTestCase {
         waitForExpectations(timeout: 5.0, handler: nil)
     }
 
-    // Test 2: Atomicity of compound operations (SQL + UserDefaults + Cache)
-//    func testAtomicityOfCompoundOperations() {
-//        let blockingSQLDao = BlockingMockSQLDao()
-//        let memCacheDao = MockEvaluationMemCacheDao()
-//        let userDefaultsDao = MockEvaluationUserDefaultsDao()
-//
-//        let storage = EvaluationStorageImpl(
-//            userId: "test_user",
-//            evaluationDao: blockingSQLDao,
-//            evaluationMemCacheDao: memCacheDao,
-//            evaluationUserDefaultsDao: userDefaultsDao
-//        )
-//
-//        let oldEval = Evaluation.mock(id: "old_eval", featureId: "target_feature", value: "old_value")
-//        memCacheDao.set(key: "test_user", value: [oldEval])
-//        let newEval = Evaluation.mock(id: "new_eval", featureId: "target_feature", value: "new_value")
-//
-//        let writeStartedExpectation = expectation(description: "Write operation started and acquired lock")
-//        let writeFinishedExpectation = expectation(description: "Write operation finished")
-//        let readFinishedExpectation = expectation(description: "Read operation finished")
-//        let continueWriteExpectation = XCTestExpectation(description: "Signal to continue write")
-//
-//        blockingSQLDao.onStartTransaction = {
-//            writeStartedExpectation.fulfill()
-//            let result = XCTWaiter.wait(for: [continueWriteExpectation], timeout: 2.0)
-//            if result != .completed { print("Test timed out waiting for signal") }
-//        }
-//
-//        let writeQueue = DispatchQueue(label: "io.bucketeer.write")
-//        let readQueue = DispatchQueue(label: "io.bucketeer.read")
-//
-//        writeQueue.async {
-//            try? storage.deleteAllAndInsert(
-//                evaluationId: "new_id",
-//                evaluations: [newEval],
-//                evaluatedAt: "12345"
-//            )
-//            writeFinishedExpectation.fulfill()
-//        }
-//
-//        wait(for: [writeStartedExpectation], timeout: 1.0)
-//
-//        var readResult: Evaluation?
-//        readQueue.async {
-//            readResult = storage.getBy(featureId: "target_feature")
-//            readFinishedExpectation.fulfill()
-//        }
-//
-//        usleep(50_000)
-//        continueWriteExpectation.fulfill()
-//        wait(for: [writeFinishedExpectation, readFinishedExpectation], timeout: 1.0)
-//
-//        XCTAssertEqual(readResult?.id, "new_eval", "Read operation should have been blocked until Write completed, ensuring no stale data was read.")
-//        XCTAssertEqual(memCacheDao.get(key: "test_user")?.first?.id, "new_eval", "Cache should be finally updated")
-//    }
-}
+    // Verifies that read operations remain non-blocking during active write transactions.
+    // This test asserts that the system returns existing (stale) data immediately instead of blocking the calling thread (e.g., the main thread) while waiting for a database update.
+    // This behavior prioritizes application responsiveness and prevents UI freezes, accepting momentary data staleness during background updates.
+    func testReadPerformanceDuringWrite() throws {
+        let db = try SQLite(path: path, logger: nil)
 
-/*
-// MARK: - Mocks
+        // 1. Setup Wrapper around Real DAO
+        let blockingSQLDao = BlockingRealSQLDao(db: db)
 
-private class MockEvaluationSQLDao: EvaluationSQLDao {
-    func startTransaction(block: () throws -> Void) throws { try block() }
-    func deleteAll(userId: String) throws {}
-    func put(evaluations: [Evaluation]) throws {}
-    func get(userId: String) throws -> [Evaluation] { return [] }
-}
+        // Use Real Cache
+        let memCacheDao = EvaluationMemCacheDao()
 
-private class MockEvaluationMemCacheDao: EvaluationMemCacheDao {
-    private var cache: [String: [Evaluation]] = [:]
-    func get(key: String) -> [Evaluation]? { cache[key] }
-    func set(key: String, value: [Evaluation]) { cache[key] = value }
-}
+        // Use Real UserDefaults with a specific suite
+        let userDefaults = UserDefaults(suiteName: "EvaluationStorageImplConcurrencyTests")!
+        userDefaults.removePersistentDomain(forName: "EvaluationStorageImplConcurrencyTests")
+        let userDefaultsDao = EvaluationUserDefaultDaoImpl(defaults: userDefaults)
 
-private class MockEvaluationUserDefaultsDao: EvaluationUserDefaultsDao {
-    var currentEvaluationsId: String = ""
-    var featureTag: String = ""
-    var evaluatedAt: String = ""
-    var userAttributesUpdated: Bool = false
-    func setCurrentEvaluationsId(value: String) { currentEvaluationsId = value }
-    func setFeatureTag(value: String) { featureTag = value }
-    func setEvaluatedAt(value: String) { evaluatedAt = value }
-    func setUserAttributesUpdated(value: Bool) { userAttributesUpdated = value }
-}
+        // Use mock user ID from MockEvaluations
+        let userId = User.mock1.id
+        let storage = EvaluationStorageImpl(
+            userId: userId,
+            evaluationDao: blockingSQLDao,
+            evaluationMemCacheDao: memCacheDao,
+            evaluationUserDefaultsDao: userDefaultsDao
+        )
 
-private class BlockingMockSQLDao: EvaluationSQLDao {
-    var onStartTransaction: (() -> Void)?
-    func startTransaction(block: () throws -> Void) throws {
-        onStartTransaction?()
-        try block()
+        // 2. Initial State: Populate with "OLD" data (mock1)
+        let oldEval = Evaluation.mock1
+        try storage.deleteAllAndInsert(evaluationId: "init_id", evaluations: [oldEval], evaluatedAt: "0")
+
+        // Verify initial state
+        XCTAssertEqual(storage.getBy(featureId: oldEval.featureId)?.id, oldEval.id)
+
+        // 3. Prepare "NEW" data (mock1Updated)
+        let newEval = Evaluation.mock1Updated
+
+        // 4. Expectations
+        let writeStartedExpectation = expectation(description: "Write operation started and acquired write lock")
+        let writeFinishedExpectation = expectation(description: "Write operation finished")
+        let readFinishedExpectation = expectation(description: "Read operation finished")
+        let continueWriteExpectation = XCTestExpectation(description: "Signal to continue write")
+
+        // Configure Wrapper to pause inside the transaction
+        blockingSQLDao.onStartTransaction = {
+            writeStartedExpectation.fulfill()
+        }
+        blockingSQLDao.continueWriteExpectation = continueWriteExpectation
+
+        let writeQueue = DispatchQueue(label: "io.bucketeer.write")
+        let readQueue = DispatchQueue(label: "io.bucketeer.read")
+
+        // 5. Start Write Operation (Queue A)
+        writeQueue.async {
+            // This will acquire the write lock, start transaction, and then BLOCK inside the wrapper.
+            try? storage.deleteAllAndInsert(
+                evaluationId: "new_id",
+                evaluations: [newEval],
+                evaluatedAt: "12345"
+            )
+            writeFinishedExpectation.fulfill()
+        }
+
+        // Wait for Write to acquire the lock and enter transaction
+        wait(for: [writeStartedExpectation], timeout: 2.0)
+
+        // 6. Start Read Operation (Queue B)
+        var readResult: Evaluation?
+        readQueue.async {
+            // With the "Two Locks" strategy, this should NOT block on the write lock.
+            // It should acquire the cache lock (which is free) and return the current (old) value immediately.
+            readResult = storage.getBy(featureId: newEval.featureId)
+            readFinishedExpectation.fulfill()
+        }
+
+        // 7. Verify Read finishes BEFORE Write finishes
+        // We wait for read to finish while write is still paused.
+        wait(for: [readFinishedExpectation], timeout: 1.0)
+
+        // Assert we got the OLD value (Stale Read)
+        XCTAssertEqual(readResult?.id, oldEval.id, "Read operation should proceed immediately returning stale data, avoiding UI blocking.")
+
+        // 8. Finish the Write
+        continueWriteExpectation.fulfill()
+        wait(for: [writeFinishedExpectation], timeout: 1.0)
+
+        // 9. Verify Final State
+        XCTAssertEqual(storage.getBy(featureId: newEval.featureId)?.id, newEval.id, "Cache should be finally updated after write completes")
     }
-    func deleteAll(userId: String) throws {}
-    func put(evaluations: [Evaluation]) throws {}
-    func get(userId: String) throws -> [Evaluation] { return [] }
-}
 
-private extension Evaluation {
-    static func mock(id: String, featureId: String, value: String) -> Evaluation {
+    // MARK: - Helpers
+
+    private func createMockEvaluation(id: String, featureId: String, value: String, userId: String) -> Evaluation {
         return Evaluation(
             id: id,
             featureId: featureId,
             featureVersion: 1,
-            userId: "test_user",
+            userId: userId,
             variationId: "var_id",
             variationName: "var_name",
             variationValue: value,
-            reason: .init(type: .default),
-            maintained: true
+            reason: .init(type: .default)
         )
     }
 }
-*/
+
+/// A wrapper around the real EvaluationSQLDaoImpl that allows pausing inside a transaction
+private class BlockingRealSQLDao: EvaluationSQLDao {
+
+    private let realDao: EvaluationSQLDaoImpl
+    var onStartTransaction: (() -> Void)?
+    var continueWriteExpectation: XCTestExpectation?
+
+    init(db: SQLite) {
+        self.realDao = EvaluationSQLDaoImpl(db: db)
+    }
+
+    func startTransaction(block: () throws -> Void) throws {
+        onStartTransaction?()
+        try realDao.startTransaction {
+            // Execute the actual storage logic (SQL delete/insert)
+            try block()
+
+            // Pause here! We are now inside the transaction and holding the Storage lock.
+            // This simulates the time window where SQL is updated but Cache is not yet updated.
+            if let expectation = continueWriteExpectation {
+                _ = XCTWaiter.wait(for: [expectation], timeout: 2.0)
+            }
+        }
+    }
+
+    // Forward other calls to the real implementation
+    func deleteAll(userId: String) throws { try realDao.deleteAll(userId: userId) }
+    func deleteByIds(_ ids: [String]) throws { try realDao.deleteByIds(ids) }
+    func put(evaluations: [Evaluation]) throws { try realDao.put(evaluations: evaluations) }
+    func get(userId: String) throws -> [Evaluation] { return try realDao.get(userId: userId) }
+}
