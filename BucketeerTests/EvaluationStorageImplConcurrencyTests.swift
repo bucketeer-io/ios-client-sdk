@@ -126,8 +126,8 @@ final class EvaluationStorageImplConcurrencyTests: XCTestCase {
         // 6. Start Read Operation (Queue B)
         var readResult: Evaluation?
         readQueue.async {
-            // With the "Two Locks" strategy, this should NOT block on the write lock.
-            // It should acquire the cache lock (which is free) and return the current (old) value immediately.
+            // This should NOT block on the write lock.
+            // Acquire the cache and return the current (old) value immediately.
             readResult = storage.getBy(featureId: newEval.featureId)
             readFinishedExpectation.fulfill()
         }

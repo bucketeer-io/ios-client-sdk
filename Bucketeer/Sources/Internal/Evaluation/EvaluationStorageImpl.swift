@@ -17,9 +17,7 @@ final class EvaluationStorageImpl: EvaluationStorage {
     }
 
     private let userId: String
-    // Expected SQL Dao
     private let evaluationSQLDao: EvaluationSQLDao
-    // Expected in-memory cache Dao
     private let evaluationMemCacheDao: EvaluationMemCacheDao
     private let evaluationUserDefaultsDao: EvaluationUserDefaultsDao
 
