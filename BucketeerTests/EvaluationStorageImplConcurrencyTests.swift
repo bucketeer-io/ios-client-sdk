@@ -146,21 +146,6 @@ final class EvaluationStorageImplConcurrencyTests: XCTestCase {
         // 9. Verify Final State
         XCTAssertEqual(storage.getBy(featureId: newEval.featureId)?.id, newEval.id, "Cache should be finally updated after write completes")
     }
-
-    // MARK: - Helpers
-
-    private func createMockEvaluation(id: String, featureId: String, value: String, userId: String) -> Evaluation {
-        return Evaluation(
-            id: id,
-            featureId: featureId,
-            featureVersion: 1,
-            userId: userId,
-            variationId: "var_id",
-            variationName: "var_name",
-            variationValue: value,
-            reason: .init(type: .default)
-        )
-    }
 }
 
 /// A wrapper around the real EvaluationSQLDaoImpl that allows pausing inside a transaction
@@ -183,7 +168,10 @@ private class BlockingRealSQLDao: EvaluationSQLDao {
             // Pause here! We are now inside the transaction and holding the Storage lock.
             // This simulates the time window where SQL is updated but Cache is not yet updated.
             if let expectation = continueWriteExpectation {
-                _ = XCTWaiter.wait(for: [expectation], timeout: 2.0)
+                let result = XCTWaiter.wait(for: [expectation], timeout: 2.0)
+                                if result != .completed {
+                                    XCTFail("BlockingRealSQLDao: wait for continueWriteExpectation failed with result: \(result)")
+                                }
             }
         }
     }
