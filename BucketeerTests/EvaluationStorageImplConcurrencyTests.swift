@@ -166,12 +166,12 @@ private class BlockingRealSQLDao: EvaluationSQLDao {
             try block()
 
             // Pause here! We are now inside the transaction and holding the Storage lock.
-            // This simulates the time window where SQL is updated but Cache is not yet updated.
+            // This simulates the time window after SQL operations have run but before the transaction commits and before the Cache is updated.
             if let expectation = continueWriteExpectation {
                 let result = XCTWaiter.wait(for: [expectation], timeout: 2.0)
-                                if result != .completed {
-                                    XCTFail("BlockingRealSQLDao: wait for continueWriteExpectation failed with result: \(result)")
-                                }
+                if result != .completed {
+                    XCTFail("BlockingRealSQLDao: wait for continueWriteExpectation failed with result: \(result)")
+                }
             }
         }
     }

@@ -137,7 +137,7 @@ final class E2EBKTClientForceUpdateTests: XCTestCase {
             XCTAssertEqual(evaluationStorage.currentEvaluationsId, randomUserEvaluationId)
         }
 
-        // Similate feature_tag changed
+        // Simulate feature_tag changed
         try DispatchQueue.main.sync {
             try BKTClient.destroy()
         }
