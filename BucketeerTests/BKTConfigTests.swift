@@ -1,6 +1,7 @@
 import XCTest
 @testable import Bucketeer
 
+// swiftlint:disable type_body_length
 final class BKTConfigTests: XCTestCase {
 
     func testCreateConfig() {
@@ -311,4 +312,58 @@ final class BKTConfigTests: XCTestCase {
             XCTFail("Unexpected error: \(error)")
         }
     }
+
+    func testSDKVersionForVariousSourceIds() {
+        struct SDKTestCase {
+            let builder: BKTConfig.Builder
+            let caseName: String
+            let expectedSourceId: SourceID
+            let expectedVersion: String
+        }
+
+        func makeBaseBuilder() -> BKTConfig.Builder {
+            return BKTConfig.Builder()
+                .with(apiKey: "api_key_value")
+                .with(apiEndpoint: "https://test.bucketeer.io")
+                .with(featureTag: "featureTag")
+                .with(appVersion: "1.0.0")
+        }
+
+        let testCases: [SDKTestCase] = [
+            SDKTestCase(
+                builder: makeBaseBuilder(),
+                caseName: "iOS",
+                expectedSourceId: .ios,
+                expectedVersion: Version.current
+            ),
+            SDKTestCase(
+                builder: makeBaseBuilder()
+                    .with(wrapperSdkSourceId: SourceID.flutter.rawValue)
+                    .with(wrapperSdkVersion: "2.0.0"),
+                caseName: "Flutter",
+                expectedSourceId: .flutter,
+                expectedVersion: "2.0.0"
+            ),
+            SDKTestCase(
+                builder: makeBaseBuilder()
+                    .with(wrapperSdkSourceId: SourceID.openFeatureSwift.rawValue)
+                    .with(wrapperSdkVersion: "3.1.4"),
+                caseName: "OpenFeatureSwift",
+                expectedSourceId: .openFeatureSwift,
+                expectedVersion: "3.1.4"
+            )
+        ]
+
+        for test in testCases {
+            do {
+                let config = try test.builder.build()
+                let sdkInfo = config.toSDKInfo()
+                XCTAssertEqual(sdkInfo.sourceId, test.expectedSourceId, "SourceId failed for case: \(test.caseName)")
+                XCTAssertEqual(sdkInfo.sdkVersion, test.expectedVersion, "SdkVersion failed for case: \(test.caseName)")
+            } catch {
+                XCTFail("Unexpected error for case \(test.caseName): \(error)")
+            }
+        }
+    }
 }
+// swiftlint:enable type_body_length

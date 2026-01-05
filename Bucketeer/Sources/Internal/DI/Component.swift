@@ -27,7 +27,7 @@ final class ComponentImpl: Component {
             featureTag: dataModule.config.featureTag
         )
         self.eventInteractor = EventInteractorImpl(
-            sdkInfo: .init(sourceId: dataModule.config.sourceId, sdkVersion: dataModule.config.sdkVersion),
+            sdkInfo: dataModule.config.toSDKInfo(),
             appVersion: dataModule.config.appVersion,
             device: dataModule.device,
             eventsMaxBatchQueueCount: dataModule.config.eventsMaxQueueSize,

@@ -188,6 +188,10 @@ extension BKTConfig {
         self.appVersion = appVersion
         self.logger = logger
     }
+
+    func toSDKInfo() -> SDKInfo {
+        return .init(sourceId: self.sourceId, sdkVersion: self.sdkVersion)
+    }
 }
 
 // Only Flutter (8) and OpenFeature Swift (101) are supported currently.
