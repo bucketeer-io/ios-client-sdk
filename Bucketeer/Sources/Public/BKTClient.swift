@@ -206,7 +206,9 @@ extension BKTClient {
         component.userHolder.updateAttributes { _ in
             attributes
         }
-        component.evaluationInteractor.setUserAttributesUpdated()
+        execute {
+            self.component.evaluationInteractor.setUserAttributesUpdated()
+        }
     }
 
     public func fetchEvaluations(timeoutMillis: Int64? = nil, completion: ((BKTError?) -> Void)? = nil) {
