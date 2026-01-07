@@ -268,4 +268,50 @@ final class EvaluationStorageTests: XCTestCase {
         storage.clearUserAttributesUpdated(version: updatedVersion)
         XCTAssertFalse(storage.userAttributesUpdated, "userAttributesUpdated should be false after clearing with correct version")
     }
+
+    func testSetUserAttributesUpdatedConcurrency() {
+        let testUserId1 = Evaluation.mock1.userId
+        let mockDao = MockEvaluationSQLDao()
+        let mockUserDefsDao = MockEvaluationUserDefaultsDao()
+        let storage = EvaluationStorageImpl(
+            userId: testUserId1,
+            evaluationDao: mockDao,
+            evaluationMemCacheDao: EvaluationMemCacheDao(),
+            evaluationUserDefaultsDao: mockUserDefsDao
+        )
+
+        let iterations = 1_000
+        let group = DispatchGroup()
+
+        // Simulating the Main Thread (UI events triggering updates)
+        let mainQueue = DispatchQueue(label: "io.bucketeer.test.main")
+
+        // Simulating the SDK Queue (Network callbacks triggering clears)
+        let sdkQueue = DispatchQueue(label: "io.bucketeer.test.sdk")
+
+        for _ in 0..<iterations {
+            group.enter()
+            mainQueue.async {
+                // Simulate User updating attributes (Write)
+                storage.setUserAttributesUpdated()
+                group.leave()
+            }
+
+            group.enter()
+            sdkQueue.async {
+                // Simulate SDK reading version for a fetch (Read)
+                let version = storage.userAttributesUpdatedVersion
+                // Simulate SDK clearing after fetch (Read/Write)
+                storage.clearUserAttributesUpdated(version: version)
+                group.leave()
+            }
+        }
+
+        // Wait for all operations to complete
+        let result = group.wait(timeout: .now() + 10.0)
+        XCTAssertEqual(result, .success, "Test timed out")
+
+        XCTAssertEqual(storage.userAttributesUpdatedVersion, iterations, "Version should increment exactly matches the number of update calls, proving no race conditions")
+        XCTAssertFalse(storage.userAttributesUpdated, "Final userAttributesUpdated should be false after all operations")
+    }
 }
