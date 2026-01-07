@@ -272,7 +272,11 @@ final class EvaluationStorageTests: XCTestCase {
     func testSetUserAttributesUpdatedConcurrency() {
         let testUserId1 = Evaluation.mock1.userId
         let mockDao = MockEvaluationSQLDao()
-        let mockUserDefsDao = MockEvaluationUserDefaultsDao()
+        // Use `EvaluationUserDefaultDaoImpl` because it serializes access to `UserDefaults.standard` with an internal lock,
+        // giving a realistic, thread-safe backing store for concurrent reads/writes.
+        // The test concurrently performs user updates and SDK reads/clears; with correct locking the version counter
+        // must equal the number of updates and the final `userAttributesUpdated` flag should be `false` after all clears.
+        let mockUserDefsDao = EvaluationUserDefaultDaoImpl(defaults: UserDefaults.standard)
         let storage = EvaluationStorageImpl(
             userId: testUserId1,
             evaluationDao: mockDao,
@@ -280,7 +284,7 @@ final class EvaluationStorageTests: XCTestCase {
             evaluationUserDefaultsDao: mockUserDefsDao
         )
 
-        let iterations = 1_000
+        let iterations = 10000
         let group = DispatchGroup()
 
         // Simulating the Main Thread (UI events triggering updates)
@@ -312,6 +316,6 @@ final class EvaluationStorageTests: XCTestCase {
         XCTAssertEqual(result, .success, "Test timed out")
 
         XCTAssertEqual(storage.userAttributesUpdatedVersion, iterations, "Version should increment exactly matches the number of update calls, proving no race conditions")
-        XCTAssertFalse(storage.userAttributesUpdated, "Final userAttributesUpdated should be false after all operations")
+        XCTAssertFalse(storage.userAttributesUpdated, "Final userAttributesUpdated state should be false after all clears")
     }
 }
