@@ -128,7 +128,7 @@ final class MockEvaluationStorage: EvaluationStorage {
             return _userAttributesUpdatedVersion
         }
     }
-    
+
     private var _userAttributesUpdatedVersion: Int = 0
 
     func clearUserAttributesUpdated(version: Int) {
