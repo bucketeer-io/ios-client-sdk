@@ -225,6 +225,7 @@ final class EvaluationStorageTests: XCTestCase {
         XCTAssertEqual(storage.featureTag, "")
 
         storage.setUserAttributesUpdated()
+        let updatedVersion = storage.userAttributesUpdatedVersion
         storage.setFeatureTag(value: "featureTagForTest")
         let result = try storage.update(
             evaluationId:"evaluationIdForTest",
@@ -238,7 +239,33 @@ final class EvaluationStorageTests: XCTestCase {
         XCTAssertTrue(storage.userAttributesUpdated)
         XCTAssertEqual(storage.featureTag, "featureTagForTest")
 
-        storage.clearUserAttributesUpdated()
+        storage.clearUserAttributesUpdated(version: updatedVersion)
         XCTAssertFalse(storage.userAttributesUpdated)
+    }
+
+    func testShouldOnlyClearUserAttributesUpdatedWhenVersionMatches() throws {
+        let testUserId1 = Evaluation.mock1.userId
+        let mockDao = MockEvaluationSQLDao()
+        let mockUserDefsDao = MockEvaluationUserDefaultsDao()
+        let storage = EvaluationStorageImpl(
+            userId: testUserId1,
+            evaluationDao: mockDao,
+            evaluationMemCacheDao: EvaluationMemCacheDao(),
+            evaluationUserDefaultsDao: mockUserDefsDao
+        )
+
+        XCTAssertFalse(storage.userAttributesUpdated)
+
+        storage.setUserAttributesUpdated()
+        let updatedVersion = storage.userAttributesUpdatedVersion
+        XCTAssertTrue(storage.userAttributesUpdated)
+
+        // Attempt to clear with an incorrect version
+        storage.clearUserAttributesUpdated(version: updatedVersion + 1)
+        XCTAssertTrue(storage.userAttributesUpdated, "userAttributesUpdated should remain true when version does not match")
+
+        // Now clear with the correct version
+        storage.clearUserAttributesUpdated(version: updatedVersion)
+        XCTAssertFalse(storage.userAttributesUpdated, "userAttributesUpdated should be false after clearing with correct version")
     }
 }

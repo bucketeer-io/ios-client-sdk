@@ -48,8 +48,10 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
         let logger = self.logger
         let evaluatedAt = evaluationStorage.evaluatedAt
         let userAttributesUpdated = evaluationStorage.userAttributesUpdated
+        let userAttributesUpdatedVersion = evaluationStorage.userAttributesUpdatedVersion
         let currentEvaluationsId = evaluationStorage.currentEvaluationsId
         let featureTag = evaluationStorage.featureTag
+
         apiClient.getEvaluations(
             user: user,
             userEvaluationsId: currentEvaluationsId,
@@ -62,8 +64,10 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
                 let newEvaluationsId = response.userEvaluationsId
                 if currentEvaluationsId == newEvaluationsId {
                     logger?.debug(message: "Nothing to sync")
-                    // Reset UserAttributesUpdated
-                    self?.evaluationStorage.clearUserAttributesUpdated()
+                    // Only clear if we sent the update AND the version hasn't changed
+                    if userAttributesUpdated {
+                        self?.evaluationStorage.clearUserAttributesUpdated(version: userAttributesUpdatedVersion)
+                    }
                     completion?(result)
                     return
                 }
@@ -97,7 +101,11 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
                     return
                 }
 
-                self?.evaluationStorage.clearUserAttributesUpdated()
+                // Only clear if we sent the update AND the version hasn't changed
+                if userAttributesUpdated {
+                    self?.evaluationStorage.clearUserAttributesUpdated(version: userAttributesUpdatedVersion)
+                }
+
                 if shouldNotifyListener {
                     // Update listeners should be called on the main thread
                     // to avoid unintentional lock on Interactor's execution thread.
@@ -119,6 +127,28 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
         try evaluationStorage.refreshCache()
     }
 
+    /*
+     Note: Logical race condition on `userAttributesUpdated`
+
+     Problem:
+     - `userAttributesUpdated` is a boolean that only indicates "there exists at least one pending attribute change".
+     - If the flag is already `true` when a fetch starts, and attributes are updated again while the request is in-flight, the fetch cannot distinguish the new update from the old one.
+     - The fetch may clear the flag on completion (because it saw `true` at start), causing any updates that happened during the request to be lost.
+
+     Example (double-update):
+     1) flag = true
+     2) fetch starts and reads true
+     3) attributes updated again (flag remains true)
+     4) fetch completes and clears flag
+     5) the second update is never sent
+
+     Conclusion:
+     A single boolean cannot represent "which" update was sent; clearing it after a fetch can discard concurrent updates.
+     
+     Solution: Use a version number to track the state of user attributes updates.
+     Each update increments the version, and clearing only happens if the version matches
+     ensuring concurrent updates are not lost.
+    */
     func setUserAttributesUpdated() {
         // https://github.com/bucketeer-io/android-client-sdk/issues/69
         // userAttributesUpdated: when the user attributes change via the customAttributes interface,
