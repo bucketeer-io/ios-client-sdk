@@ -53,7 +53,7 @@ final class MockEvaluationStorage: EvaluationStorage {
     let evaluationUserDefaultsDao = MockEvaluationUserDefaultsDao()
     let refreshCacheHandler: RefreshCacheHandler?
     let userId: String
-    var userAttributesUpdatedLock = NSLock()
+    var setUserAttributesUpdatedLock = NSLock()
 
     init(userId: String,
          getHandler: GetHandler? = nil,
@@ -112,14 +112,10 @@ final class MockEvaluationStorage: EvaluationStorage {
         evaluatedAt = value
     }
 
-    private func setUserAttributesUpdated(value: Bool) {
-        userAttributesUpdated = value
-    }
-
     func setUserAttributesUpdated() {
-        userAttributesUpdatedLock.withLock {
-            userAttributesUpdatedVersion += 1
-            setUserAttributesUpdated(value: true)
+        setUserAttributesUpdatedLock.withLock {
+            _userAttributesUpdatedVersion += 1
+            userAttributesUpdated = true
         }
     }
 
@@ -127,12 +123,18 @@ final class MockEvaluationStorage: EvaluationStorage {
         currentEvaluationsId = ""
     }
 
-    var userAttributesUpdatedVersion: Int = 0
+    var userAttributesUpdatedVersion: Int {
+        return setUserAttributesUpdatedLock.withLock {
+            return _userAttributesUpdatedVersion
+        }
+    }
+    
+    private var _userAttributesUpdatedVersion: Int = 0
 
     func clearUserAttributesUpdated(version: Int) {
-        userAttributesUpdatedLock.withLock {
-            if userAttributesUpdatedVersion == version {
-                setUserAttributesUpdated(value: false)
+        setUserAttributesUpdatedLock.withLock {
+            if _userAttributesUpdatedVersion == version {
+                userAttributesUpdated = false
             }
         }
     }

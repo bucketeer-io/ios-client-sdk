@@ -315,7 +315,7 @@ final class EvaluationStorageTests: XCTestCase {
         let result = group.wait(timeout: .now() + 10.0)
         XCTAssertEqual(result, .success, "Test timed out")
 
-        XCTAssertEqual(storage.userAttributesUpdatedVersion, iterations, "Version should increment exactly matches the number of update calls, proving no race conditions")
+        XCTAssertEqual(storage.userAttributesUpdatedVersion, iterations, "Version should exactly match the number of update calls, proving no race conditions")
         XCTAssertFalse(storage.userAttributesUpdated, "Final userAttributesUpdated state should be false after all clears")
     }
 }
