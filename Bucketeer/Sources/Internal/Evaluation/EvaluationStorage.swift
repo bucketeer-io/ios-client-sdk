@@ -21,6 +21,8 @@ protocol EvaluationStorage {
     // expected set evaluatedAt from `deleteAllAndInsert` or `update` only
     var evaluatedAt: String { get }
     var userAttributesUpdated: Bool { get }
+
+    // increments when `setUserAttributesUpdated` is called
     var userAttributesUpdatedVersion: Int { get }
 
     func clearCurrentEvaluationsId()

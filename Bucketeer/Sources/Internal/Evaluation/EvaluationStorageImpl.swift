@@ -95,7 +95,9 @@ final class EvaluationStorageImpl: EvaluationStorage {
     // getBy will return the data from the cache to speed up the response time
     func getBy(featureId: String) -> Evaluation? {
         // evaluationMemCacheDao is thread-safe (uses internal concurrent queue).
-        // We rely on it without adding extra locks because this storage layer is also accessed serially via the SDK queue.
+        // We rely on it without adding extra locks even though this storage layer can be accessed from multiple threads:
+        // writes and most operations are serialized on the SDK queue, but reads (like getBy) may be invoked from the
+        // main/UI thread concurrently with background SDK operations.
         //
         // We access the memory cache directly without waiting for pending database writes.
         // If we enforced strict consistency (locking during Disk I/O with SQL), this method would block the calling thread (often the Main Thread), causing UI freezes.
