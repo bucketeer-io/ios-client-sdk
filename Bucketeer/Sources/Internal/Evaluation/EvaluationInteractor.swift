@@ -47,8 +47,9 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
 
         let logger = self.logger
         let evaluatedAt = evaluationStorage.evaluatedAt
-        let userAttributesUpdated = evaluationStorage.userAttributesUpdated
-        let userAttributesUpdatedVersion = evaluationStorage.userAttributesUpdatedVersion
+        let userAttributesState = evaluationStorage.userAttributesState
+        let userAttributesUpdated = userAttributesState.isUpdated
+        let userAttributesUpdatedVersion = userAttributesState.version
         let currentEvaluationsId = evaluationStorage.currentEvaluationsId
         let featureTag = evaluationStorage.featureTag
 

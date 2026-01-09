@@ -114,7 +114,7 @@ final class MockEvaluationStorage: EvaluationStorage {
 
     func setUserAttributesUpdated() {
         setUserAttributesUpdatedLock.withLock {
-            _userAttributesUpdatedVersion += 1
+            userAttributesUpdatedVersion += 1
             userAttributesUpdated = true
         }
     }
@@ -123,17 +123,20 @@ final class MockEvaluationStorage: EvaluationStorage {
         currentEvaluationsId = ""
     }
 
-    var userAttributesUpdatedVersion: Int {
+    var userAttributesState: UserAttributesState {
         return setUserAttributesUpdatedLock.withLock {
-            return _userAttributesUpdatedVersion
+            return UserAttributesState(
+                version: userAttributesUpdatedVersion,
+                isUpdated: userAttributesUpdated
+            )
         }
     }
 
-    private var _userAttributesUpdatedVersion: Int = 0
+    private var userAttributesUpdatedVersion: Int = 0
 
     func clearUserAttributesUpdated(version: Int) {
         setUserAttributesUpdatedLock.withLock {
-            if _userAttributesUpdatedVersion == version {
+            if userAttributesUpdatedVersion == version {
                 userAttributesUpdated = false
             }
         }

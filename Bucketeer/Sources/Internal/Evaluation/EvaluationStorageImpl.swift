@@ -16,9 +16,13 @@ final class EvaluationStorageImpl: EvaluationStorage {
         return evaluationUserDefaultsDao.userAttributesUpdated
     }
 
-    var userAttributesUpdatedVersion: Int {
+    var userAttributesState: UserAttributesState {
+        // read atomically 2 values
         return setUserAttributesUpdatedLock.withLock {
-            return _userAttributesUpdatedVersion
+            return UserAttributesState(
+                version: userAttributesUpdatedVersion,
+                isUpdated: evaluationUserDefaultsDao.userAttributesUpdated
+            )
         }
     }
 
@@ -27,7 +31,7 @@ final class EvaluationStorageImpl: EvaluationStorage {
     private let evaluationMemCacheDao: EvaluationMemCacheDao
     private let evaluationUserDefaultsDao: EvaluationUserDefaultsDao
 
-    private var _userAttributesUpdatedVersion: Int = 0
+    private var userAttributesUpdatedVersion: Int = 0
     private let setUserAttributesUpdatedLock = NSLock()
 
     init(
@@ -123,7 +127,7 @@ final class EvaluationStorageImpl: EvaluationStorage {
     func setUserAttributesUpdated() {
         setUserAttributesUpdatedLock.withLock {
             // Increment version on every update
-            _userAttributesUpdatedVersion += 1
+            userAttributesUpdatedVersion += 1
             evaluationUserDefaultsDao.setUserAttributesUpdated(value: true)
         }
     }
@@ -134,7 +138,7 @@ final class EvaluationStorageImpl: EvaluationStorage {
             // Only clear if the version matches what we captured at the start of the request.
             // If _userAttributesUpdatedVersion > version, it means a new update happened
             // while the request was in-flight, so we MUST NOT clear the flag.
-            if _userAttributesUpdatedVersion == version {
+            if userAttributesUpdatedVersion == version {
                 evaluationUserDefaultsDao.setUserAttributesUpdated(value: false)
             }
         }

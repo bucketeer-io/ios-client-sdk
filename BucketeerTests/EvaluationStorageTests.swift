@@ -225,8 +225,11 @@ final class EvaluationStorageTests: XCTestCase {
         XCTAssertEqual(storage.featureTag, "")
 
         storage.setUserAttributesUpdated()
-        let updatedVersion = storage.userAttributesUpdatedVersion
+
+        let userAttributesState = storage.userAttributesState
+        let updatedVersion = userAttributesState.version
         storage.setFeatureTag(value: "featureTagForTest")
+
         let result = try storage.update(
             evaluationId:"evaluationIdForTest",
             evaluations: [.mock2],
@@ -257,7 +260,8 @@ final class EvaluationStorageTests: XCTestCase {
         XCTAssertFalse(storage.userAttributesUpdated)
 
         storage.setUserAttributesUpdated()
-        let updatedVersion = storage.userAttributesUpdatedVersion
+        let userAttributesState = storage.userAttributesState
+        let updatedVersion = userAttributesState.version
         XCTAssertTrue(storage.userAttributesUpdated)
 
         // Attempt to clear with an incorrect version
@@ -297,7 +301,8 @@ final class EvaluationStorageTests: XCTestCase {
             group.enter()
             sdkQueue.async {
                 // Simulate SDK reading version for a fetch (Read)
-                let version = storage.userAttributesUpdatedVersion
+                let userAttributesState = storage.userAttributesState
+                let version = userAttributesState.version
                 // Simulate SDK clearing after fetch (Read/Write)
                 storage.clearUserAttributesUpdated(version: version)
                 group.leave()
@@ -316,6 +321,7 @@ final class EvaluationStorageTests: XCTestCase {
         XCTAssertEqual(result, .success, "Test timed out")
         // In 99.9% of runs, storage.userAttributesUpdated resolves to false, but we cannot guarantee this behavior every time due to async nature.
         // The critical check is that the version counter matches the number of updates, proving no race conditions when incrementing.
-        XCTAssertEqual(storage.userAttributesUpdatedVersion, iterations, "Version should exactly match the number of update calls, proving no race conditions")
+        let userAttributesState = storage.userAttributesState
+        XCTAssertEqual(userAttributesState.version, iterations, "Version should exactly match the number of update calls, proving no race conditions")
     }
 }
