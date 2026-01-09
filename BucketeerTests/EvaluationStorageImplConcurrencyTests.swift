@@ -42,7 +42,7 @@ final class EvaluationStorageImplConcurrencyTests: XCTestCase {
                 try? storage.deleteAllAndInsert(
                     evaluationId: "eval_id_\(i)",
                     evaluations: [],
-                    evaluatedAt: "\(Date().timeIntervalSince1970)"
+                    evaluatedAt: "\(Int(Date().timeIntervalSince1970))"
                 )
             }
             expectation.fulfill()

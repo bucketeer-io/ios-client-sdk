@@ -9,7 +9,7 @@ final class E2EEventTests: XCTestCase {
 
     override func setUp() async throws {
         try await super.setUp()
-        UserDefaults.standard.removeObject(forKey: "bucketeer_user_evaluations_id")
+        EvaluationUserDefaultDaoImpl(defaults: UserDefaults.standard).deleteAll()
 
         let config = try BKTConfig.e2e()
         let user = try BKTUser.Builder().with(id: USER_ID).build()
@@ -24,7 +24,7 @@ final class E2EEventTests: XCTestCase {
 
         try await BKTClient.shared.flush()
         try BKTClient.destroy()
-        UserDefaults.standard.removeObject(forKey: "bucketeer_user_evaluations_id")
+        EvaluationUserDefaultDaoImpl(defaults: UserDefaults.standard).deleteAll()
         try FileManager.default.removeItem(at: .database)
     }
 

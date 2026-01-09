@@ -59,4 +59,12 @@ class EvaluationUserDefaultDaoImpl: EvaluationUserDefaultsDao {
     func setUserAttributesUpdated(value: Bool) {
         userAttributesUpdated = value
     }
+
+    // Delete all related data for testing purposes
+    func deleteAll() {
+        defs.removeObject(forKey: Self.userEvaluationsIdKey)
+        defs.removeObject(forKey: Self.featureTagKey)
+        defs.removeObject(forKey: Self.evaluatedAtKey)
+        defs.removeObject(forKey: Self.userAttributesUpdatedKey)
+    }
 }

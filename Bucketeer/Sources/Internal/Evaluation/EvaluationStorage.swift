@@ -31,8 +31,8 @@ protocol EvaluationStorage {
     /// Atomically clear the user-attributes-updated flag if the stored version equals `state.version`.
     /// - Parameter state: Snapshot obtained from `userAttributesState` before a network request.
     /// - Returns: `true` if the flag was cleared (stored flag was `true` and versions matched); `false` otherwise.
-    /// - Thread-safety: Implementations MUST perform the compare\-and\-swap under the storage's internal lock.
-    /// - Note: `version` is an in\-memory, session-only counter; implementations may persist only the
+    /// - Thread-safety: Implementations MUST perform the compare-and-swap under the storage's internal lock.
+    /// - Note: `version` is an in-memory, session-only counter; implementations may persist only the
     /// boolean flag (e.g., in `UserDefaults`), but the `version` must be treated as transient.
     @discardableResult func clearUserAttributesUpdated(state: UserAttributesState) -> Bool
 }

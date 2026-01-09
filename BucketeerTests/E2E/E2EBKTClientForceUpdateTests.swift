@@ -9,12 +9,7 @@ final class E2EBKTClientForceUpdateTests: XCTestCase {
 
     override func setUp() async throws {
         try await super.setUp()
-
-        UserDefaults.standard.removeObject(forKey: "bucketeer_user_evaluations_id")
-        UserDefaults.standard.removeObject(forKey: "bucketeer_feature_tag")
-        UserDefaults.standard.removeObject(forKey: "bucketeer_evaluatedAt")
-        UserDefaults.standard.removeObject(forKey: "bucketeer_userAttributesUpdated")
-        UserDefaults.standard.removeObject(forKey: "bucketeer_user_evaluations_id")
+        EvaluationUserDefaultDaoImpl(defaults: UserDefaults.standard).deleteAll()
     }
 
     @MainActor
@@ -23,7 +18,7 @@ final class E2EBKTClientForceUpdateTests: XCTestCase {
 
         try await BKTClient.shared.flush()
         try BKTClient.destroy()
-        UserDefaults.standard.removeObject(forKey: "bucketeer_user_evaluations_id")
+        EvaluationUserDefaultDaoImpl(defaults: UserDefaults.standard).deleteAll()
         try FileManager.default.removeItem(at: .database)
     }
 

@@ -15,4 +15,8 @@ final class MockDefaults: Defaults {
     func set(_ value: Any?, forKey defaultName: String) {
         dict[defaultName] = value
     }
+
+    func removeObject(forKey defaultName: String) {
+        dict[defaultName] = nil
+    }
 }

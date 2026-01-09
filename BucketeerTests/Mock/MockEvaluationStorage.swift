@@ -54,6 +54,8 @@ final class MockEvaluationStorage: EvaluationStorage {
     let refreshCacheHandler: RefreshCacheHandler?
     let userId: String
     var setUserAttributesUpdatedLock = NSLock()
+    // protected by setUserAttributesUpdatedLock
+    private var userAttributesUpdatedVersion: Int = 0
 
     init(userId: String,
          getHandler: GetHandler? = nil,
@@ -129,16 +131,6 @@ final class MockEvaluationStorage: EvaluationStorage {
                 version: userAttributesUpdatedVersion,
                 isUpdated: userAttributesUpdated
             )
-        }
-    }
-
-    private var userAttributesUpdatedVersion: Int = 0
-
-    func clearUserAttributesUpdated(version: Int) {
-        setUserAttributesUpdatedLock.withLock {
-            if userAttributesUpdatedVersion == version {
-                userAttributesUpdated = false
-            }
         }
     }
 
