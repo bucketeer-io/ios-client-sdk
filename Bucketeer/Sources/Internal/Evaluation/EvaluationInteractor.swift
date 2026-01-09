@@ -49,7 +49,6 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
         let evaluatedAt = evaluationStorage.evaluatedAt
         let userAttributesState = evaluationStorage.userAttributesState
         let userAttributesUpdated = userAttributesState.isUpdated
-        let userAttributesUpdatedVersion = userAttributesState.version
         let currentEvaluationsId = evaluationStorage.currentEvaluationsId
         let featureTag = evaluationStorage.featureTag
 
@@ -65,10 +64,8 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
                 let newEvaluationsId = response.userEvaluationsId
                 if currentEvaluationsId == newEvaluationsId {
                     logger?.debug(message: "Nothing to sync")
-                    // Only clear if we sent the update AND the version hasn't changed
-                    if userAttributesUpdated {
-                        self?.evaluationStorage.clearUserAttributesUpdated(version: userAttributesUpdatedVersion)
-                    }
+                    // Clear logic is now encapsulated in `evaluationStorage` via the state snapshot
+                    self?.evaluationStorage.clearUserAttributesUpdated(state: userAttributesState)
                     completion?(result)
                     return
                 }
@@ -102,10 +99,8 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
                     return
                 }
 
-                // Only clear if we sent the update AND the version hasn't changed
-                if userAttributesUpdated {
-                    self?.evaluationStorage.clearUserAttributesUpdated(version: userAttributesUpdatedVersion)
-                }
+                // Clear logic is now encapsulated in `evaluationStorage` via the state snapshot
+                self?.evaluationStorage.clearUserAttributesUpdated(state: userAttributesState)
 
                 if shouldNotifyListener {
                     // Update listeners should be called on the main thread

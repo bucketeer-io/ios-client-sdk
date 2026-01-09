@@ -134,14 +134,20 @@ final class EvaluationStorageImpl: EvaluationStorage {
     }
 
     // Called from SDK queue (fetch callback)
-    func clearUserAttributesUpdated(version: Int) {
-        setUserAttributesUpdatedLock.withLock {
+    @discardableResult func clearUserAttributesUpdated(state: UserAttributesState) -> Bool {
+        guard state.isUpdated else {
+            // No-op if flag is already false
+            return false
+        }
+        return setUserAttributesUpdatedLock.withLock {
             // Only clear if the version matches what we captured at the start of the request.
             // If userAttributesUpdatedVersion > version, it means a new update happened
             // while the request was in-flight, so we MUST NOT clear the flag.
-            if userAttributesUpdatedVersion == version {
+            if userAttributesUpdatedVersion == state.version {
                 evaluationUserDefaultsDao.setUserAttributesUpdated(value: false)
+                return true
             }
+            return false
         }
     }
 }

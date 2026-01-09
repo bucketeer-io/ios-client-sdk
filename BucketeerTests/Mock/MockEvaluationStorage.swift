@@ -141,4 +141,15 @@ final class MockEvaluationStorage: EvaluationStorage {
             }
         }
     }
+
+    func clearUserAttributesUpdated(state: UserAttributesState) -> Bool {
+        guard state.isUpdated else { return false }
+        return setUserAttributesUpdatedLock.withLock {
+            if userAttributesUpdatedVersion == state.version {
+                userAttributesUpdated = false
+                return true
+            }
+            return false
+        }
+    }
 }

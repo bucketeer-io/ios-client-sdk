@@ -242,7 +242,7 @@ final class EvaluationStorageTests: XCTestCase {
         XCTAssertTrue(storage.userAttributesState.isUpdated)
         XCTAssertEqual(storage.featureTag, "featureTagForTest")
 
-        storage.clearUserAttributesUpdated(version: updatedVersion)
+        XCTAssertTrue(storage.clearUserAttributesUpdated(state: userAttributesState))
         XCTAssertFalse(storage.userAttributesState.isUpdated)
     }
 
@@ -260,16 +260,22 @@ final class EvaluationStorageTests: XCTestCase {
         XCTAssertFalse(storage.userAttributesState.isUpdated)
 
         storage.setUserAttributesUpdated()
-        let userAttributesState = storage.userAttributesState
-        let updatedVersion = userAttributesState.version
-        XCTAssertTrue(storage.userAttributesState.isUpdated)
+        let firstState = storage.userAttributesState
+        XCTAssertTrue(firstState.isUpdated)
+        XCTAssertEqual(firstState.version, 1)
+
+        storage.setUserAttributesUpdated()
+        let finalState = storage.userAttributesState
+
+        XCTAssertTrue(finalState.isUpdated)
+        XCTAssertEqual(finalState.version, 2)
 
         // Attempt to clear with an incorrect version
-        storage.clearUserAttributesUpdated(version: updatedVersion + 1)
+        XCTAssertFalse(storage.clearUserAttributesUpdated(state: firstState))
         XCTAssertTrue(storage.userAttributesState.isUpdated, "userAttributesUpdated should remain true when version does not match")
 
         // Now clear with the correct version
-        storage.clearUserAttributesUpdated(version: updatedVersion)
+        XCTAssertTrue(storage.clearUserAttributesUpdated(state: finalState))
         XCTAssertFalse(storage.userAttributesState.isUpdated, "userAttributesUpdated should be false after clearing with correct version")
     }
 
@@ -302,9 +308,8 @@ final class EvaluationStorageTests: XCTestCase {
             sdkQueue.async {
                 // Simulate SDK reading version for a fetch (Read)
                 let userAttributesState = storage.userAttributesState
-                let version = userAttributesState.version
                 // Simulate SDK clearing after fetch (Read/Write)
-                storage.clearUserAttributesUpdated(version: version)
+                storage.clearUserAttributesUpdated(state: userAttributesState)
                 group.leave()
             }
 
