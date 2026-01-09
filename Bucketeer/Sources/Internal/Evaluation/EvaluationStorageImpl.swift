@@ -30,8 +30,10 @@ final class EvaluationStorageImpl: EvaluationStorage {
     private var userAttributesUpdated: Bool {
         return evaluationUserDefaultsDao.userAttributesUpdated
     }
-    private var userAttributesUpdatedVersion: Int = 0
     private let setUserAttributesUpdatedLock = NSLock()
+    /// Version counter used as an in-memory transaction id for attribute updates.
+    /// Protected by `setUserAttributesUpdatedLock`.
+    private var userAttributesUpdatedVersion: Int = 0
 
     init(
         userId: String,
