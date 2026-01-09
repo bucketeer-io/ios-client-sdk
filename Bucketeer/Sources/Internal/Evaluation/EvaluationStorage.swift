@@ -20,7 +20,6 @@ protocol EvaluationStorage {
     var featureTag: String { get }
     // expected set evaluatedAt from `deleteAllAndInsert` or `update` only
     var evaluatedAt: String { get }
-    var userAttributesUpdated: Bool { get }
 
     // Current version and flag set when `setUserAttributesUpdated()` is called
     var userAttributesState: UserAttributesState { get }

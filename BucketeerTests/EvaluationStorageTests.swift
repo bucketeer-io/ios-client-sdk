@@ -221,7 +221,7 @@ final class EvaluationStorageTests: XCTestCase {
 
         XCTAssertEqual(storage.evaluatedAt, "0", "should = 0")
         XCTAssertEqual(storage.currentEvaluationsId, "")
-        XCTAssertFalse(storage.userAttributesUpdated)
+        XCTAssertFalse(storage.userAttributesState.isUpdated)
         XCTAssertEqual(storage.featureTag, "")
 
         storage.setUserAttributesUpdated()
@@ -239,11 +239,11 @@ final class EvaluationStorageTests: XCTestCase {
         XCTAssertTrue(result, "update action should success")
         XCTAssertEqual(storage.evaluatedAt, "1024", "should save last evaluatedAt")
         XCTAssertEqual(storage.currentEvaluationsId, "evaluationIdForTest")
-        XCTAssertTrue(storage.userAttributesUpdated)
+        XCTAssertTrue(storage.userAttributesState.isUpdated)
         XCTAssertEqual(storage.featureTag, "featureTagForTest")
 
         storage.clearUserAttributesUpdated(version: updatedVersion)
-        XCTAssertFalse(storage.userAttributesUpdated)
+        XCTAssertFalse(storage.userAttributesState.isUpdated)
     }
 
     func testShouldOnlyClearUserAttributesUpdatedWhenVersionMatches() throws {
@@ -257,20 +257,20 @@ final class EvaluationStorageTests: XCTestCase {
             evaluationUserDefaultsDao: mockUserDefsDao
         )
 
-        XCTAssertFalse(storage.userAttributesUpdated)
+        XCTAssertFalse(storage.userAttributesState.isUpdated)
 
         storage.setUserAttributesUpdated()
         let userAttributesState = storage.userAttributesState
         let updatedVersion = userAttributesState.version
-        XCTAssertTrue(storage.userAttributesUpdated)
+        XCTAssertTrue(storage.userAttributesState.isUpdated)
 
         // Attempt to clear with an incorrect version
         storage.clearUserAttributesUpdated(version: updatedVersion + 1)
-        XCTAssertTrue(storage.userAttributesUpdated, "userAttributesUpdated should remain true when version does not match")
+        XCTAssertTrue(storage.userAttributesState.isUpdated, "userAttributesUpdated should remain true when version does not match")
 
         // Now clear with the correct version
         storage.clearUserAttributesUpdated(version: updatedVersion)
-        XCTAssertFalse(storage.userAttributesUpdated, "userAttributesUpdated should be false after clearing with correct version")
+        XCTAssertFalse(storage.userAttributesState.isUpdated, "userAttributesUpdated should be false after clearing with correct version")
     }
 
     func testSetUserAttributesUpdatedConcurrency() {
