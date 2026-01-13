@@ -9,11 +9,6 @@ final class MockDefaults: Defaults {
     // Underlying storage; only access while synchronized on `queue`.
     private var _dict: [String: Any?] = [:]
 
-    private var dict: [String: Any?] {
-        get { queue.sync { _dict } }
-        set { queue.sync(flags: .barrier) { _dict = newValue } }
-    }
-
     func bool(forKey defaultName: String) -> Bool {
         return queue.sync { _dict[defaultName] as? Bool ?? false }
     }

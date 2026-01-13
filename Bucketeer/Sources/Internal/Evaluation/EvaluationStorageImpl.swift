@@ -26,10 +26,6 @@ final class EvaluationStorageImpl: EvaluationStorage {
     private let evaluationSQLDao: EvaluationSQLDao
     private let evaluationMemCacheDao: EvaluationMemCacheDao
     private let evaluationUserDefaultsDao: EvaluationUserDefaultsDao
-
-    private var userAttributesUpdated: Bool {
-        return evaluationUserDefaultsDao.userAttributesUpdated
-    }
     private let setUserAttributesUpdatedLock = NSLock()
     /// Version counter used as an in-memory transaction id for attribute updates.
     /// Protected by `setUserAttributesUpdatedLock`.
