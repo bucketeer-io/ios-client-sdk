@@ -51,11 +51,10 @@ protocol EvaluationStorage {
 /// whole across app restarts.
 ///
 /// The ephemeral nature of the version counter is intentional. We employ an Optimistic Locking pattern where the integer value does not need to persist across app restarts:
-/// On Restart: The persisted isUpdated flag is authoritative. If true, we trigger an immediate sync, regardless of the version.
-/// During Runtime: The version acts as a transaction ID to safely handle race conditions where user attributes change while a background fetch is in progress.
-/// Correctness: The update flag is only cleared via a Compare-and-Swap check (currentVersion == capturedVersion).
-/// If the user modifies attributes during a fetch, the version increments, the check fails, and the flag remains true to schedule a subsequent sync.
-
+/// - On restart: The persisted `isUpdated` flag is authoritative. If `true`, an immediate sync is triggered, regardless of the version.
+/// - During runtime: The `version` acts as a transaction ID to safely handle race conditions where user attributes change while a background fetch is in progress.
+/// - Correctness: The update flag is only cleared via a compare-and-swap check (`currentVersion == capturedVersion`).
+/// If the user modifies attributes during a fetch, the `version` increments, the check fails, and the flag remains `true` to schedule a subsequent sync.
 struct UserAttributesState {
     let version: Int
     let isUpdated: Bool

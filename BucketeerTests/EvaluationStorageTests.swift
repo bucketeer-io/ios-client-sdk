@@ -324,8 +324,10 @@ final class EvaluationStorageTests: XCTestCase {
         // Wait for all operations to complete
         let result = group.wait(timeout: .now() + 10.0)
         XCTAssertEqual(result, .success, "Test timed out")
-        // In 99.9% of runs, storage.userAttributesUpdated resolves to false, but we cannot guarantee this behavior every time due to async nature.
-        // The critical check is that the version counter matches the number of updates, proving no race conditions when incrementing.
+        // Due to the inherent race between concurrent "update" and "clear" operations, the final value of
+        // `userAttributesUpdated` can legitimately be either true or false. This test therefore only asserts
+        // that the version counter matches the number of update calls, proving there are no race conditions
+        // when incrementing the version.
         let userAttributesState = storage.userAttributesState
         XCTAssertEqual(userAttributesState.version, iterations, "Version should exactly match the number of update calls, proving no race conditions")
     }
