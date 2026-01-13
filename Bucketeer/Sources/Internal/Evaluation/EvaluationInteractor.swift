@@ -123,28 +123,6 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
         try evaluationStorage.refreshCache()
     }
 
-    /*
-     Note: Logical race condition on `userAttributesUpdated`
-
-     Problem:
-     - `userAttributesUpdated` is a boolean that only indicates "there exists at least one pending attribute change".
-     - If the flag is already `true` when a fetch starts, and attributes are updated again while the request is in-flight, the fetch cannot distinguish the new update from the old one.
-     - The fetch may clear the flag on completion (because it saw `true` at start), causing any updates that happened during the request to be lost.
-
-     Example (double-update):
-     1) flag = true
-     2) fetch starts and reads true
-     3) attributes updated again (flag remains true)
-     4) fetch completes and clears flag
-     5) the second update is never sent
-
-     Conclusion:
-     A single boolean cannot represent "which" update was sent; clearing it after a fetch can discard concurrent updates.
-     
-     Solution: Use a version number to track the state of user attributes updates.
-     Each update increments the version, and clearing only happens if the version matches
-     ensuring concurrent updates are not lost.
-    */
     func setUserAttributesUpdated() {
         // https://github.com/bucketeer-io/android-client-sdk/issues/69
         // userAttributesUpdated: when the user attributes change via the customAttributes interface,
