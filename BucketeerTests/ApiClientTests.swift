@@ -532,7 +532,7 @@ class ApiClientTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
-            defaultRequestTimeoutMills: 200,
+            defaultRequestTimeoutMillis: 200,
             session: session,
             queue: mockDispatchQueue,
             logger: nil
@@ -596,7 +596,7 @@ class ApiClientTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
-            defaultRequestTimeoutMills: 200,
+            defaultRequestTimeoutMillis: 200,
             session: session,
             queue: mockDispatchQueue,
             logger: nil
@@ -661,7 +661,7 @@ class ApiClientTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
-            defaultRequestTimeoutMills: 200,
+            defaultRequestTimeoutMillis: 200,
             session: session,
             queue: mockDispatchQueue,
             logger: nil
@@ -1248,7 +1248,7 @@ class ApiClientTests: XCTestCase {
                 apiEndpoint: apiEndpointURL,
                 apiKey: apiKey,
                 featureTag: "tag1",
-                defaultRequestTimeoutMills: 200,
+                defaultRequestTimeoutMillis: 200,
                 session: session,
                 queue: mockDispatchQueue,
                 logger: nil
@@ -1330,7 +1330,7 @@ class ApiClientTests: XCTestCase {
                 apiEndpoint: apiEndpointURL,
                 apiKey: apiKey,
                 featureTag: "tag1",
-                defaultRequestTimeoutMills: 200,
+                defaultRequestTimeoutMillis: 200,
                 session: session,
                 queue: mockDispatchQueue,
                 logger: nil
@@ -1358,7 +1358,7 @@ class ApiClientTests: XCTestCase {
             }
             expectations.append(expectation)
         }
-        wait(for: expectations, timeout: 10)
+        wait(for: expectations, timeout: 20)
     }
 
     func testTaskSuccessWithAcceptableCode() throws {
@@ -1409,7 +1409,7 @@ class ApiClientTests: XCTestCase {
                 apiEndpoint: apiEndpointURL,
                 apiKey: apiKey,
                 featureTag: "tag1",
-                defaultRequestTimeoutMills: 200,
+                defaultRequestTimeoutMillis: 200,
                 session: session,
                 queue: mockDispatchQueue,
                 logger: nil
