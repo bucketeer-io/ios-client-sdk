@@ -15,19 +15,9 @@ final class Retrier {
     typealias Condition = (Error) -> Bool
 
     private let dispatchQueue: DispatchQueue
-    private var dispathItem: DispatchWorkItem?
-
-    deinit {
-        print("Retrier deinitialized")
-    }
 
     init(queue: DispatchQueue) {
         self.dispatchQueue = queue
-    }
-
-    func cancel() {
-        self.dispathItem?.cancel()
-        self.dispathItem = nil
     }
 
     func attempt<T>(
@@ -57,19 +47,18 @@ final class Retrier {
             self?.dispatchQueue.async {
                 switch result {
                 case .success:
-                    self?.dispathItem = nil
                     completion(result)
                 case .failure(let error):
                     // If attempts remain AND condition is met (e.g. 499 or network error)
                     guard remaining > 1, condition(error) else {
-                        self?.dispathItem = nil
                         completion(result)
                         return
                     }
                     // Exponential backoff delay in seconds: 2^retryCount (e.g., 1s before the 1st retry, 2s before the 2nd retry)
                     let attemptsMade = maxAttempts - remaining
                     let nextDelay = pow(Retrier.DEFAULT_MULTIPLIER, Double(attemptsMade)) * Retrier.DEFAULT_BASE_DELAY_SECONDS
-                    let workItem = DispatchWorkItem {
+                    // Assign to the property so it can be cancelled
+                    self?.dispatchQueue.asyncAfter(deadline: .now() + nextDelay, execute: {
                         self?.attemptRecursive(
                             task: task,
                             condition: condition,
@@ -77,10 +66,7 @@ final class Retrier {
                             maxAttempts: maxAttempts,
                             completion: completion
                         )
-                    }
-                    // Assign to the property so it can be cancelled
-                    self?.dispathItem = workItem
-                    self?.dispatchQueue.asyncAfter(deadline: .now() + nextDelay, execute: workItem)
+                    })
                 }
             }
         }
