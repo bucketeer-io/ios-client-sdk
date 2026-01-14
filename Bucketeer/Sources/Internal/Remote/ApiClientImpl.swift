@@ -4,6 +4,7 @@ final class ApiClientImpl: ApiClient {
 
     static let DEFAULT_REQUEST_TIMEOUT_MILLIS: Int64 = 30_000
     static let CLIENT_CLOSED_THE_CONNECTION_CODE: Int = 499
+    static let DEFAULT_MAX_ATTEMPTS = 4 // 1 original try + 3 retries
 
     private let apiEndpoint: URL
     private let apiKey: String
@@ -78,8 +79,7 @@ final class ApiClientImpl: ApiClient {
         getEvaluationRetrier.attempt(
             task: task,
             condition: self.shouldRetry,
-            maxAttempts: 3,
-            delay: 1.0,
+            maxAttempts: ApiClientImpl.DEFAULT_MAX_ATTEMPTS, // 1 original try + 3 retries
             completion: { (result: Result<(GetEvaluationsResponse, URLResponse), Error>) in
                 switch result {
                 case .success((var response, let urlResponse)):
@@ -114,22 +114,11 @@ final class ApiClientImpl: ApiClient {
             return keys.last ?? keys[0]
         })
 
-        let task: Retrier.Task<(RegisterEventsResponse, URLResponse)> = { [weak self] callback in
-            guard let self = self else { return }
-            self.send(
-                requestBody: requestBody,
-                path: "register_events",
-                timeoutMillis: self.defaultRequestTimeoutMillis,
-                encoder: encoder,
-                completion: callback
-            )
-        }
-
-        sendEventsRetrier.attempt(
-            task: task,
-            condition: self.shouldRetry,
-            maxAttempts: 3,
-            delay: 1.0,
+        send(
+            requestBody: requestBody,
+            path: "register_events",
+            timeoutMillis: defaultRequestTimeoutMillis,
+            encoder: encoder,
             completion: { [self] (result: Result<(RegisterEventsResponse, URLResponse), Error>) in
                 switch result {
                 case .success((let response, _)):
