@@ -25,48 +25,52 @@ class ApiClientRetriableTests: XCTestCase {
 
     // MARK: - Test Case: Retriable with 499 - Valid JSON Response
     func testRetriableWith499StatusCode() throws {
-        let mockDataResponse = try JSONEncoder().encode(MockResponse())
+        let expectation = XCTestExpectation(description: "Should retry 3 times for 499 valid JSON")
+        expectation.expectedFulfillmentCount = 1
+        expectation.assertForOverFulfill = true
+
+        let userEvaluationsId: String = "user_evaluation1"
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
+        let path = "get_evaluations"
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
         let session = MockSession(
             configuration: .default,
-            data: mockDataResponse,
+            requestHandler: { request in
+                XCTAssertEqual(request.url?.path, "/\(path)")
+            },
+            data: nil,
             response: HTTPURLResponse(
                 url: apiEndpointURL.appendingPathComponent(path),
                 statusCode: 499,
                 httpVersion: nil,
                 headerFields: nil
-            ),
-            error: nil
+            )
         )
-
         let api = ApiClientImpl(
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
-            defaultRequestTimeoutMills: 200,
             session: session,
             queue: mockDispatchQueue,
             logger: nil
         )
 
-        let expectation = XCTestExpectation(description: "Should retry 3 times for 499 valid JSON")
-
         mockDispatchQueue.async {
-            api.send(
-                requestBody: MockRequestBody(),
-                path: path,
-                timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
+            api.getEvaluations(
+                user: .mock1,
+                userEvaluationsId: userEvaluationsId,
+                condition: UserEvaluationCondition(
+                    evaluatedAt: "0",
+                    userAttributesUpdated: false)
+            ) { result in
                 switch result {
-                case .success((_, _)):
+                case .success:
                     XCTFail("should not succeed")
-                case .failure(let error):
-                    guard let error = error as? ResponseError,
-                          case .unacceptableCode(let code, _) = error, code == 499 else {
-                        XCTFail("should be 499 unacceptable code error")
+                case .failure(let error, _):
+                    guard case .clientClosed(message: "Client Closed Request error") = error else {
+                        XCTFail("should be clientClosed (499) error")
                         return
                     }
                     XCTAssertEqual(session.requestCount(), 4, "Should attempt exactly 4 times for 499")
@@ -74,7 +78,6 @@ class ApiClientRetriableTests: XCTestCase {
                 expectation.fulfill()
             }
         }
-
         wait(for: [expectation], timeout: 20)
     }
 
@@ -101,7 +104,7 @@ class ApiClientRetriableTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
-            defaultRequestTimeoutMills: 200,
+            defaultRequestTimeoutMillis: 200,
             session: session,
             queue: mockDispatchQueue,
             logger: nil
@@ -156,7 +159,7 @@ class ApiClientRetriableTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
-            defaultRequestTimeoutMills: 200,
+            defaultRequestTimeoutMillis: 200,
             session: session,
             queue: mockDispatchQueue,
             logger: nil
@@ -211,7 +214,7 @@ class ApiClientRetriableTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
-            defaultRequestTimeoutMills: 200,
+            defaultRequestTimeoutMillis: 200,
             session: session,
             queue: mockDispatchQueue,
             logger: nil
@@ -267,7 +270,7 @@ class ApiClientRetriableTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
-            defaultRequestTimeoutMills: 200,
+            defaultRequestTimeoutMillis: 200,
             session: session,
             queue: mockDispatchQueue,
             logger: nil
@@ -330,7 +333,7 @@ class ApiClientRetriableTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
-            defaultRequestTimeoutMills: 200,
+            defaultRequestTimeoutMillis: 200,
             session: session,
             queue: mockDispatchQueue,
             logger: nil
@@ -398,7 +401,7 @@ class ApiClientRetriableTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
-            defaultRequestTimeoutMills: 200,
+            defaultRequestTimeoutMillis: 200,
             session: session,
             queue: mockDispatchQueue,
             logger: nil
@@ -460,7 +463,7 @@ class ApiClientRetriableTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
-            defaultRequestTimeoutMills: 200,
+            defaultRequestTimeoutMillis: 200,
             session: session,
             queue: mockDispatchQueue,
             logger: nil
@@ -528,7 +531,7 @@ class ApiClientRetriableTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
-            defaultRequestTimeoutMills: 200,
+            defaultRequestTimeoutMillis: 200,
             session: session,
             queue: mockDispatchQueue,
             logger: nil
@@ -590,7 +593,7 @@ class ApiClientRetriableTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
-            defaultRequestTimeoutMills: 200,
+            defaultRequestTimeoutMillis: 200,
             session: session,
             queue: mockDispatchQueue,
             logger: nil
@@ -658,7 +661,7 @@ class ApiClientRetriableTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
-            defaultRequestTimeoutMills: 200,
+            defaultRequestTimeoutMillis: 200,
             session: session,
             queue: mockDispatchQueue,
             logger: nil
@@ -721,7 +724,7 @@ class ApiClientRetriableTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
-            defaultRequestTimeoutMills: 200,
+            defaultRequestTimeoutMillis: 200,
             session: session,
             queue: mockDispatchQueue,
             logger: nil

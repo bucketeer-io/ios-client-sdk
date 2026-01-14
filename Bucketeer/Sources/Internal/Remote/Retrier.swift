@@ -1,5 +1,10 @@
 import Foundation
 
+/// Retrier executes asynchronous tasks and handles retries using an exponential backoff strategy.
+///
+/// - Important: This class is not thread-safe.
+/// It is designed to be used serially within the context of the `DispatchQueue` provided at initialization.
+/// To ensure thread safety, all calls to public methods (such as `attempt` and `cancel`) must be dispatched on that specific queue.
 final class Retrier {
 
     private static let DEFAULT_BASE_DELAY_SECONDS = 1.0 // in seconds
@@ -10,23 +15,32 @@ final class Retrier {
     typealias Condition = (Error) -> Bool
 
     private let dispatchQueue: DispatchQueue
+    private var dispathItem: DispatchWorkItem?
+
+    deinit {
+        print("Retrier deinitialized")
+    }
 
     init(queue: DispatchQueue) {
         self.dispatchQueue = queue
+    }
+
+    func cancel() {
+        self.dispathItem?.cancel()
+        self.dispathItem = nil
     }
 
     func attempt<T>(
         task: @escaping Task<T>,
         condition: @escaping Condition = { _ in true },
         maxAttempts: Int = 3,
-        delay: TimeInterval = 1.0,
         completion: @escaping TaskCallback<T>
     ) {
         attemptRecursive(
             task: task,
             condition: condition,
             remaining: maxAttempts,
-            delay: delay,
+            maxAttempts: maxAttempts,
             completion: completion
         )
     }
@@ -35,29 +49,38 @@ final class Retrier {
         task: @escaping Task<T>,
         condition: @escaping Condition,
         remaining: Int,
-        delay: TimeInterval,
+        maxAttempts: Int,
         completion: @escaping TaskCallback<T>
     ) {
         task { [weak self] result in
-            switch result {
-            case .success:
-                completion(result)
-            case .failure(let error):
-                // If attempts remain AND condition is met (e.g. 499 or network error)
-                guard remaining > 1, condition(error) else {
+            // 1. Ensure thread safety: Jump back to the specific queue to access/modify properties
+            self?.dispatchQueue.async {
+                switch result {
+                case .success:
+                    self?.dispathItem = nil
                     completion(result)
-                    return
-                }
-                // Exponential backoff delay in seconds: 2^retryCount (e.g., 1s before the 1st retry, 2s before the 2nd retry)
-                let nextDelay = pow(Retrier.DEFAULT_MULTIPLIER, Double(remaining)) * Retrier.DEFAULT_BASE_DELAY_SECONDS
-                self?.dispatchQueue.asyncAfter(deadline: .now() + delay) {
-                    self?.attemptRecursive(
-                        task: task,
-                        condition: condition,
-                        remaining: remaining - 1,
-                        delay: nextDelay,
-                        completion: completion
-                    )
+                case .failure(let error):
+                    // If attempts remain AND condition is met (e.g. 499 or network error)
+                    guard remaining > 1, condition(error) else {
+                        self?.dispathItem = nil
+                        completion(result)
+                        return
+                    }
+                    // Exponential backoff delay in seconds: 2^retryCount (e.g., 1s before the 1st retry, 2s before the 2nd retry)
+                    let attemptsMade = maxAttempts - remaining
+                    let nextDelay = pow(Retrier.DEFAULT_MULTIPLIER, Double(attemptsMade)) * Retrier.DEFAULT_BASE_DELAY_SECONDS
+                    let workItem = DispatchWorkItem {
+                        self?.attemptRecursive(
+                            task: task,
+                            condition: condition,
+                            remaining: remaining - 1,
+                            maxAttempts: maxAttempts,
+                            completion: completion
+                        )
+                    }
+                    // Assign to the property so it can be cancelled
+                    self?.dispathItem = workItem
+                    self?.dispatchQueue.asyncAfter(deadline: .now() + nextDelay, execute: workItem)
                 }
             }
         }
