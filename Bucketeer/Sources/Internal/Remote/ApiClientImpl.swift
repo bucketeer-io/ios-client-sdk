@@ -4,7 +4,7 @@ final class ApiClientImpl: ApiClient {
 
     static let DEFAULT_REQUEST_TIMEOUT_MILLIS: Int64 = 30_000
     static let CLIENT_CLOSED_THE_CONNECTION_CODE: Int = 499
-    static let DEFAULT_MAX_RETRY_ATTEMPTS: Int = 3
+    static let DEFAULT_MAX_ATTEMPTS = 4 // 1 original try + 3 retries
     static let DEFAULT_BASE_DELAY_SECONDS = 1.0 // in seconds
 
     private let apiEndpoint: URL
@@ -17,6 +17,7 @@ final class ApiClientImpl: ApiClient {
     private let semaphore = DispatchSemaphore(value: 0)
     // Dispatch queue for retry backoff, it should be the same with the SDK queue
     private let dispatchQueue: DispatchQueue
+    private let retrier: Retrier
     private var closed = false
 
     deinit {
@@ -44,6 +45,7 @@ final class ApiClientImpl: ApiClient {
         self.logger = logger
         self.dispatchQueue = queue
         self.session.configuration.timeoutIntervalForRequest = TimeInterval(self.defaultRequestTimeoutMillis) / 1000
+        self.retrier = Retrier(queue: queue)
     }
 
     func getEvaluations(
@@ -69,7 +71,7 @@ final class ApiClientImpl: ApiClient {
         logger?.debug(message: "[API] Fetch Evaluation: \(requestBody)")
         send(
             requestBody: requestBody,
-            path: "get_evaluations",
+            path: ApiPaths.getEvaluations.rawValue,
             timeoutMillis: timeoutMillisValue,
             completion: { (result: Result<(GetEvaluationsResponse, URLResponse), Error>) in
                 switch result {
@@ -109,7 +111,7 @@ final class ApiClientImpl: ApiClient {
         let timeoutMillisValue = defaultRequestTimeoutMillis
         send(
             requestBody: requestBody,
-            path: "register_events",
+            path: ApiPaths.registerEvents.rawValue,
             timeoutMillis: defaultRequestTimeoutMillis,
             encoder: encoder,
             completion: { (result: Result<(RegisterEventsResponse, URLResponse), Error>) in
@@ -123,26 +125,6 @@ final class ApiClientImpl: ApiClient {
         )
     }
 
-    func send<RequestBody: Encodable, Response: Decodable>(
-        requestBody: RequestBody,
-        path: String,
-        timeoutMillis: Int64,
-        encoder: JSONEncoder = JSONEncoder(),
-        completion: ((Result<(Response, URLResponse), Error>) -> Void)?) {
-        if closed {
-            completion?(.failure(BKTError.illegalState(message: "API Client has been closed")))
-            return
-        }
-
-        sendRetriable(
-            requestBody: requestBody,
-            path: path,
-            timeoutMillis: timeoutMillis,
-            encoder: encoder,
-            completion: completion
-        )
-    }
-
     /// Sends a network request with automatic retry logic for transient failures.
     ///
     /// This method implements an exponential backoff retry strategy for specific error conditions.
@@ -153,11 +135,10 @@ final class ApiClientImpl: ApiClient {
     ///   - path: The API endpoint path to append to the base URL
     ///   - timeoutMillis: Request timeout in milliseconds
     ///   - encoder: JSON encoder for the request body (default: JSONEncoder())
-    ///   - retryCount: Current retry attempt number (default: 0, used internally)
     ///   - completion: Callback with the result of the request
     ///
     /// - Retry Behavior:
-    ///   - **Maximum Attempts**: 3 total attempts (initial + 2 retries)
+    ///   - **Maximum Attempts**: 4 total attempts (initial + 3 retries)
     ///   - **Retry Condition**: Only HTTP 499 status code
     ///   - **Backoff Strategy**: Exponential with base delay of 1 second
     ///     - 1st retry: 1 second delay
@@ -166,71 +147,41 @@ final class ApiClientImpl: ApiClient {
     ///
     /// - Note: All other errors (network failures, HTTP 4xx/5xx codes except 499) will not trigger retries
     ///         and will be returned immediately via the completion handler.
-    private func sendRetriable<RequestBody: Encodable, Response: Decodable>(
+    func send<RequestBody: Encodable, Response: Decodable>(
         requestBody: RequestBody,
         path: String,
         timeoutMillis: Int64,
         encoder: JSONEncoder = JSONEncoder(),
-        retryCount: Int = 0,
         completion: ((Result<(Response, URLResponse), Error>) -> Void)?) {
-
-        let result: Result<(Response, URLResponse), Error> = sendInternal(
-            requestBody: requestBody,
-            path: path,
-            timeoutMillis: timeoutMillis,
-            encoder: encoder
-        )
-
-        switch result {
-        case .success:
-            completion?(result)
-        case .failure(let error):
-            // total attempts = initial request + ApiClientImpl.DEFAULT_MAX_RETRY_ATTEMPTS (3) = 4
-            let maxAttempts = ApiClientImpl.DEFAULT_MAX_RETRY_ATTEMPTS
-            if retryCount < maxAttempts {
-                var shouldRetry = false
-                if let respErr = error as? ResponseError {
-                    switch respErr {
-                    case .unacceptableCode(let code, _):
-                        // Should retry for 499 status code
-                        if code == ApiClientImpl.CLIENT_CLOSED_THE_CONNECTION_CODE { shouldRetry = true }
-                    default:
-                        break
-                    }
-                }
-
-                if shouldRetry {
-                    // Exponential backoff delay in seconds: 2^retryCount (e.g., 1s before the 1st retry, 2s before the 2nd retry)
-                    let backoff = pow(2.0, Double(retryCount)) * ApiClientImpl.DEFAULT_BASE_DELAY_SECONDS
-                    let workItem = DispatchWorkItem { [weak self] in
-                        // IMPORTANT: [weak self] is intentional here.
-                        // If ApiClient is deallocated during retry backoff, the retry should be cancelled.
-                        // No callback should be invoked after ApiClient is deallocated.
-                        self?.sendRetriable(
-                                requestBody: requestBody,
-                                path: path,
-                                timeoutMillis: timeoutMillis,
-                                encoder: encoder,
-                                retryCount: retryCount + 1,
-                                completion: completion
-                            )
-                        }
-                    dispatchQueue.asyncAfter(deadline: .now() + backoff, execute: workItem)
-                    return
-                }
+            let task: Retrier.Task<(Response, URLResponse)> = { [weak self] callback in
+                self?.sendInternal(
+                    requestBody: requestBody,
+                    path: path,
+                    timeoutMillis: timeoutMillis,
+                    completion: callback
+                )
             }
-            completion?(result)
+
+            retrier.attempt(
+                task: task,
+                condition: self.shouldRetry,
+                maxAttempts: ApiClientImpl.DEFAULT_MAX_ATTEMPTS, // 1 original try + 3 retries
+                completion: { (result: Result<(Response, URLResponse), Error>) in
+                    completion?(result)
+                }
+            )
         }
-    }
 
     // noted: this method will run `synchronized`. It will blocking the current queue please do not make network call from the app main thread
-    private func sendInternal<RequestBody: Encodable, Response: Decodable>(
+    func sendInternal<RequestBody: Encodable, Response: Decodable>(
         requestBody: RequestBody,
         path: String,
         timeoutMillis: Int64,
-        encoder: JSONEncoder = JSONEncoder()) -> (Result<(Response, URLResponse), Error>) {
+        encoder: JSONEncoder = JSONEncoder(),
+        completion: ((Result<(Response, URLResponse), Error>) -> Void)?) {
         if closed {
-            return .failure(BKTError.illegalState(message: "API Client has been closed"))
+            completion?(.failure(BKTError.illegalState(message: "API Client has been closed")))
+            return
         }
 
         let requestId = Date().unixTimestamp
@@ -294,11 +245,6 @@ final class ApiClientImpl: ApiClient {
                 self?.semaphore.signal()
             }
 
-            // session.task runs asynchronously on URLSession's background thread/queue, NOT on io.bucketeer.taskQueue.
-            // Without semaphore.wait() below, sendInternal would return immediately, allowing the next queued operation
-            // on io.bucketeer.taskQueue to execute before this network request completes.
-            // The semaphore blocks io.bucketeer.taskQueue until the completion handler calls semaphore.signal(),
-            // ensuring serial execution of network requests across the SDK.
             session.task(with: request) { data, urlResponse, error in
                 let output = responseParser(data, urlResponse, error)
                 requestHandler(output)
@@ -307,17 +253,17 @@ final class ApiClientImpl: ApiClient {
             logger?.debug(message: "[API] RequestID wait: \(requestId)")
             semaphore.wait()
             logger?.debug(message: "[API] RequestID finished: \(requestId)")
-            guard let finalResult = result else {
-                return .failure(BKTError.illegalState(message: "fail to handle the request result"))
+            guard result != nil else {
+                completion?(.failure(BKTError.illegalState(message: "fail to handle the request result")))
+                return
             }
-            // Success
-            return finalResult
+            completion?(result!)
         } catch let error {
             // catch error may throw before sending the request
             // runtime error will handle in the session callback
             // so that we will not required call `semephore.signal()` here
             logger?.debug(message: "[API] RequestID: \(requestId) could not request with error \(error.localizedDescription)")
-            return .failure(error)
+            completion?(.failure(error))
         }
     }
 
@@ -325,6 +271,20 @@ final class ApiClientImpl: ApiClient {
         // we access API client from the SDK queue only, so its safe
         closed = true
         session.invalidateAndCancel()
+    }
+
+    private func shouldRetry(error: Error) -> Bool {
+        if let responseError = error as? ResponseError {
+            switch responseError {
+            case .unacceptableCode(let code, _):
+                if code == ApiClientImpl.CLIENT_CLOSED_THE_CONNECTION_CODE {
+                    return true
+                }
+            default:
+                return false
+            }
+        }
+        return false
     }
 }
 

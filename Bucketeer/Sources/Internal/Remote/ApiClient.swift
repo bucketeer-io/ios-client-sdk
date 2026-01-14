@@ -1,5 +1,10 @@
 import Foundation
 
+enum ApiPaths: String {
+    case getEvaluations = "get_evaluations"
+    case registerEvents = "register_events"
+}
+
 protocol ApiClient {
     func getEvaluations(
         user: User,
