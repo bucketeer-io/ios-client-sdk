@@ -300,20 +300,20 @@ class ApiClientRetriableTests: XCTestCase {
 
     // MARK: - Test Case: Sequential Status Codes - 499, then 4xx
     func testSequentialStatusCodes_499_Then_4xx() throws {
+        let expectation = XCTestExpectation(description: "Should attempt 2 times: 499, then 4xx")
+        expectation.expectedFulfillmentCount = 1
+        expectation.assertForOverFulfill = true
+
+        let userEvaluationsId: String = "user_evaluation1"
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
+        let path = "get_evaluations"
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
         var session = MockSession(
             configuration: .default,
-            data: Data("".utf8),
-            response: HTTPURLResponse(
-                url: apiEndpointURL.appendingPathComponent(path),
-                statusCode: 499,
-                httpVersion: nil,
-                headerFields: nil
-            ),
+            data: nil,
+            response: nil,
             error: nil
         )
 
@@ -339,22 +339,19 @@ class ApiClientRetriableTests: XCTestCase {
             logger: nil
         )
 
-        let expectation = XCTestExpectation(description: "Should attempt 2 times: 499, then 4xx")
-
         mockDispatchQueue.async {
-            api.send(
-                requestBody: MockRequestBody(),
-                path: path,
-                timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
+            api.getEvaluations(
+                user: .mock1,
+                userEvaluationsId: userEvaluationsId,
+                condition: UserEvaluationCondition(
+                    evaluatedAt: "0",
+                    userAttributesUpdated: false)
+            ) { result in
                 switch result {
                 case .success:
                     XCTFail("should not succeed")
-                case .failure(let error):
-                    guard let error = error as? ResponseError,
-                          case .unacceptableCode(let code, _) = error, code == 400 else {
-                        XCTFail("should be 400 unacceptable code error")
-                        return
-                    }
+                case .failure(let error, _):
+                    XCTAssertEqual(error, BKTError.badRequest(message: "BadRequest error"))
                     XCTAssertEqual(session.requestCount(), 2, "Should attempt exactly 2 times: 499 then 4xx")
                 }
                 expectation.fulfill()
@@ -366,28 +363,39 @@ class ApiClientRetriableTests: XCTestCase {
 
     // MARK: - Test Case: Sequential Status Codes - 499, then 2xx (success)
     func testSequentialStatusCodes_499_Then_2xx() throws {
-        let mockResponse = try JSONEncoder().encode(MockResponse())
+        let expectation = XCTestExpectation(description: "Should attempt 2 times: 499, then 200 (success)")
+        expectation.expectedFulfillmentCount = 1
+        expectation.assertForOverFulfill = true
+
+        let userEvaluationsId: String = "user_evaluation1"
+        let evaluations: [Evaluation] = [.mock1, .mock2]
+        let mockValidResponse = GetEvaluationsResponse(
+            evaluations: .init(
+                id: userEvaluationsId,
+                evaluations: evaluations,
+                createdAt: "11223344",
+                forceUpdate: true,
+                archivedFeatureIds: ["removed_featureId_1", "removed_featureId_2"]
+            ),
+            userEvaluationsId: userEvaluationsId
+        )
+        let mockDataResponse = try JSONEncoder().encode(mockValidResponse)
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
+        let path = "get_evaluations"
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
         var session = MockSession(
             configuration: .default,
-            data: Data("".utf8),
-            response: HTTPURLResponse(
-                url: apiEndpointURL.appendingPathComponent(path),
-                statusCode: 499,
-                httpVersion: nil,
-                headerFields: nil
-            ),
+            data: nil,
+            response: nil,
             error: nil
         )
 
         // Use responseProvider to return different responses based on requestCount
         session.responseProvider = { _, count in
             let statusCode = count == 1 ? 499 : 200
-            let responseData = count == 1 ? Data("".utf8) : mockResponse
+            let responseData = count == 1 ? Data("".utf8): mockDataResponse
             let response = HTTPURLResponse(
                 url: apiEndpointURL.appendingPathComponent(path),
                 statusCode: statusCode,
@@ -407,22 +415,31 @@ class ApiClientRetriableTests: XCTestCase {
             logger: nil
         )
 
-        let expectation = XCTestExpectation(description: "Should attempt 2 times: 499, then 200 (success)")
-
         mockDispatchQueue.async {
-            api.send(
-                requestBody: MockRequestBody(),
-                path: path,
-                timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
-                    switch result {
-                    case .success((let response, _)):
-                        XCTAssertEqual(response.value, "response")
-                        XCTAssertEqual(session.requestCount(), 2, "Should attempt exactly 2 times: 499 then 200")
-                    case .failure(let error):
-                        XCTFail("should not fail: \(error)")
-                    }
-                    expectation.fulfill()
+            api.getEvaluations(
+                user: .mock1,
+                userEvaluationsId: userEvaluationsId,
+                condition: UserEvaluationCondition(
+                    evaluatedAt: "0",
+                    userAttributesUpdated: false)
+            ) { result in
+                switch result {
+                case .success(let response):
+                    XCTAssertEqual(response.evaluations.evaluations, evaluations)
+                    XCTAssertEqual(response.evaluations.id, userEvaluationsId)
+                    XCTAssertEqual(response.evaluations.forceUpdate, true)
+                    XCTAssertEqual(response.evaluations.archivedFeatureIds, ["removed_featureId_1", "removed_featureId_2"])
+                    XCTAssertEqual(response.evaluations.createdAt, "11223344")
+                    XCTAssertEqual(response.userEvaluationsId, userEvaluationsId)
+                    XCTAssertNotEqual(response.seconds, 0)
+                    XCTAssertNotEqual(response.sizeByte, 0)
+                    XCTAssertEqual(response.featureTag, "tag1")
+                    XCTAssertEqual(session.requestCount(), 2, "Should attempt exactly 2 times: 499 then 200")
+                case .failure(let error, _):
+                    XCTFail("should not fail: \(error)")
                 }
+                expectation.fulfill()
+            }
         }
 
         wait(for: [expectation], timeout: 5)
@@ -430,20 +447,20 @@ class ApiClientRetriableTests: XCTestCase {
 
     // MARK: - Test Case: Sequential Status Codes - 499, 499, then 4xx
     func testSequentialStatusCodes_499_499_Then_4xx() throws {
+        let expectation = XCTestExpectation(description: "Should attempt 3 times: 499, 499 then 4xx")
+        expectation.expectedFulfillmentCount = 1
+        expectation.assertForOverFulfill = true
+
+        let userEvaluationsId: String = "user_evaluation1"
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
+        let path = "get_evaluations"
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
         var session = MockSession(
             configuration: .default,
-            data: Data("".utf8),
-            response: HTTPURLResponse(
-                url: apiEndpointURL.appendingPathComponent(path),
-                statusCode: 499,
-                httpVersion: nil,
-                headerFields: nil
-            ),
+            data: nil,
+            response: nil,
             error: nil
         )
 
@@ -469,23 +486,20 @@ class ApiClientRetriableTests: XCTestCase {
             logger: nil
         )
 
-        let expectation = XCTestExpectation(description: "Should attempt 3 times: 499, 499, then 4xx")
-
         mockDispatchQueue.async {
-            api.send(
-                requestBody: MockRequestBody(),
-                path: path,
-                timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
+            api.getEvaluations(
+                user: .mock1,
+                userEvaluationsId: userEvaluationsId,
+                condition: UserEvaluationCondition(
+                    evaluatedAt: "0",
+                    userAttributesUpdated: false)
+            ) { result in
                 switch result {
                 case .success:
                     XCTFail("should not succeed")
-                case .failure(let error):
-                    guard let error = error as? ResponseError,
-                          case .unacceptableCode(let code, _) = error, code == 400 else {
-                        XCTFail("should be 400 unacceptable code error")
-                        return
-                    }
-                    XCTAssertEqual(session.requestCount(), 3, "Should attempt exactly 3 times: 499, 499, then 4xx")
+                case .failure(let error, _):
+                    XCTAssertEqual(error, BKTError.badRequest(message: "BadRequest error"))
+                    XCTAssertEqual(session.requestCount(), 3, "Should attempt exactly 3 times: 499, 499 then 4xx")
                 }
                 expectation.fulfill()
             }
@@ -496,28 +510,39 @@ class ApiClientRetriableTests: XCTestCase {
 
     // MARK: - Test Case: Sequential Status Codes - 499, 499, then 2xx (success)
     func testSequentialStatusCodes_499_499_Then_2xx() throws {
-        let mockResponse = try JSONEncoder().encode(MockResponse())
+        let expectation = XCTestExpectation(description: "Should attempt 3 times: 499, 499 then 200 (success)")
+        expectation.expectedFulfillmentCount = 1
+        expectation.assertForOverFulfill = true
+
+        let userEvaluationsId: String = "user_evaluation1"
+        let evaluations: [Evaluation] = [.mock1, .mock2]
+        let mockValidResponse = GetEvaluationsResponse(
+            evaluations: .init(
+                id: userEvaluationsId,
+                evaluations: evaluations,
+                createdAt: "11223344",
+                forceUpdate: true,
+                archivedFeatureIds: ["removed_featureId_1", "removed_featureId_2"]
+            ),
+            userEvaluationsId: userEvaluationsId
+        )
+        let mockDataResponse = try JSONEncoder().encode(mockValidResponse)
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
+        let path = "get_evaluations"
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
         var session = MockSession(
             configuration: .default,
-            data: Data("".utf8),
-            response: HTTPURLResponse(
-                url: apiEndpointURL.appendingPathComponent(path),
-                statusCode: 499,
-                httpVersion: nil,
-                headerFields: nil
-            ),
+            data: nil,
+            response: nil,
             error: nil
         )
 
         // Use responseProvider to return different responses based on requestCount
         session.responseProvider = { _, count in
             let statusCode = count < 3 ? 499 : 200
-            let responseData = count < 3 ? Data("".utf8) : mockResponse
+            let responseData = count == 1 ? Data("".utf8): mockDataResponse
             let response = HTTPURLResponse(
                 url: apiEndpointURL.appendingPathComponent(path),
                 statusCode: statusCode,
@@ -537,22 +562,31 @@ class ApiClientRetriableTests: XCTestCase {
             logger: nil
         )
 
-        let expectation = XCTestExpectation(description: "Should attempt 3 times: 499, 499, then 200 (success)")
-
         mockDispatchQueue.async {
-            api.send(
-                requestBody: MockRequestBody(),
-                path: path,
-                timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
-                    switch result {
-                    case .success((let response, _)):
-                        XCTAssertEqual(response.value, "response")
-                        XCTAssertEqual(session.requestCount(), 3, "Should attempt exactly 3 times: 499, 499, then 200")
-                    case .failure(let error):
-                        XCTFail("should not fail: \(error)")
-                    }
-                    expectation.fulfill()
+            api.getEvaluations(
+                user: .mock1,
+                userEvaluationsId: userEvaluationsId,
+                condition: UserEvaluationCondition(
+                    evaluatedAt: "0",
+                    userAttributesUpdated: false)
+            ) { result in
+                switch result {
+                case .success(let response):
+                    XCTAssertEqual(response.evaluations.evaluations, evaluations)
+                    XCTAssertEqual(response.evaluations.id, userEvaluationsId)
+                    XCTAssertEqual(response.evaluations.forceUpdate, true)
+                    XCTAssertEqual(response.evaluations.archivedFeatureIds, ["removed_featureId_1", "removed_featureId_2"])
+                    XCTAssertEqual(response.evaluations.createdAt, "11223344")
+                    XCTAssertEqual(response.userEvaluationsId, userEvaluationsId)
+                    XCTAssertNotEqual(response.seconds, 0)
+                    XCTAssertNotEqual(response.sizeByte, 0)
+                    XCTAssertEqual(response.featureTag, "tag1")
+                    XCTAssertEqual(session.requestCount(), 3, "Should attempt exactly 3 times: 499, 499 then 200")
+                case .failure(let error, _):
+                    XCTFail("should not fail: \(error)")
                 }
+                expectation.fulfill()
+            }
         }
 
         wait(for: [expectation], timeout: 5)
@@ -560,20 +594,20 @@ class ApiClientRetriableTests: XCTestCase {
 
     // MARK: - Test Case: Sequential Status Codes - 499, 499, 499 then 4xx
     func testSequentialStatusCodes_499_499_499_Then_4xx() throws {
+        let expectation = XCTestExpectation(description: "Should attempt 4 times: 499, 499, 499 then 4xx")
+        expectation.expectedFulfillmentCount = 1
+        expectation.assertForOverFulfill = true
+
+        let userEvaluationsId: String = "user_evaluation1"
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
+        let path = "get_evaluations"
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
         var session = MockSession(
             configuration: .default,
-            data: Data("".utf8),
-            response: HTTPURLResponse(
-                url: apiEndpointURL.appendingPathComponent(path),
-                statusCode: 499,
-                httpVersion: nil,
-                headerFields: nil
-            ),
+            data: nil,
+            response: nil,
             error: nil
         )
 
@@ -599,23 +633,20 @@ class ApiClientRetriableTests: XCTestCase {
             logger: nil
         )
 
-        let expectation = XCTestExpectation(description: "Should attempt 4 times: 499, 499, 499, then 4xx")
-
         mockDispatchQueue.async {
-            api.send(
-                requestBody: MockRequestBody(),
-                path: path,
-                timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
+            api.getEvaluations(
+                user: .mock1,
+                userEvaluationsId: userEvaluationsId,
+                condition: UserEvaluationCondition(
+                    evaluatedAt: "0",
+                    userAttributesUpdated: false)
+            ) { result in
                 switch result {
                 case .success:
                     XCTFail("should not succeed")
-                case .failure(let error):
-                    guard let error = error as? ResponseError,
-                          case .unacceptableCode(let code, _) = error, code == 400 else {
-                        XCTFail("should be 400 unacceptable code error")
-                        return
-                    }
-                    XCTAssertEqual(session.requestCount(), 4, "Should attempt exactly 4 times: 499, 499, 499, then 4xx")
+                case .failure(let error, _):
+                    XCTAssertEqual(error, BKTError.badRequest(message: "BadRequest error"))
+                    XCTAssertEqual(session.requestCount(), 4, "Should attempt exactly 4 times: 499, 499, 499 then 4xx")
                 }
                 expectation.fulfill()
             }
@@ -626,28 +657,39 @@ class ApiClientRetriableTests: XCTestCase {
 
     // MARK: - Test Case: Sequential Status Codes - 499, 499, 499 then 2xx
     func testSequentialStatusCodes_499_499_499_Then_2xx() throws {
-        let mockResponse = try JSONEncoder().encode(MockResponse())
+        let expectation = XCTestExpectation(description: "Should attempt 4 times: 499, 499, 499 then 200 (success)")
+        expectation.expectedFulfillmentCount = 1
+        expectation.assertForOverFulfill = true
+
+        let userEvaluationsId: String = "user_evaluation1"
+        let evaluations: [Evaluation] = [.mock1, .mock2]
+        let mockValidResponse = GetEvaluationsResponse(
+            evaluations: .init(
+                id: userEvaluationsId,
+                evaluations: evaluations,
+                createdAt: "11223344",
+                forceUpdate: true,
+                archivedFeatureIds: ["removed_featureId_1", "removed_featureId_2"]
+            ),
+            userEvaluationsId: userEvaluationsId
+        )
+        let mockDataResponse = try JSONEncoder().encode(mockValidResponse)
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
+        let path = "get_evaluations"
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
         var session = MockSession(
             configuration: .default,
-            data: Data("".utf8),
-            response: HTTPURLResponse(
-                url: apiEndpointURL.appendingPathComponent(path),
-                statusCode: 499,
-                httpVersion: nil,
-                headerFields: nil
-            ),
+            data: nil,
+            response: nil,
             error: nil
         )
 
         // Use responseProvider to return different responses based on requestCount
         session.responseProvider = { _, count in
             let statusCode = count < 4 ? 499 : 200
-            let responseData = count < 4 ? Data("".utf8) : mockResponse
+            let responseData = count == 1 ? Data("".utf8): mockDataResponse
             let response = HTTPURLResponse(
                 url: apiEndpointURL.appendingPathComponent(path),
                 statusCode: statusCode,
@@ -667,22 +709,31 @@ class ApiClientRetriableTests: XCTestCase {
             logger: nil
         )
 
-        let expectation = XCTestExpectation(description: "Should attempt 4 times: 499, 499, 499, then 200 (success)")
-
         mockDispatchQueue.async {
-            api.send(
-                requestBody: MockRequestBody(),
-                path: path,
-                timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
-                    switch result {
-                    case .success((let response, _)):
-                        XCTAssertEqual(response.value, "response")
-                        XCTAssertEqual(session.requestCount(), 4, "Should attempt exactly 4 times: 499, 499, 499, then 200")
-                    case .failure(let error):
-                        XCTFail("should not fail: \(error)")
-                    }
-                    expectation.fulfill()
+            api.getEvaluations(
+                user: .mock1,
+                userEvaluationsId: userEvaluationsId,
+                condition: UserEvaluationCondition(
+                    evaluatedAt: "0",
+                    userAttributesUpdated: false)
+            ) { result in
+                switch result {
+                case .success(let response):
+                    XCTAssertEqual(response.evaluations.evaluations, evaluations)
+                    XCTAssertEqual(response.evaluations.id, userEvaluationsId)
+                    XCTAssertEqual(response.evaluations.forceUpdate, true)
+                    XCTAssertEqual(response.evaluations.archivedFeatureIds, ["removed_featureId_1", "removed_featureId_2"])
+                    XCTAssertEqual(response.evaluations.createdAt, "11223344")
+                    XCTAssertEqual(response.userEvaluationsId, userEvaluationsId)
+                    XCTAssertNotEqual(response.seconds, 0)
+                    XCTAssertNotEqual(response.sizeByte, 0)
+                    XCTAssertEqual(response.featureTag, "tag1")
+                    XCTAssertEqual(session.requestCount(), 4, "Should attempt exactly 4 times: 499, 499, 499 then 200")
+                case .failure(let error, _):
+                    XCTFail("should not fail: \(error)")
                 }
+                expectation.fulfill()
+            }
         }
 
         wait(for: [expectation], timeout: 15)
@@ -690,77 +741,69 @@ class ApiClientRetriableTests: XCTestCase {
 
     // MARK: - Test Case: Cancel Ongoing Request During Retry
     func testCancelOngoingRequestDuringRetry() throws {
+        let expectation = XCTestExpectation(description: "Should fail with illegalState after client is closed")
+        expectation.expectedFulfillmentCount = 1
+        expectation.assertForOverFulfill = true
+
+        let userEvaluationsId: String = "user_evaluation1"
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
+        let path = "get_evaluations"
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
-        var session = MockSession(
+        let session = MockSession(
             configuration: .default,
-            data: Data("".utf8),
+            requestHandler: { request in
+                XCTAssertEqual(request.url?.path, "/\(path)")
+            },
+            data: nil,
             response: HTTPURLResponse(
                 url: apiEndpointURL.appendingPathComponent(path),
                 statusCode: 499,
                 httpVersion: nil,
                 headerFields: nil
-            ),
-            error: nil
-        )
-
-        // First request returns 499, second should not happen due to cancellation
-        var requestAttempts = 0
-        session.responseProvider = { _, count in
-            requestAttempts = count
-            let response = HTTPURLResponse(
-                url: apiEndpointURL.appendingPathComponent(path),
-                statusCode: 499,
-                httpVersion: nil,
-                headerFields: nil
             )
-            return MockResponseData(data: Data("".utf8), response: response, error: nil)
-        }
-
+        )
         let api = ApiClientImpl(
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
-            defaultRequestTimeoutMillis: 200,
             session: session,
             queue: mockDispatchQueue,
             logger: nil
         )
 
-        let expectation = XCTestExpectation(description: "Should fail with illegalState after client is closed")
-
         mockDispatchQueue.async {
-            api.send(
-                requestBody: MockRequestBody(),
-                path: path,
-                timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
+            api.getEvaluations(
+                user: .mock1,
+                userEvaluationsId: userEvaluationsId,
+                condition: UserEvaluationCondition(
+                    evaluatedAt: "0",
+                    userAttributesUpdated: false)
+            ) { result in
                 switch result {
                 case .success:
                     XCTFail("should not succeed")
-                case .failure(let error):
-                    guard let error = error as? BKTError,
-                          case .illegalState(let message) = error else {
+                case .failure(let error, _):
+                    guard case .illegalState(let message) = error else {
                         XCTFail("should be BKTError.illegalState, got: \(error)")
                         return
                     }
                     XCTAssertEqual(message, "API Client has been closed")
                     // 1 for the first attempt
                     // 2 for the next attempt but got cancelled
-                    XCTAssertEqual(requestAttempts, 2, "Should attempt 2 before cancellation")
+                    XCTAssertEqual(session.requestCount(), 2, "Should attempt 2 before cancellation")
                 }
                 expectation.fulfill()
             }
         }
 
         // Cancel after a brief delay to allow first request to complete
-        mockDispatchQueue.asyncAfter(deadline: .now() + 2) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             api.cancelAllOngoingRequest()
         }
 
-        wait(for: [expectation], timeout: 5)
+        wait(for: [expectation], timeout: 20)
     }
 }
 // swiftlint:enable type_body_length file_length
