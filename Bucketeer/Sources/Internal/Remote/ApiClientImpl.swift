@@ -149,8 +149,6 @@ final class ApiClientImpl: ApiClient {
     ///   - **Maximum Attempts**: 4 total attempts (initial + 3 retries)
     ///   - **Retry Condition**: Only HTTP 499 status code
     ///   - **Backoff Strategy**: Exponential with base delay of 1 second
-    ///     - 1st retry: 1 second delay
-    ///     - 2nd retry: 2 seconds delay
     ///   - **Queue**: Retries are scheduled asynchronously on the dispatch queue provided during initialization
     ///
     /// - Note: All other errors (network failures, HTTP 4xx/5xx codes except 499) will not trigger retries
@@ -162,20 +160,36 @@ final class ApiClientImpl: ApiClient {
         timeoutMillis: Int64,
         encoder: JSONEncoder = JSONEncoder(),
         completion: ((Result<(Response, URLResponse), Error>) -> Void)?) {
+            // weak self - we don't want to retain ApiClientImpl in the retrier task closure
+            // if ApiClientImpl is deallocated, the task will not be executed
             let task: Retrier.Task<(Response, URLResponse)> = { [weak self] callback in
-                // Before executing network task, check if this is still the valid request
-                guard let currentRequestId = self?.getLatestRequestId(apiPath: path), currentRequestId == requestId else {
-                    // Return a non-retriable error to stop the Retrier loop immediately
-                    callback(.failure(BKTError.illegalState(message: "Request cancelled by newer execution")))
-                    return
+                do {
+                    guard
+                        let currentRequestId = try self?.getLatestRequestId(apiPath: path)
+                    else {
+                        callback(.failure(
+                            BKTError.illegalState(message: "Could not get latest request ID for path: \(path)")
+                        ))
+                        return
+                    }
+
+                    guard currentRequestId == requestId else {
+                        callback(.failure(
+                            BKTError.illegalState(message: "Request cancelled by newer execution")
+                        ))
+                        return
+                    }
+
+                    self?.sendInternal(
+                        requestBody: requestBody,
+                        path: path,
+                        timeoutMillis: timeoutMillis,
+                        encoder: encoder,
+                        completion: callback
+                    )
+                } catch {
+                    callback(.failure(error))
                 }
-                self?.sendInternal(
-                    requestBody: requestBody,
-                    path: path,
-                    timeoutMillis: timeoutMillis,
-                    encoder: encoder,
-                    completion: callback
-                )
             }
 
             retrier.attempt(
@@ -303,9 +317,11 @@ final class ApiClientImpl: ApiClient {
         return false
     }
 
-    func getLatestRequestId(apiPath: String) -> UUID? {
+    private func getLatestRequestId(apiPath: String) throws -> UUID? {
         guard let apiPath = ApiPaths(rawValue: apiPath) else {
-            return nil
+            // This could happen if we add a new API path but forget to update it.
+            // Throw an illegal state for an unknown path to help us catch this mistake during development.
+            throw BKTError.illegalState(message: "Unknown API path: \(apiPath)")
         }
         switch apiPath {
         case .getEvaluations:

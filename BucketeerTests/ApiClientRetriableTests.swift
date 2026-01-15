@@ -57,7 +57,7 @@ class ApiClientRetriableTests: XCTestCase {
 
         mockDispatchQueue.async {
             let requestId = UUID()
-            api.setRegisterEventsRequestId( requestId)
+            api.setRegisterEventsRequestId(requestId)
             api.send(
                 requestId: requestId,
                 requestBody: MockRequestBody(),
@@ -114,7 +114,7 @@ class ApiClientRetriableTests: XCTestCase {
 
         mockDispatchQueue.async {
             let requestId = UUID()
-            api.setRegisterEventsRequestId( requestId)
+            api.setRegisterEventsRequestId(requestId)
             api.send(
                 requestId: requestId,
                 requestBody: MockRequestBody(),
@@ -172,7 +172,7 @@ class ApiClientRetriableTests: XCTestCase {
 
         mockDispatchQueue.async {
             let requestId = UUID()
-            api.setRegisterEventsRequestId( requestId)
+            api.setRegisterEventsRequestId(requestId)
             api.send(
                 requestId: requestId,
                 requestBody: MockRequestBody(),
@@ -230,7 +230,7 @@ class ApiClientRetriableTests: XCTestCase {
 
         mockDispatchQueue.async {
             let requestId = UUID()
-            api.setRegisterEventsRequestId( requestId)
+            api.setRegisterEventsRequestId(requestId)
             api.send(
                 requestId: requestId,
                 requestBody: MockRequestBody(),
@@ -289,7 +289,7 @@ class ApiClientRetriableTests: XCTestCase {
 
         mockDispatchQueue.async {
             let requestId = UUID()
-            api.setRegisterEventsRequestId( requestId)
+            api.setRegisterEventsRequestId(requestId)
             api.send(
                 requestId: requestId,
                 requestBody: MockRequestBody(),
@@ -355,7 +355,7 @@ class ApiClientRetriableTests: XCTestCase {
 
         mockDispatchQueue.async {
             let requestId = UUID()
-            api.setRegisterEventsRequestId( requestId)
+            api.setRegisterEventsRequestId(requestId)
             api.send(
                 requestId: requestId,
                 requestBody: MockRequestBody(),
@@ -426,7 +426,7 @@ class ApiClientRetriableTests: XCTestCase {
 
         mockDispatchQueue.async {
             let requestId = UUID()
-            api.setRegisterEventsRequestId( requestId)
+            api.setRegisterEventsRequestId(requestId)
             api.send(
                 requestId: requestId,
                 requestBody: MockRequestBody(),
@@ -491,7 +491,7 @@ class ApiClientRetriableTests: XCTestCase {
 
         mockDispatchQueue.async {
             let requestId = UUID()
-            api.setEvaluationsRequestId( requestId)
+            api.setEvaluationsRequestId(requestId)
             api.send(
                 requestId: requestId,
                 requestBody: MockRequestBody(),
@@ -562,7 +562,7 @@ class ApiClientRetriableTests: XCTestCase {
 
         mockDispatchQueue.async {
             let requestId = UUID()
-            api.setEvaluationsRequestId( requestId)
+            api.setEvaluationsRequestId(requestId)
             api.send(
                 requestId: requestId,
                 requestBody: MockRequestBody(),
@@ -627,7 +627,7 @@ class ApiClientRetriableTests: XCTestCase {
 
         mockDispatchQueue.async {
             let requestId = UUID()
-            api.setEvaluationsRequestId( requestId)
+            api.setEvaluationsRequestId(requestId)
             api.send(
                 requestId: requestId,
                 requestBody: MockRequestBody(),
@@ -698,7 +698,7 @@ class ApiClientRetriableTests: XCTestCase {
 
         mockDispatchQueue.async {
             let requestId = UUID()
-            api.setEvaluationsRequestId( requestId)
+            api.setEvaluationsRequestId(requestId)
             api.send(
                 requestId: requestId,
                 requestBody: MockRequestBody(),
@@ -764,7 +764,7 @@ class ApiClientRetriableTests: XCTestCase {
 
         mockDispatchQueue.async {
             let requestId = UUID()
-            api.setEvaluationsRequestId( requestId)
+            api.setEvaluationsRequestId(requestId)
             api.send(
                 requestId: requestId,
                 requestBody: MockRequestBody(),

@@ -4,7 +4,7 @@ import Foundation
 ///
 /// - Important: This class is not thread-safe.
 /// It is designed to be used serially within the context of the `DispatchQueue` provided at initialization.
-/// To ensure thread safety, all calls to public methods (such as `attempt` and `cancel`) must be dispatched on that specific queue.
+/// To ensure thread safety, all calls to public methods (such as `attempt`) must be dispatched on that specific queue.
 final class Retrier {
 
     private static let DEFAULT_BASE_DELAY_SECONDS = 1.0 // in seconds
@@ -61,6 +61,8 @@ final class Retrier {
         maxAttempts: Int,
         completion: @escaping TaskCallback<T>
     ) {
+        // weak self - we don't want to retain self in case the Retrier is deallocated
+        // if self is deallocated, no further retries will be attempted
         task { [weak self] result in
             switch result {
             case .success:
