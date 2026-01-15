@@ -154,7 +154,7 @@ final class ApiClientImpl: ApiClient {
     /// - Note: All other errors (network failures, HTTP 4xx/5xx codes except 499) will not trigger retries
     ///         and will be returned immediately via the completion handler.
     func send<RequestBody: Encodable, Response: Decodable>(
-        requestId: UUID? = nil,
+        requestId: UUID,
         requestBody: RequestBody,
         path: String,
         timeoutMillis: Int64,
