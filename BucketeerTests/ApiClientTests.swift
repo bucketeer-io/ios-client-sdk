@@ -74,28 +74,30 @@ class ApiClientTests: XCTestCase {
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
-        api.getEvaluations(
-            user: .mock1,
-            userEvaluationsId: userEvaluationsId,
-            condition: UserEvaluationCondition(
-                evaluatedAt: "11223000",
-                userAttributesUpdated: true)
-        ) { result in
-            switch result {
-            case .success(let response):
-                XCTAssertEqual(response.evaluations.evaluations, evaluations)
-                XCTAssertEqual(response.evaluations.id, userEvaluationsId)
-                XCTAssertEqual(response.evaluations.forceUpdate, true)
-                XCTAssertEqual(response.evaluations.archivedFeatureIds, ["removed_featureId_1", "removed_featureId_2"])
-                XCTAssertEqual(response.evaluations.createdAt, "11223344")
-                XCTAssertEqual(response.userEvaluationsId, userEvaluationsId)
-                XCTAssertNotEqual(response.seconds, 0)
-                XCTAssertNotEqual(response.sizeByte, 0)
-                XCTAssertEqual(response.featureTag, "tag1")
-            case .failure(let error, _):
-                XCTFail("\(error)")
+        mockDispatchQueue.sync {
+            api.getEvaluations(
+                user: .mock1,
+                userEvaluationsId: userEvaluationsId,
+                condition: UserEvaluationCondition(
+                    evaluatedAt: "11223000",
+                    userAttributesUpdated: true)
+            ) { result in
+                switch result {
+                case .success(let response):
+                    XCTAssertEqual(response.evaluations.evaluations, evaluations)
+                    XCTAssertEqual(response.evaluations.id, userEvaluationsId)
+                    XCTAssertEqual(response.evaluations.forceUpdate, true)
+                    XCTAssertEqual(response.evaluations.archivedFeatureIds, ["removed_featureId_1", "removed_featureId_2"])
+                    XCTAssertEqual(response.evaluations.createdAt, "11223344")
+                    XCTAssertEqual(response.userEvaluationsId, userEvaluationsId)
+                    XCTAssertNotEqual(response.seconds, 0)
+                    XCTAssertNotEqual(response.sizeByte, 0)
+                    XCTAssertEqual(response.featureTag, "tag1")
+                case .failure(let error, _):
+                    XCTFail("\(error)")
+                }
+                expectation.fulfill()
             }
-            expectation.fulfill()
         }
         wait(for: [expectation], timeout: 1)
     }
@@ -156,21 +158,23 @@ class ApiClientTests: XCTestCase {
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
-        api.getEvaluations(
-            user: .mock1,
-            userEvaluationsId: userEvaluationsId,
-            condition: UserEvaluationCondition(
-                evaluatedAt: "0",
-                userAttributesUpdated: false)
-        ) { result in
-            switch result {
-            case .success:
-                XCTFail()
-            case .failure(let error, let featureTag):
-                XCTAssertEqual(error, .badRequest(message: "invalid parameter"))
-                XCTAssertEqual(featureTag, "tag1")
+        mockDispatchQueue.sync {
+            api.getEvaluations(
+                user: .mock1,
+                userEvaluationsId: userEvaluationsId,
+                condition: UserEvaluationCondition(
+                    evaluatedAt: "0",
+                    userAttributesUpdated: false)
+            ) { result in
+                switch result {
+                case .success:
+                    XCTFail()
+                case .failure(let error, let featureTag):
+                    XCTAssertEqual(error, .badRequest(message: "invalid parameter"))
+                    XCTAssertEqual(featureTag, "tag1")
+                }
+                expectation.fulfill()
             }
-            expectation.fulfill()
         }
         wait(for: [expectation], timeout: 1)
     }
@@ -283,14 +287,16 @@ class ApiClientTests: XCTestCase {
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
-        api.registerEvents(events: events) { result in
-            switch result {
-            case .success(let response):
-                XCTAssertEqual(response.errors, errors)
-            case .failure(let error):
-                XCTFail("\(error)")
+        mockDispatchQueue.sync {
+            api.registerEvents(events: events) { result in
+                switch result {
+                case .success(let response):
+                    XCTAssertEqual(response.errors, errors)
+                case .failure(let error):
+                    XCTFail("\(error)")
+                }
+                expectation.fulfill()
             }
-            expectation.fulfill()
         }
         wait(for: [expectation], timeout: 1)
     }
@@ -398,14 +404,16 @@ class ApiClientTests: XCTestCase {
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
-        api.registerEvents(events: events) { result in
-            switch result {
-            case .success:
-                XCTFail()
-            case .failure(let error):
-                XCTAssertEqual(error, .badRequest(message: "invalid parameter"))
+        mockDispatchQueue.sync {
+            api.registerEvents(events: events) { result in
+                switch result {
+                case .success:
+                    XCTFail()
+                case .failure(let error):
+                    XCTAssertEqual(error, .badRequest(message: "invalid parameter"))
+                }
+                expectation.fulfill()
             }
-            expectation.fulfill()
         }
         wait(for: [expectation], timeout: 1)
     }
@@ -480,18 +488,20 @@ class ApiClientTests: XCTestCase {
         )
         let requestId = UUID()
         api.setEvaluationsRequestId(requestId)
-        api.send(
-            requestId: requestId,
-            requestBody: mockRequestBody,
-            path: path,
-            timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
-            switch result {
-            case .success((let response, _)):
-                XCTAssertEqual(response, mockResponse)
-            case .failure(let error):
-                XCTFail("\(error)")
+        mockDispatchQueue.sync {
+            api.send(
+                requestId: requestId,
+                requestBody: mockRequestBody,
+                path: path,
+                timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
+                switch result {
+                case .success((let response, _)):
+                    XCTAssertEqual(response, mockResponse)
+                case .failure(let error):
+                    XCTFail("\(error)")
+                }
+                expectation.fulfill()
             }
-            expectation.fulfill()
         }
         wait(for: [expectation], timeout: 1)
     }
@@ -548,18 +558,20 @@ class ApiClientTests: XCTestCase {
         )
         let requestId = UUID()
         api.setEvaluationsRequestId(requestId)
-        api.send(
-            requestId: requestId,
-            requestBody: mockRequestBody,
-            path: path,
-            timeoutMillis: 200) { (result: Result<(MockResponse, URLResponse), Error>) in
-            switch result {
-            case .success((let response, _)):
-                XCTAssertEqual(response, mockResponse)
-            case .failure(let error):
-                XCTFail("\(error)")
+        mockDispatchQueue.sync {
+            api.send(
+                requestId: requestId,
+                requestBody: mockRequestBody,
+                path: path,
+                timeoutMillis: 200) { (result: Result<(MockResponse, URLResponse), Error>) in
+                switch result {
+                case .success((let response, _)):
+                    XCTAssertEqual(response, mockResponse)
+                case .failure(let error):
+                    XCTFail("\(error)")
+                }
+                expectation.fulfill()
             }
-            expectation.fulfill()
         }
         wait(for: [expectation], timeout: 1)
     }
@@ -616,18 +628,20 @@ class ApiClientTests: XCTestCase {
         )
         let requestId = UUID()
         api.setEvaluationsRequestId(requestId)
-        api.send(
-            requestId: requestId,
-            requestBody: mockRequestBody,
-            path: path,
-            timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
-            switch result {
-            case .success((let response, _)):
-                XCTAssertEqual(response, mockResponse)
-            case .failure(let error):
-                XCTFail("\(error)")
+        mockDispatchQueue.sync {
+            api.send(
+                requestId: requestId,
+                requestBody: mockRequestBody,
+                path: path,
+                timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
+                switch result {
+                case .success((let response, _)):
+                    XCTAssertEqual(response, mockResponse)
+                case .failure(let error):
+                    XCTFail("\(error)")
+                }
+                expectation.fulfill()
             }
-            expectation.fulfill()
         }
         wait(for: [expectation], timeout: 1)
     }
@@ -683,25 +697,27 @@ class ApiClientTests: XCTestCase {
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
-        let requestId = UUID()
-        api.setEvaluationsRequestId(requestId)
-        api.send(
-            requestId: requestId,
-            requestBody: mockRequestBody,
-            path: path,
-            timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
-            switch result {
-            case .success((_, _)):
-                XCTFail("should not success")
-            case .failure(let error):
-                guard
-                    let error = error as? ResponseError,
-                    case .unacceptableCode(let code, _) = error, code == 302 else {
-                    XCTFail("code should be 302")
-                    return
+        mockDispatchQueue.sync {
+            let requestId = UUID()
+            api.setEvaluationsRequestId(requestId)
+            api.send(
+                requestId: requestId,
+                requestBody: mockRequestBody,
+                path: path,
+                timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
+                switch result {
+                case .success((_, _)):
+                    XCTFail("should not success")
+                case .failure(let error):
+                    guard
+                        let error = error as? ResponseError,
+                        case .unacceptableCode(let code, _) = error, code == 302 else {
+                        XCTFail("code should be 302")
+                        return
+                    }
                 }
+                expectation.fulfill()
             }
-            expectation.fulfill()
         }
         wait(for: [expectation], timeout: 1)
     }
@@ -748,26 +764,28 @@ class ApiClientTests: XCTestCase {
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
-        let requestId = UUID()
-        api.setEvaluationsRequestId(requestId)
-        api.send(
-            requestId: requestId,
-            requestBody: mockRequestBody,
-            path: path,
-            timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
-            switch result {
-            case .success:
-                XCTFail()
-            case .failure(let error):
-                guard
-                    let error = error as? ResponseError,
-                    case .unknown(let urlResponse) = error else {
+        mockDispatchQueue.sync {
+            let requestId = UUID()
+            api.setEvaluationsRequestId(requestId)
+            api.send(
+                requestId: requestId,
+                requestBody: mockRequestBody,
+                path: path,
+                timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
+                switch result {
+                case .success:
                     XCTFail()
-                    return
+                case .failure(let error):
+                    guard
+                        let error = error as? ResponseError,
+                        case .unknown(let urlResponse) = error else {
+                        XCTFail()
+                        return
+                    }
+                    XCTAssertNil(urlResponse)
                 }
-                XCTAssertNil(urlResponse)
+                expectation.fulfill()
             }
-            expectation.fulfill()
         }
         wait(for: [expectation], timeout: 1)
     }
@@ -814,24 +832,26 @@ class ApiClientTests: XCTestCase {
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
-        let requestId = UUID()
-        api.setEvaluationsRequestId(requestId)
-        api.send(
-            requestId: requestId,
-            requestBody: mockRequestBody,
-            path: path,
-            timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
-            switch result {
-            case .success:
-                XCTFail()
-            case .failure(let error):
-                guard let error = error as? SomeError else {
+        mockDispatchQueue.sync {
+            let requestId = UUID()
+            api.setEvaluationsRequestId(requestId)
+            api.send(
+                requestId: requestId,
+                requestBody: mockRequestBody,
+                path: path,
+                timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
+                switch result {
+                case .success:
                     XCTFail()
-                    return
+                case .failure(let error):
+                    guard let error = error as? SomeError else {
+                        XCTFail()
+                        return
+                    }
+                    XCTAssertEqual(error, .failed)
                 }
-                XCTAssertEqual(error, .failed)
+                expectation.fulfill()
             }
-            expectation.fulfill()
         }
         wait(for: [expectation], timeout: 1)
     }
@@ -880,26 +900,28 @@ class ApiClientTests: XCTestCase {
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
-        let requestId = UUID()
-        api.setEvaluationsRequestId(requestId)
-        api.send(
-            requestId: requestId,
-            requestBody: mockRequestBody,
-            path: path,
-            timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
-            switch result {
-            case .success:
-                XCTFail()
-            case .failure(let error):
-                guard
-                    let error = error as? ResponseError,
-                    case .unknown(let urlResponse) = error else {
+        mockDispatchQueue.sync {
+            let requestId = UUID()
+            api.setEvaluationsRequestId(requestId)
+            api.send(
+                requestId: requestId,
+                requestBody: mockRequestBody,
+                path: path,
+                timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
+                switch result {
+                case .success:
                     XCTFail()
-                    return
+                case .failure(let error):
+                    guard
+                        let error = error as? ResponseError,
+                        case .unknown(let urlResponse) = error else {
+                        XCTFail()
+                        return
+                    }
+                    XCTAssertNil(urlResponse)
                 }
-                XCTAssertNil(urlResponse)
+                expectation.fulfill()
             }
-            expectation.fulfill()
         }
         wait(for: [expectation], timeout: 1)
     }
@@ -952,25 +974,27 @@ class ApiClientTests: XCTestCase {
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
-        let requestId = UUID()
-        api.setRegisterEventsRequestId(requestId)
-        api.send(
-            requestId: requestId,
-            requestBody: mockRequestBody,
-            path: path,
-            timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
-            switch result {
-            case .success:
-                XCTFail()
-            case .failure(let error):
-                guard
-                    let error = error as? ResponseError,
-                    case .unacceptableCode(let code, _) = error, code == 400 else {
+        mockDispatchQueue.sync {
+            let requestId = UUID()
+            api.setRegisterEventsRequestId(requestId)
+            api.send(
+                requestId: requestId,
+                requestBody: mockRequestBody,
+                path: path,
+                timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
+                switch result {
+                case .success:
                     XCTFail()
-                    return
+                case .failure(let error):
+                    guard
+                        let error = error as? ResponseError,
+                        case .unacceptableCode(let code, _) = error, code == 400 else {
+                        XCTFail()
+                        return
+                    }
                 }
+                expectation.fulfill()
             }
-            expectation.fulfill()
         }
         wait(for: [expectation], timeout: 1)
     }
@@ -1001,24 +1025,26 @@ class ApiClientTests: XCTestCase {
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
-        let requestId = UUID()
-        api.setRegisterEventsRequestId(requestId)
-        api.send(
-            requestId: requestId,
-            requestBody: mockRequestBody,
-            path: path,
-            timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
-            switch result {
-            case .success:
-                XCTFail()
-            case .failure(let error):
-                guard let error = error as? SomeError else {
+        mockDispatchQueue.sync {
+            let requestId = UUID()
+            api.setRegisterEventsRequestId(requestId)
+            api.send(
+                requestId: requestId,
+                requestBody: mockRequestBody,
+                path: path,
+                timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
+                switch result {
+                case .success:
                     XCTFail()
-                    return
+                case .failure(let error):
+                    guard let error = error as? SomeError else {
+                        XCTFail()
+                        return
+                    }
+                    XCTAssertEqual(error, .failed)
                 }
-                XCTAssertEqual(error, .failed)
+                expectation.fulfill()
             }
-            expectation.fulfill()
         }
         wait(for: [expectation], timeout: 1)
     }
@@ -1090,30 +1116,13 @@ class ApiClientTests: XCTestCase {
             logger: MockLogger()
         )
 
-        requestOrderId = 1
-        // The 1st request
-        let requestId1UUID = UUID()
-        api.setRegisterEventsRequestId(requestId1UUID)
-        api.send(
-            requestId: requestId1UUID,
-            requestBody: mockRequestBody,
-            path: path,
-            timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
-            switch result {
-            case .success((let response, _)):
-                XCTAssertEqual(response, mockResponse)
-            case .failure(let error):
-                XCTFail("\(error)")
-            }
-            XCTAssertEqual(requestOrderId, 1, "The current request_id should equal 1")
-            expectation.fulfill()
-
-            requestOrderId = 2
-            // The 2nd request
-            let requestId2UUID = UUID()
-            api.setRegisterEventsRequestId(requestId2UUID)
+        mockDispatchQueue.sync {
+            requestOrderId = 1
+            // The 1st request
+            let requestId1UUID = UUID()
+            api.setRegisterEventsRequestId(requestId1UUID)
             api.send(
-                requestId: requestId2UUID,
+                requestId: requestId1UUID,
                 requestBody: mockRequestBody,
                 path: path,
                 timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
@@ -1123,27 +1132,46 @@ class ApiClientTests: XCTestCase {
                 case .failure(let error):
                     XCTFail("\(error)")
                 }
-                XCTAssertEqual(requestOrderId, 2, "The current request_id should equal 2")
+                XCTAssertEqual(requestOrderId, 1, "The current request_id should equal 1")
+                expectation.fulfill()
+
+                requestOrderId = 2
+                // The 2nd request
+                let requestId2UUID = UUID()
+                api.setRegisterEventsRequestId(requestId2UUID)
+                api.send(
+                    requestId: requestId2UUID,
+                    requestBody: mockRequestBody,
+                    path: path,
+                    timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
+                    switch result {
+                    case .success((let response, _)):
+                        XCTAssertEqual(response, mockResponse)
+                    case .failure(let error):
+                        XCTFail("\(error)")
+                    }
+                    XCTAssertEqual(requestOrderId, 2, "The current request_id should equal 2")
+                    expectation.fulfill()
+                }
+                }
+            requestOrderId = 3
+            // The 3rd request
+            let requestId3UUID = UUID()
+            api.setRegisterEventsRequestId(requestId3UUID)
+            api.send(
+                requestId: requestId3UUID,
+                requestBody: mockRequestBody,
+                path: path,
+                timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
+                switch result {
+                case .success((let response, _)):
+                    XCTAssertEqual(response, mockResponse)
+                case .failure(let error):
+                    XCTFail("\(error)")
+                }
+                XCTAssertEqual(requestOrderId, 3, "The current request_id should equal 3")
                 expectation.fulfill()
             }
-            }
-        requestOrderId = 3
-        // The 3rd request
-        let requestId3UUID = UUID()
-        api.setRegisterEventsRequestId(requestId3UUID)
-        api.send(
-            requestId: requestId3UUID,
-            requestBody: mockRequestBody,
-            path: path,
-            timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
-            switch result {
-            case .success((let response, _)):
-                XCTAssertEqual(response, mockResponse)
-            case .failure(let error):
-                XCTFail("\(error)")
-            }
-            XCTAssertEqual(requestOrderId, 3, "The current request_id should equal 3")
-            expectation.fulfill()
         }
         wait(for: [expectation], timeout: 1)
     }
@@ -1216,25 +1244,27 @@ class ApiClientTests: XCTestCase {
 
         api.cancelAllOngoingRequest()
 
-        let requestIdUUID = UUID()
-        api.setRegisterEventsRequestId(requestIdUUID)
-        api.send(
-            requestId: requestIdUUID,
-            requestBody: mockRequestBody,
-            path: path,
-            timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
-            switch result {
-            case .success:
-                XCTFail()
-            case .failure(let error):
-                guard
-                    let error = error as? BKTError,
-                    case .illegalState(message: "API Client has been closed") = error else {
-                    XCTFail("should be BKTError.illegalState")
-                    return
+        mockDispatchQueue.sync {
+            let requestIdUUID = UUID()
+            api.setRegisterEventsRequestId(requestIdUUID)
+            api.send(
+                requestId: requestIdUUID,
+                requestBody: mockRequestBody,
+                path: path,
+                timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
+                switch result {
+                case .success:
+                    XCTFail()
+                case .failure(let error):
+                    guard
+                        let error = error as? BKTError,
+                        case .illegalState(message: "API Client has been closed") = error else {
+                        XCTFail("should be BKTError.illegalState")
+                        return
+                    }
                 }
+                expectation.fulfill()
             }
-            expectation.fulfill()
         }
         wait(for: [expectation], timeout: 0.1)
     }
@@ -1255,7 +1285,12 @@ class ApiClientTests: XCTestCase {
             ResponseCase(statusCode:500, bodyResponse: Data("".utf8), name: "Case: empty string"),
             ResponseCase(statusCode:500, bodyResponse: Data("okay".utf8), name: "Case: random string"),
             ResponseCase(statusCode:500, bodyResponse: nil, name: "Case: nil"),
-            ResponseCase(statusCode:500, bodyResponse: mockDataResponse, name: "Case: valid JSON")
+            ResponseCase(statusCode:500, bodyResponse: mockDataResponse, name: "Case: valid JSON"),
+
+            ResponseCase(statusCode:499, bodyResponse: Data("".utf8), name: "Case: empty string for the unknown server error"),
+            ResponseCase(statusCode:499, bodyResponse: Data("okay".utf8), name: "Case: random string for the unknown server error"),
+            ResponseCase(statusCode:499, bodyResponse: nil, name: "Case: nil for the unknown server error"),
+            ResponseCase(statusCode:499, bodyResponse: mockDataResponse, name: "Case: valid JSON for the unknown server error")
         ]
 
         var expectations = [XCTestExpectation]()
@@ -1308,95 +1343,7 @@ class ApiClientTests: XCTestCase {
                 retrier: Retrier(queue: mockDispatchQueue),
                 logger: nil
             )
-
-            let requestId = UUID()
-            api.setRegisterEventsRequestId(requestId)
-            api.send(
-                requestId: requestId,
-                requestBody: mockRequestBody,
-                path: path,
-                timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
-                switch result {
-                case .success((_, _)):
-                    XCTFail("should not success")
-                case .failure(let error):
-                    guard
-                        let error = error as? ResponseError,
-                        case .unacceptableCode(let code, _) = error, code == testCase.statusCode else {
-                        XCTFail("code should be \(testCase.statusCode) for case: \(testCase.name)")
-                        return
-                    }
-                }
-                expectation.fulfill()
-            }
-            expectations.append(expectation)
-        }
-        wait(for: expectations, timeout: 10)
-    }
-
-    func testTaskFailWithUnacceptableCode499() throws {
-        let mockDataResponse = try JSONEncoder().encode(MockResponse())
-        let cases = [
-            ResponseCase(statusCode:499, bodyResponse: Data("".utf8), name: "Case: empty string for the unknown server error"),
-            ResponseCase(statusCode:499, bodyResponse: Data("okay".utf8), name: "Case: random string for the unknown server error"),
-            ResponseCase(statusCode:499, bodyResponse: nil, name: "Case: nil for the unknown server error"),
-            ResponseCase(statusCode:499, bodyResponse: mockDataResponse, name: "Case: valid JSON for the unknown server error")
-        ]
-
-        var expectations = [XCTestExpectation]()
-        // Keep reference to api clients to avoid being deallocated while retrying
-        var apiClients = [ApiClientImpl]()
-        for testCase in cases {
-            let expectation = XCTestExpectation(description: testCase.name)
-            expectation.expectedFulfillmentCount = 4
-
-            let mockRequestBody = MockRequestBody()
-            let data = testCase.bodyResponse
-
-            let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-            let path = ApiPaths.registerEvents.rawValue
-            let apiKey = "x:api-key"
-            let mockDispatchQueue = DispatchQueue(label: testCase.name)
-
-            let session = MockSession(
-                configuration: .default,
-                requestHandler: { request in
-                    XCTAssertEqual(request.httpMethod, "POST")
-                    XCTAssertEqual(request.url?.host, apiEndpointURL.host)
-                    XCTAssertEqual(request.url?.path, "/\(path)")
-                    XCTAssertEqual(request.allHTTPHeaderFields?["Authorization"], apiKey)
-                    XCTAssertEqual(request.timeoutInterval, 0.1)
-                    let data = request.httpBody ?? Data()
-                    let jsonString = String(data: data, encoding: .utf8) ?? ""
-                    let expected = """
-    {
-      "value" : "body"
-    }
-    """
-                    XCTAssertEqual(jsonString, expected)
-                    expectation.fulfill()
-                },
-                data: data,
-                response: HTTPURLResponse(
-                    url: apiEndpointURL.appendingPathComponent(path),
-                    statusCode: testCase.statusCode,
-                    httpVersion: nil,
-                    headerFields: nil
-                ),
-                error: nil
-            )
-            let api = ApiClientImpl(
-                apiEndpoint: apiEndpointURL,
-                apiKey: apiKey,
-                featureTag: "tag1",
-                defaultRequestTimeoutMills: 200,
-                session: session,
-                retrier: Retrier(queue: mockDispatchQueue),
-                logger: nil
-            )
-            apiClients.append(api)
-            // Note: Send request in the same queue with the retriable logic triggered by 499 code
-            mockDispatchQueue.async {
+            mockDispatchQueue.sync {
                 let requestId = UUID()
                 api.setRegisterEventsRequestId(requestId)
                 api.send(
