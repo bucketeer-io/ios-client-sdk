@@ -15,8 +15,6 @@ final class ApiClientImpl: ApiClient {
     private let defaultRequestTimeoutMillis: Int64
     private let logger: Logger?
     private let semaphore = DispatchSemaphore(value: 0)
-    // Dispatch queue for retry backoff, it should be the same with the SDK queue
-    private let dispatchQueue: DispatchQueue
     private let retrier: Retrier
     // Add this property to track the latest request generation
     private var getEvaluationsRequestId: UUID?
@@ -36,7 +34,7 @@ final class ApiClientImpl: ApiClient {
         sdkInfo: SDKInfo,
         defaultRequestTimeoutMills: Int64 = ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS,
         session: Session,
-        queue: DispatchQueue,
+        retrier: Retrier,
         logger: Logger?
     ) {
         self.apiEndpoint = apiEndpoint
@@ -46,9 +44,8 @@ final class ApiClientImpl: ApiClient {
         self.defaultRequestTimeoutMillis = defaultRequestTimeoutMills
         self.session = session
         self.logger = logger
-        self.dispatchQueue = queue
         self.session.configuration.timeoutIntervalForRequest = TimeInterval(self.defaultRequestTimeoutMillis) / 1000
-        self.retrier = Retrier(queue: queue)
+        self.retrier = retrier
     }
 
     func getEvaluations(

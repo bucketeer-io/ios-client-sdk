@@ -71,7 +71,7 @@ class ApiClientTests: XCTestCase {
             featureTag: "tag1",
             sdkInfo: SDKInfo(sourceId: .openFeatureSwift, sdkVersion: "12.3.5"),
             session: session,
-            queue: mockDispatchQueue,
+            retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
         api.getEvaluations(
@@ -153,7 +153,7 @@ class ApiClientTests: XCTestCase {
             featureTag: "tag1",
             sdkInfo: SDKInfo(sourceId: .openFeatureSwift, sdkVersion: "10.3.5"),
             session: session,
-            queue: mockDispatchQueue,
+            retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
         api.getEvaluations(
@@ -280,7 +280,7 @@ class ApiClientTests: XCTestCase {
             featureTag: "tag1",
             sdkInfo: SDKInfo(sourceId: .flutter, sdkVersion: "13.3.1"),
             session: session,
-            queue: mockDispatchQueue,
+            retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
         api.registerEvents(events: events) { result in
@@ -395,7 +395,7 @@ class ApiClientTests: XCTestCase {
             featureTag: "tag1",
             sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             session: session,
-            queue: mockDispatchQueue,
+            retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
         api.registerEvents(events: events) { result in
@@ -475,7 +475,7 @@ class ApiClientTests: XCTestCase {
             featureTag: "tag1",
             sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             session: session,
-            queue: mockDispatchQueue,
+            retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
         let requestId = UUID()
@@ -543,7 +543,7 @@ class ApiClientTests: XCTestCase {
             sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             defaultRequestTimeoutMills: 200,
             session: session,
-            queue: mockDispatchQueue,
+            retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
         let requestId = UUID()
@@ -611,7 +611,7 @@ class ApiClientTests: XCTestCase {
             sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             defaultRequestTimeoutMills: 200,
             session: session,
-            queue: mockDispatchQueue,
+            retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
         let requestId = UUID()
@@ -680,7 +680,7 @@ class ApiClientTests: XCTestCase {
             sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             defaultRequestTimeoutMills: 200,
             session: session,
-            queue: mockDispatchQueue,
+            retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
         let requestId = UUID()
@@ -745,7 +745,7 @@ class ApiClientTests: XCTestCase {
             featureTag: "tag1",
             sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             session: session,
-            queue: mockDispatchQueue,
+            retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
         let requestId = UUID()
@@ -811,7 +811,7 @@ class ApiClientTests: XCTestCase {
             featureTag: "tag1",
             sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             session: session,
-            queue: mockDispatchQueue,
+            retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
         let requestId = UUID()
@@ -877,7 +877,7 @@ class ApiClientTests: XCTestCase {
             featureTag: "tag1",
             sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             session: session,
-            queue: mockDispatchQueue,
+            retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
         let requestId = UUID()
@@ -949,7 +949,7 @@ class ApiClientTests: XCTestCase {
             featureTag: "tag1",
             sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             session: session,
-            queue: mockDispatchQueue,
+            retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
         let requestId = UUID()
@@ -998,7 +998,7 @@ class ApiClientTests: XCTestCase {
             featureTag: "tag1",
             sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             session: session,
-            queue: mockDispatchQueue,
+            retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
         let requestId = UUID()
@@ -1086,7 +1086,7 @@ class ApiClientTests: XCTestCase {
             featureTag: "tag1",
             sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             session: session,
-            queue: mockDispatchQueue,
+            retrier: Retrier(queue: mockDispatchQueue),
             logger: MockLogger()
         )
 
@@ -1210,7 +1210,7 @@ class ApiClientTests: XCTestCase {
             featureTag: "tag1",
             sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             session: session,
-            queue: mockDispatchQueue,
+            retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
 
@@ -1305,7 +1305,7 @@ class ApiClientTests: XCTestCase {
                 sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
                 defaultRequestTimeoutMills: 200,
                 session: session,
-                queue: mockDispatchQueue,
+                retrier: Retrier(queue: mockDispatchQueue),
                 logger: nil
             )
 
@@ -1391,7 +1391,7 @@ class ApiClientTests: XCTestCase {
                 featureTag: "tag1",
                 defaultRequestTimeoutMills: 200,
                 session: session,
-                queue: mockDispatchQueue,
+                retrier: Retrier(queue: mockDispatchQueue),
                 logger: nil
             )
             apiClients.append(api)
@@ -1474,7 +1474,7 @@ class ApiClientTests: XCTestCase {
                 sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
                 defaultRequestTimeoutMills: 200,
                 session: session,
-                queue: mockDispatchQueue,
+                retrier: Retrier(queue: mockDispatchQueue),
                 logger: nil
             )
 

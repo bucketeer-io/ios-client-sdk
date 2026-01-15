@@ -37,7 +37,7 @@ final class DataModuleImpl: DataModule {
         featureTag: self.config.featureTag,
         sdkInfo: self.config.toSDKInfo(),
         session: URLSession(configuration: .default),
-        queue: dispatchQueue,
+        retrier: Retrier(queue: dispatchQueue),
         logger: self.config.logger
     )
     private(set) lazy var userHolder: UserHolder = UserHolder(user: self.user)
