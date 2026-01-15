@@ -26,7 +26,7 @@ class ApiClientTests: XCTestCase {
         )
         let data = try JSONEncoder().encode(response)
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "get_evaluations"
+        let path = ApiPaths.getEvaluations.rawValue
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
@@ -108,7 +108,7 @@ class ApiClientTests: XCTestCase {
         let errorResponse = ErrorResponse(error: .init(code: 400, message: "invalid parameter"))
         let data = try JSONEncoder().encode(errorResponse)
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "get_evaluations"
+        let path = ApiPaths.getEvaluations.rawValue
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
@@ -188,7 +188,7 @@ class ApiClientTests: XCTestCase {
         let response = RegisterEventsResponse(errors: errors)
         let data = try JSONEncoder().encode(response)
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "register_events"
+        let path = ApiPaths.registerEvents.rawValue
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
@@ -303,7 +303,7 @@ class ApiClientTests: XCTestCase {
         let errorResponse = ErrorResponse(error: .init(code: 400, message: "invalid parameter"))
         let data = try JSONEncoder().encode(errorResponse)
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "register_events"
+        let path = ApiPaths.registerEvents.rawValue
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
@@ -438,7 +438,7 @@ class ApiClientTests: XCTestCase {
         let data = try JSONEncoder().encode(mockResponse)
 
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
+        let path = ApiPaths.getEvaluations.rawValue
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
@@ -478,7 +478,10 @@ class ApiClientTests: XCTestCase {
             queue: mockDispatchQueue,
             logger: nil
         )
+        let requestId = UUID()
+        api.setEvaluationsRequestId(requestId)
         api.send(
+            requestId: requestId,
             requestBody: mockRequestBody,
             path: path,
             timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
@@ -502,7 +505,7 @@ class ApiClientTests: XCTestCase {
         let data = try JSONEncoder().encode(mockResponse)
 
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
+        let path = ApiPaths.getEvaluations.rawValue
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
@@ -543,7 +546,10 @@ class ApiClientTests: XCTestCase {
             queue: mockDispatchQueue,
             logger: nil
         )
+        let requestId = UUID()
+        api.setEvaluationsRequestId(requestId)
         api.send(
+            requestId: requestId,
             requestBody: mockRequestBody,
             path: path,
             timeoutMillis: 200) { (result: Result<(MockResponse, URLResponse), Error>) in
@@ -567,7 +573,7 @@ class ApiClientTests: XCTestCase {
         let data = try JSONEncoder().encode(mockResponse)
 
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
+        let path = ApiPaths.getEvaluations.rawValue
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
@@ -608,7 +614,10 @@ class ApiClientTests: XCTestCase {
             queue: mockDispatchQueue,
             logger: nil
         )
+        let requestId = UUID()
+        api.setEvaluationsRequestId(requestId)
         api.send(
+            requestId: requestId,
             requestBody: mockRequestBody,
             path: path,
             timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
@@ -633,7 +642,7 @@ class ApiClientTests: XCTestCase {
         let data = try JSONEncoder().encode(mockResponse)
 
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
+        let path = ApiPaths.getEvaluations.rawValue
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
@@ -674,7 +683,10 @@ class ApiClientTests: XCTestCase {
             queue: mockDispatchQueue,
             logger: nil
         )
+        let requestId = UUID()
+        api.setEvaluationsRequestId(requestId)
         api.send(
+            requestId: requestId,
             requestBody: mockRequestBody,
             path: path,
             timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
@@ -701,7 +713,7 @@ class ApiClientTests: XCTestCase {
         let mockRequestBody = MockRequestBody()
 
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
+        let path = ApiPaths.getEvaluations.rawValue
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
@@ -736,7 +748,10 @@ class ApiClientTests: XCTestCase {
             queue: mockDispatchQueue,
             logger: nil
         )
+        let requestId = UUID()
+        api.setEvaluationsRequestId(requestId)
         api.send(
+            requestId: requestId,
             requestBody: mockRequestBody,
             path: path,
             timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
@@ -764,7 +779,7 @@ class ApiClientTests: XCTestCase {
         let mockRequestBody = MockRequestBody()
 
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
+        let path = ApiPaths.getEvaluations.rawValue
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
@@ -799,7 +814,10 @@ class ApiClientTests: XCTestCase {
             queue: mockDispatchQueue,
             logger: nil
         )
+        let requestId = UUID()
+        api.setEvaluationsRequestId(requestId)
         api.send(
+            requestId: requestId,
             requestBody: mockRequestBody,
             path: path,
             timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
@@ -827,7 +845,7 @@ class ApiClientTests: XCTestCase {
         let data = try JSONEncoder().encode(mockResponse)
 
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
+        let path = ApiPaths.getEvaluations.rawValue
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
@@ -862,7 +880,10 @@ class ApiClientTests: XCTestCase {
             queue: mockDispatchQueue,
             logger: nil
         )
+        let requestId = UUID()
+        api.setEvaluationsRequestId(requestId)
         api.send(
+            requestId: requestId,
             requestBody: mockRequestBody,
             path: path,
             timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
@@ -892,7 +913,7 @@ class ApiClientTests: XCTestCase {
         let data = try JSONEncoder().encode(mockResponse)
 
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
+        let path = ApiPaths.registerEvents.rawValue
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
@@ -931,7 +952,10 @@ class ApiClientTests: XCTestCase {
             queue: mockDispatchQueue,
             logger: nil
         )
+        let requestId = UUID()
+        api.setRegisterEventsRequestId(requestId)
         api.send(
+            requestId: requestId,
             requestBody: mockRequestBody,
             path: path,
             timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
@@ -957,7 +981,7 @@ class ApiClientTests: XCTestCase {
         let mockRequestBody = MockInvalidRequestBody()
 
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
+        let path = ApiPaths.registerEvents.rawValue
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
@@ -977,7 +1001,10 @@ class ApiClientTests: XCTestCase {
             queue: mockDispatchQueue,
             logger: nil
         )
+        let requestId = UUID()
+        api.setRegisterEventsRequestId(requestId)
         api.send(
+            requestId: requestId,
             requestBody: mockRequestBody,
             path: path,
             timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
@@ -1004,11 +1031,11 @@ class ApiClientTests: XCTestCase {
         let mockResponse = MockResponse()
         let data = try JSONEncoder().encode(mockResponse)
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
+        let path = ApiPaths.registerEvents.rawValue
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
-        var requestId = 0
+        var requestOrderId = 0
         var requestCounter = 0
         let session = MockSession(
             configuration: .default,
@@ -1030,15 +1057,15 @@ class ApiClientTests: XCTestCase {
                 // Requests should come in the correct order like below
                 switch requestCounter {
                 case 1 :
-                    XCTAssertEqual(requestId, 1)
+                    XCTAssertEqual(requestOrderId, 1)
                     expectation.fulfill()
 
                 case 2 :
-                    XCTAssertEqual(requestId, 2)
+                    XCTAssertEqual(requestOrderId, 2)
                     expectation.fulfill()
 
                 case 3 :
-                    XCTAssertEqual(requestId, 3)
+                    XCTAssertEqual(requestOrderId, 3)
                     expectation.fulfill()
 
                 default : XCTFail()
@@ -1063,9 +1090,12 @@ class ApiClientTests: XCTestCase {
             logger: MockLogger()
         )
 
-        requestId = 1
+        requestOrderId = 1
         // The 1st request
+        let requestId1UUID = UUID()
+        api.setRegisterEventsRequestId(requestId1UUID)
         api.send(
+            requestId: requestId1UUID,
             requestBody: mockRequestBody,
             path: path,
             timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
@@ -1075,12 +1105,15 @@ class ApiClientTests: XCTestCase {
             case .failure(let error):
                 XCTFail("\(error)")
             }
-            XCTAssertEqual(requestId, 1, "The current request_id should equal 1")
+            XCTAssertEqual(requestOrderId, 1, "The current request_id should equal 1")
             expectation.fulfill()
 
-            requestId = 2
+            requestOrderId = 2
             // The 2nd request
+            let requestId2UUID = UUID()
+            api.setRegisterEventsRequestId(requestId2UUID)
             api.send(
+                requestId: requestId2UUID,
                 requestBody: mockRequestBody,
                 path: path,
                 timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
@@ -1090,13 +1123,16 @@ class ApiClientTests: XCTestCase {
                 case .failure(let error):
                     XCTFail("\(error)")
                 }
-                XCTAssertEqual(requestId, 2, "The current request_id should equal 2")
+                XCTAssertEqual(requestOrderId, 2, "The current request_id should equal 2")
                 expectation.fulfill()
             }
             }
-        requestId = 3
+        requestOrderId = 3
         // The 3rd request
+        let requestId3UUID = UUID()
+        api.setRegisterEventsRequestId(requestId3UUID)
         api.send(
+            requestId: requestId3UUID,
             requestBody: mockRequestBody,
             path: path,
             timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
@@ -1106,7 +1142,7 @@ class ApiClientTests: XCTestCase {
             case .failure(let error):
                 XCTFail("\(error)")
             }
-            XCTAssertEqual(requestId, 3, "The current request_id should equal 3")
+            XCTAssertEqual(requestOrderId, 3, "The current request_id should equal 3")
             expectation.fulfill()
         }
         wait(for: [expectation], timeout: 1)
@@ -1151,7 +1187,7 @@ class ApiClientTests: XCTestCase {
         let mockRequestBody = MockRequestBody()
 
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
+        let path = ApiPaths.registerEvents.rawValue
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
@@ -1180,7 +1216,10 @@ class ApiClientTests: XCTestCase {
 
         api.cancelAllOngoingRequest()
 
+        let requestIdUUID = UUID()
+        api.setRegisterEventsRequestId(requestIdUUID)
         api.send(
+            requestId: requestIdUUID,
             requestBody: mockRequestBody,
             path: path,
             timeoutMillis: ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS) { (result: Result<(MockResponse, URLResponse), Error>) in
@@ -1228,7 +1267,7 @@ class ApiClientTests: XCTestCase {
             let data = testCase.bodyResponse
 
             let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-            let path = "path"
+            let path = ApiPaths.registerEvents.rawValue
             let apiKey = "x:api-key"
             let mockDispatchQueue = DispatchQueue(label: testCase.name)
 
@@ -1269,7 +1308,11 @@ class ApiClientTests: XCTestCase {
                 queue: mockDispatchQueue,
                 logger: nil
             )
+
+            let requestId = UUID()
+            api.setRegisterEventsRequestId(requestId)
             api.send(
+                requestId: requestId,
                 requestBody: mockRequestBody,
                 path: path,
                 timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
@@ -1311,7 +1354,7 @@ class ApiClientTests: XCTestCase {
             let data = testCase.bodyResponse
 
             let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-            let path = "path"
+            let path = ApiPaths.registerEvents.rawValue
             let apiKey = "x:api-key"
             let mockDispatchQueue = DispatchQueue(label: testCase.name)
 
@@ -1354,7 +1397,10 @@ class ApiClientTests: XCTestCase {
             apiClients.append(api)
             // Note: Send request in the same queue with the retriable logic triggered by 499 code
             mockDispatchQueue.async {
+                let requestId = UUID()
+                api.setRegisterEventsRequestId(requestId)
                 api.send(
+                    requestId: requestId,
                     requestBody: mockRequestBody,
                     path: path,
                     timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
@@ -1405,7 +1451,7 @@ class ApiClientTests: XCTestCase {
             let data = testCase.bodyResponse
 
             let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-            let path = "path"
+            let path = ApiPaths.registerEvents.rawValue
             let apiKey = "x:api-key"
             let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
@@ -1431,7 +1477,11 @@ class ApiClientTests: XCTestCase {
                 queue: mockDispatchQueue,
                 logger: nil
             )
+
+            let requestId = UUID()
+            api.setRegisterEventsRequestId(requestId)
             api.send(
+                requestId: requestId,
                 requestBody: mockRequestBody,
                 path: path,
                 timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in

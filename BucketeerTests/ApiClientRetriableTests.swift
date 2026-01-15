@@ -27,7 +27,7 @@ class ApiClientRetriableTests: XCTestCase {
     func testRetriableWith499StatusCode() throws {
         let mockDataResponse = try JSONEncoder().encode(MockResponse())
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
+        let path = ApiPaths.registerEvents.rawValue
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
@@ -56,7 +56,10 @@ class ApiClientRetriableTests: XCTestCase {
         let expectation = XCTestExpectation(description: "Should retry 3 times for 499 valid JSON")
 
         mockDispatchQueue.async {
+            let requestId = UUID()
+            api.setRegisterEventsRequestId( requestId)
             api.send(
+                requestId: requestId,
                 requestBody: MockRequestBody(),
                 path: path,
                 timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
@@ -81,7 +84,7 @@ class ApiClientRetriableTests: XCTestCase {
     // MARK: - Test Case: Non-Retriable with 300 Status Code
     func testNonRetriableStatusCode_300() throws {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
+        let path = ApiPaths.registerEvents.rawValue
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
@@ -110,7 +113,10 @@ class ApiClientRetriableTests: XCTestCase {
         let expectation = XCTestExpectation(description: "Should NOT retry for 300 (only 499 is retriable)")
 
         mockDispatchQueue.async {
+            let requestId = UUID()
+            api.setRegisterEventsRequestId( requestId)
             api.send(
+                requestId: requestId,
                 requestBody: MockRequestBody(),
                 path: path,
                 timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
@@ -136,7 +142,7 @@ class ApiClientRetriableTests: XCTestCase {
     // MARK: - Test Case: Non-Retriable with 400 Status Code
     func testNonRetriableStatusCode_400() throws {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
+        let path = ApiPaths.registerEvents.rawValue
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
@@ -165,7 +171,10 @@ class ApiClientRetriableTests: XCTestCase {
         let expectation = XCTestExpectation(description: "Should NOT retry for 400 (only 499 is retriable)")
 
         mockDispatchQueue.async {
+            let requestId = UUID()
+            api.setRegisterEventsRequestId( requestId)
             api.send(
+                requestId: requestId,
                 requestBody: MockRequestBody(),
                 path: path,
                 timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
@@ -191,7 +200,7 @@ class ApiClientRetriableTests: XCTestCase {
     // MARK: - Test Case: Non-Retriable with 500 Status Code
     func testNonRetriableStatusCode_500() throws {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
+        let path = ApiPaths.registerEvents.rawValue
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
@@ -220,7 +229,10 @@ class ApiClientRetriableTests: XCTestCase {
         let expectation = XCTestExpectation(description: "Should NOT retry for 500 (only 499 is retriable)")
 
         mockDispatchQueue.async {
+            let requestId = UUID()
+            api.setRegisterEventsRequestId( requestId)
             api.send(
+                requestId: requestId,
                 requestBody: MockRequestBody(),
                 path: path,
                 timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
@@ -247,7 +259,7 @@ class ApiClientRetriableTests: XCTestCase {
     func testSuccessStatusCode_DoesNotRetry() throws {
         let mockResponse = try JSONEncoder().encode(MockResponse())
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
+        let path = ApiPaths.registerEvents.rawValue
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
@@ -276,7 +288,10 @@ class ApiClientRetriableTests: XCTestCase {
         let expectation = XCTestExpectation(description: "Successful response should only attempt once")
 
         mockDispatchQueue.async {
+            let requestId = UUID()
+            api.setRegisterEventsRequestId( requestId)
             api.send(
+                requestId: requestId,
                 requestBody: MockRequestBody(),
                 path: path,
                 timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
@@ -298,7 +313,7 @@ class ApiClientRetriableTests: XCTestCase {
     // MARK: - Test Case: Sequential Status Codes - 499, then 4xx
     func testSequentialStatusCodes_499_Then_4xx() throws {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
+        let path = ApiPaths.registerEvents.rawValue
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
@@ -339,7 +354,10 @@ class ApiClientRetriableTests: XCTestCase {
         let expectation = XCTestExpectation(description: "Should attempt 2 times: 499, then 4xx")
 
         mockDispatchQueue.async {
+            let requestId = UUID()
+            api.setRegisterEventsRequestId( requestId)
             api.send(
+                requestId: requestId,
                 requestBody: MockRequestBody(),
                 path: path,
                 timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
@@ -365,7 +383,7 @@ class ApiClientRetriableTests: XCTestCase {
     func testSequentialStatusCodes_499_Then_2xx() throws {
         let mockResponse = try JSONEncoder().encode(MockResponse())
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
+        let path = ApiPaths.registerEvents.rawValue
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
@@ -407,7 +425,10 @@ class ApiClientRetriableTests: XCTestCase {
         let expectation = XCTestExpectation(description: "Should attempt 2 times: 499, then 200 (success)")
 
         mockDispatchQueue.async {
+            let requestId = UUID()
+            api.setRegisterEventsRequestId( requestId)
             api.send(
+                requestId: requestId,
                 requestBody: MockRequestBody(),
                 path: path,
                 timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
@@ -428,7 +449,7 @@ class ApiClientRetriableTests: XCTestCase {
     // MARK: - Test Case: Sequential Status Codes - 499, 499, then 4xx
     func testSequentialStatusCodes_499_499_Then_4xx() throws {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
+        let path = ApiPaths.getEvaluations.rawValue
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
@@ -469,7 +490,10 @@ class ApiClientRetriableTests: XCTestCase {
         let expectation = XCTestExpectation(description: "Should attempt 3 times: 499, 499, then 4xx")
 
         mockDispatchQueue.async {
+            let requestId = UUID()
+            api.setEvaluationsRequestId( requestId)
             api.send(
+                requestId: requestId,
                 requestBody: MockRequestBody(),
                 path: path,
                 timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
@@ -495,7 +519,7 @@ class ApiClientRetriableTests: XCTestCase {
     func testSequentialStatusCodes_499_499_Then_2xx() throws {
         let mockResponse = try JSONEncoder().encode(MockResponse())
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
+        let path = ApiPaths.getEvaluations.rawValue
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
@@ -537,7 +561,10 @@ class ApiClientRetriableTests: XCTestCase {
         let expectation = XCTestExpectation(description: "Should attempt 3 times: 499, 499, then 200 (success)")
 
         mockDispatchQueue.async {
+            let requestId = UUID()
+            api.setEvaluationsRequestId( requestId)
             api.send(
+                requestId: requestId,
                 requestBody: MockRequestBody(),
                 path: path,
                 timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
@@ -558,7 +585,7 @@ class ApiClientRetriableTests: XCTestCase {
     // MARK: - Test Case: Sequential Status Codes - 499, 499, 499 then 4xx
     func testSequentialStatusCodes_499_499_499_Then_4xx() throws {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
+        let path = ApiPaths.getEvaluations.rawValue
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
@@ -599,7 +626,10 @@ class ApiClientRetriableTests: XCTestCase {
         let expectation = XCTestExpectation(description: "Should attempt 4 times: 499, 499, 499, then 4xx")
 
         mockDispatchQueue.async {
+            let requestId = UUID()
+            api.setEvaluationsRequestId( requestId)
             api.send(
+                requestId: requestId,
                 requestBody: MockRequestBody(),
                 path: path,
                 timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
@@ -625,7 +655,7 @@ class ApiClientRetriableTests: XCTestCase {
     func testSequentialStatusCodes_499_499_499_Then_2xx() throws {
         let mockResponse = try JSONEncoder().encode(MockResponse())
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
+        let path = ApiPaths.getEvaluations.rawValue
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
@@ -667,7 +697,10 @@ class ApiClientRetriableTests: XCTestCase {
         let expectation = XCTestExpectation(description: "Should attempt 4 times: 499, 499, 499, then 200 (success)")
 
         mockDispatchQueue.async {
+            let requestId = UUID()
+            api.setEvaluationsRequestId( requestId)
             api.send(
+                requestId: requestId,
                 requestBody: MockRequestBody(),
                 path: path,
                 timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in
@@ -688,7 +721,7 @@ class ApiClientRetriableTests: XCTestCase {
     // MARK: - Test Case: Cancel Ongoing Request During Retry
     func testCancelOngoingRequestDuringRetry() throws {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
-        let path = "path"
+        let path = ApiPaths.getEvaluations.rawValue
         let apiKey = "x:api-key"
         let mockDispatchQueue = DispatchQueue(label: "test.queue")
 
@@ -730,7 +763,10 @@ class ApiClientRetriableTests: XCTestCase {
         let expectation = XCTestExpectation(description: "Should fail with illegalState after client is closed")
 
         mockDispatchQueue.async {
+            let requestId = UUID()
+            api.setEvaluationsRequestId( requestId)
             api.send(
+                requestId: requestId,
                 requestBody: MockRequestBody(),
                 path: path,
                 timeoutMillis: 100) { (result: Result<(MockResponse, URLResponse), Error>) in

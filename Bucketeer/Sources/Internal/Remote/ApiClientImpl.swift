@@ -18,6 +18,9 @@ final class ApiClientImpl: ApiClient {
     // Dispatch queue for retry backoff, it should be the same with the SDK queue
     private let dispatchQueue: DispatchQueue
     private let retrier: Retrier
+    // Add this property to track the latest request generation
+    private var getEvaluationsRequestId: UUID?
+    private var registerEventsRequestId: UUID?
     private var closed = false
 
     deinit {
@@ -68,8 +71,12 @@ final class ApiClientImpl: ApiClient {
         )
         let featureTag = self.featureTag
         let timeoutMillisValue = timeoutMillis ?? defaultRequestTimeoutMillis
-        logger?.debug(message: "[API] Fetch Evaluation: \(requestBody)")
+        // Generate a new ID for any new request call
+        let newRequestId = UUID()
+        self.getEvaluationsRequestId = newRequestId
+        logger?.debug(message: "[API] Fetch Evaluation: \(requestBody) for requestID \(newRequestId)")
         send(
+            requestId: newRequestId,
             requestBody: requestBody,
             path: ApiPaths.getEvaluations.rawValue,
             timeoutMillis: timeoutMillisValue,
@@ -96,7 +103,10 @@ final class ApiClientImpl: ApiClient {
             sdkVersion: sdkInfo.sdkVersion,
             sourceId: sdkInfo.sourceId
         )
-        logger?.debug(message: "[API] Register events: \(requestBody)")
+        // Generate a new ID for any new request call
+        let newRequestId = UUID()
+        self.registerEventsRequestId = newRequestId
+        logger?.debug(message: "[API] Register events: \(requestBody) for requestID \(newRequestId)")
         let encoder = JSONEncoder()
         if #available(iOS 13.0, tvOS 13.0, *) {
             encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
@@ -110,6 +120,7 @@ final class ApiClientImpl: ApiClient {
 
         let timeoutMillisValue = defaultRequestTimeoutMillis
         send(
+            requestId: newRequestId,
             requestBody: requestBody,
             path: ApiPaths.registerEvents.rawValue,
             timeoutMillis: defaultRequestTimeoutMillis,
@@ -148,16 +159,24 @@ final class ApiClientImpl: ApiClient {
     /// - Note: All other errors (network failures, HTTP 4xx/5xx codes except 499) will not trigger retries
     ///         and will be returned immediately via the completion handler.
     func send<RequestBody: Encodable, Response: Decodable>(
+        requestId: UUID? = nil,
         requestBody: RequestBody,
         path: String,
         timeoutMillis: Int64,
         encoder: JSONEncoder = JSONEncoder(),
         completion: ((Result<(Response, URLResponse), Error>) -> Void)?) {
             let task: Retrier.Task<(Response, URLResponse)> = { [weak self] callback in
+                // Before executing network task, check if this is still the valid request
+                guard let currentRequestId = self?.getLatestRequestId(apiPath: path), currentRequestId == requestId else {
+                    // Return a non-retriable error to stop the Retrier loop immediately
+                    callback(.failure(BKTError.illegalState(message: "Request cancelled by newer execution")))
+                    return
+                }
                 self?.sendInternal(
                     requestBody: requestBody,
                     path: path,
                     timeoutMillis: timeoutMillis,
+                    encoder: encoder,
                     completion: callback
                 )
             }
@@ -285,6 +304,30 @@ final class ApiClientImpl: ApiClient {
             }
         }
         return false
+    }
+
+    private func getLatestRequestId(apiPath: String) -> UUID? {
+        guard let apiPath = ApiPaths(rawValue: apiPath) else {
+            return nil
+        }
+        switch apiPath {
+        case .getEvaluations:
+            return getEvaluationsRequestId
+        case .registerEvents:
+            return registerEventsRequestId
+        }
+    }
+
+    /// For tests only. Sets the current `getEvaluations` request id.
+    /// Not thread-safe — should be call on the SDK `dispatchQueue`.
+    func setEvaluationsRequestId(_ id: UUID) {
+        getEvaluationsRequestId = id
+    }
+
+    /// For tests only. Sets the current `registerEvents` request id.
+    /// Not thread-safe — should be on the SDK `dispatchQueue`.
+    func setRegisterEventsRequestId(_ id: UUID) {
+        registerEventsRequestId = id
     }
 }
 
