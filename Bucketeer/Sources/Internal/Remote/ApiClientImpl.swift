@@ -303,7 +303,7 @@ final class ApiClientImpl: ApiClient {
         return false
     }
 
-    private func getLatestRequestId(apiPath: String) -> UUID? {
+    func getLatestRequestId(apiPath: String) -> UUID? {
         guard let apiPath = ApiPaths(rawValue: apiPath) else {
             return nil
         }
