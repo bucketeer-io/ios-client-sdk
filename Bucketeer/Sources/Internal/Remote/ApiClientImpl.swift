@@ -5,7 +5,6 @@ final class ApiClientImpl: ApiClient {
     static let DEFAULT_REQUEST_TIMEOUT_MILLIS: Int64 = 30_000
     static let CLIENT_CLOSED_THE_CONNECTION_CODE: Int = 499
     static let DEFAULT_MAX_ATTEMPTS = 4 // 1 original try + 3 retries
-    static let DEFAULT_BASE_DELAY_SECONDS = 1.0 // in seconds
 
     private let apiEndpoint: URL
     private let apiKey: String
@@ -32,7 +31,7 @@ final class ApiClientImpl: ApiClient {
         apiKey: String,
         featureTag: String,
         sdkInfo: SDKInfo,
-        defaultRequestTimeoutMills: Int64 = ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS,
+        defaultRequestTimeoutMillis: Int64 = ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS,
         session: Session,
         retrier: Retrier,
         logger: Logger?
@@ -41,7 +40,7 @@ final class ApiClientImpl: ApiClient {
         self.apiKey = apiKey
         self.featureTag = featureTag
         self.sdkInfo = sdkInfo
-        self.defaultRequestTimeoutMillis = defaultRequestTimeoutMills
+        self.defaultRequestTimeoutMillis = defaultRequestTimeoutMillis
         self.session = session
         self.logger = logger
         self.session.configuration.timeoutIntervalForRequest = TimeInterval(self.defaultRequestTimeoutMillis) / 1000

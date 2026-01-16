@@ -47,7 +47,7 @@ class ApiClientRetriableTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
-            defaultRequestTimeoutMills: 200,
+            defaultRequestTimeoutMillis: 200,
             session: session,
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
@@ -104,7 +104,7 @@ class ApiClientRetriableTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
-            defaultRequestTimeoutMills: 200,
+            defaultRequestTimeoutMillis: 200,
             session: session,
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
@@ -162,7 +162,7 @@ class ApiClientRetriableTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
-            defaultRequestTimeoutMills: 200,
+            defaultRequestTimeoutMillis: 200,
             session: session,
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
@@ -220,7 +220,7 @@ class ApiClientRetriableTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
-            defaultRequestTimeoutMills: 200,
+            defaultRequestTimeoutMillis: 200,
             session: session,
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
@@ -279,7 +279,7 @@ class ApiClientRetriableTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
-            defaultRequestTimeoutMills: 200,
+            defaultRequestTimeoutMillis: 200,
             session: session,
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
@@ -345,7 +345,7 @@ class ApiClientRetriableTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
-            defaultRequestTimeoutMills: 200,
+            defaultRequestTimeoutMillis: 200,
             session: session,
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
@@ -416,7 +416,7 @@ class ApiClientRetriableTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
-            defaultRequestTimeoutMills: 200,
+            defaultRequestTimeoutMillis: 200,
             session: session,
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
@@ -481,7 +481,7 @@ class ApiClientRetriableTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
-            defaultRequestTimeoutMills: 200,
+            defaultRequestTimeoutMillis: 200,
             session: session,
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
@@ -552,7 +552,7 @@ class ApiClientRetriableTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
-            defaultRequestTimeoutMills: 200,
+            defaultRequestTimeoutMillis: 200,
             session: session,
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
@@ -617,7 +617,7 @@ class ApiClientRetriableTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
-            defaultRequestTimeoutMills: 200,
+            defaultRequestTimeoutMillis: 200,
             session: session,
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
@@ -688,7 +688,7 @@ class ApiClientRetriableTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
-            defaultRequestTimeoutMills: 200,
+            defaultRequestTimeoutMillis: 200,
             session: session,
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
@@ -754,7 +754,7 @@ class ApiClientRetriableTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
-            defaultRequestTimeoutMills: 200,
+            defaultRequestTimeoutMillis: 200,
             session: session,
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil

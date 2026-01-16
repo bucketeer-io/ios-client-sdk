@@ -551,7 +551,7 @@ class ApiClientTests: XCTestCase {
             apiKey: apiKey,
             featureTag: "tag1",
             sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
-            defaultRequestTimeoutMills: 200,
+            defaultRequestTimeoutMillis: 200,
             session: session,
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
@@ -621,7 +621,7 @@ class ApiClientTests: XCTestCase {
             apiKey: apiKey,
             featureTag: "tag1",
             sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
-            defaultRequestTimeoutMills: 200,
+            defaultRequestTimeoutMillis: 200,
             session: session,
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
@@ -692,7 +692,7 @@ class ApiClientTests: XCTestCase {
             apiKey: apiKey,
             featureTag: "tag1",
             sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
-            defaultRequestTimeoutMills: 200,
+            defaultRequestTimeoutMillis: 200,
             session: session,
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
@@ -1338,7 +1338,7 @@ class ApiClientTests: XCTestCase {
                 apiKey: apiKey,
                 featureTag: "tag1",
                 sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
-                defaultRequestTimeoutMills: 200,
+                defaultRequestTimeoutMillis: 200,
                 session: session,
                 retrier: Retrier(queue: mockDispatchQueue),
                 logger: nil
@@ -1419,7 +1419,7 @@ class ApiClientTests: XCTestCase {
                 apiKey: apiKey,
                 featureTag: "tag1",
                 sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
-                defaultRequestTimeoutMills: 200,
+                defaultRequestTimeoutMillis: 200,
                 session: session,
                 retrier: Retrier(queue: mockDispatchQueue),
                 logger: nil
