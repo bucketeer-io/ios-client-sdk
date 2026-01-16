@@ -74,7 +74,7 @@ class ApiClientTests: XCTestCase {
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
-        mockDispatchQueue.sync {
+        mockDispatchQueue.async {
             api.getEvaluations(
                 user: .mock1,
                 userEvaluationsId: userEvaluationsId,
@@ -158,7 +158,7 @@ class ApiClientTests: XCTestCase {
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
-        mockDispatchQueue.sync {
+        mockDispatchQueue.async {
             api.getEvaluations(
                 user: .mock1,
                 userEvaluationsId: userEvaluationsId,
@@ -287,7 +287,7 @@ class ApiClientTests: XCTestCase {
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
-        mockDispatchQueue.sync {
+        mockDispatchQueue.async {
             api.registerEvents(events: events) { result in
                 switch result {
                 case .success(let response):
@@ -404,7 +404,7 @@ class ApiClientTests: XCTestCase {
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
-        mockDispatchQueue.sync {
+        mockDispatchQueue.async {
             api.registerEvents(events: events) { result in
                 switch result {
                 case .success:
@@ -488,7 +488,7 @@ class ApiClientTests: XCTestCase {
         )
         let requestId = UUID()
         api.setEvaluationsRequestId(requestId)
-        mockDispatchQueue.sync {
+        mockDispatchQueue.async {
             api.send(
                 requestId: requestId,
                 requestBody: mockRequestBody,
@@ -558,7 +558,7 @@ class ApiClientTests: XCTestCase {
         )
         let requestId = UUID()
         api.setEvaluationsRequestId(requestId)
-        mockDispatchQueue.sync {
+        mockDispatchQueue.async {
             api.send(
                 requestId: requestId,
                 requestBody: mockRequestBody,
@@ -628,7 +628,7 @@ class ApiClientTests: XCTestCase {
         )
         let requestId = UUID()
         api.setEvaluationsRequestId(requestId)
-        mockDispatchQueue.sync {
+        mockDispatchQueue.async {
             api.send(
                 requestId: requestId,
                 requestBody: mockRequestBody,
@@ -697,7 +697,7 @@ class ApiClientTests: XCTestCase {
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
-        mockDispatchQueue.sync {
+        mockDispatchQueue.async {
             let requestId = UUID()
             api.setEvaluationsRequestId(requestId)
             api.send(
@@ -764,7 +764,7 @@ class ApiClientTests: XCTestCase {
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
-        mockDispatchQueue.sync {
+        mockDispatchQueue.async {
             let requestId = UUID()
             api.setEvaluationsRequestId(requestId)
             api.send(
@@ -832,7 +832,7 @@ class ApiClientTests: XCTestCase {
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
-        mockDispatchQueue.sync {
+        mockDispatchQueue.async {
             let requestId = UUID()
             api.setEvaluationsRequestId(requestId)
             api.send(
@@ -900,7 +900,7 @@ class ApiClientTests: XCTestCase {
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
-        mockDispatchQueue.sync {
+        mockDispatchQueue.async {
             let requestId = UUID()
             api.setEvaluationsRequestId(requestId)
             api.send(
@@ -974,7 +974,7 @@ class ApiClientTests: XCTestCase {
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
-        mockDispatchQueue.sync {
+        mockDispatchQueue.async {
             let requestId = UUID()
             api.setRegisterEventsRequestId(requestId)
             api.send(
@@ -1025,7 +1025,7 @@ class ApiClientTests: XCTestCase {
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
         )
-        mockDispatchQueue.sync {
+        mockDispatchQueue.async {
             let requestId = UUID()
             api.setRegisterEventsRequestId(requestId)
             api.send(
@@ -1116,7 +1116,7 @@ class ApiClientTests: XCTestCase {
             logger: MockLogger()
         )
 
-        mockDispatchQueue.sync {
+        mockDispatchQueue.async {
             requestOrderId = 1
             // The 1st request
             let requestId1UUID = UUID()
@@ -1244,7 +1244,7 @@ class ApiClientTests: XCTestCase {
 
         api.cancelAllOngoingRequest()
 
-        mockDispatchQueue.sync {
+        mockDispatchQueue.async {
             let requestIdUUID = UUID()
             api.setRegisterEventsRequestId(requestIdUUID)
             api.send(
@@ -1343,7 +1343,7 @@ class ApiClientTests: XCTestCase {
                 retrier: Retrier(queue: mockDispatchQueue),
                 logger: nil
             )
-            mockDispatchQueue.sync {
+            mockDispatchQueue.async {
                 let requestId = UUID()
                 api.setRegisterEventsRequestId(requestId)
                 api.send(
