@@ -120,7 +120,7 @@ final class ApiClientImpl: ApiClient {
             requestId: newRequestId,
             requestBody: requestBody,
             path: ApiPaths.registerEvents.rawValue,
-            timeoutMillis: defaultRequestTimeoutMillis,
+            timeoutMillis: timeoutMillisValue,
             encoder: encoder,
             completion: { (result: Result<(RegisterEventsResponse, URLResponse), Error>) in
                 switch result {
