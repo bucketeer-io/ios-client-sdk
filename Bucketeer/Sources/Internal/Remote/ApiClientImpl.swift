@@ -332,13 +332,13 @@ final class ApiClientImpl: ApiClient {
     }
 
     /// For tests only. Sets the current `getEvaluations` request id.
-    /// Not thread-safe — should be call on the SDK `dispatchQueue`.
+    /// Not thread-safe — should be called on the SDK `dispatchQueue`.
     func setEvaluationsRequestId(_ id: UUID) {
         getEvaluationsRequestId = id
     }
 
     /// For tests only. Sets the current `registerEvents` request id.
-    /// Not thread-safe — should be on the SDK `dispatchQueue`.
+    /// Not thread-safe — should be called on the SDK `dispatchQueue`.
     func setRegisterEventsRequestId(_ id: UUID) {
         registerEventsRequestId = id
     }

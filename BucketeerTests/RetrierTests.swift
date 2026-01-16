@@ -23,23 +23,25 @@ final class RetrierTests: XCTestCase {
         let expectation = self.expectation(description: "Task should succeed immediately")
         var attemptCount = 0
 
-        retrier.attempt(
-            task: { completion in
-                attemptCount += 1
-                completion(.success("Success"))
-            },
-            condition: { _ in true },
-            maxAttempts: 3,
-            completion: { result in
-                switch result {
-                case .success(let value):
-                    XCTAssertEqual(value, "Success")
-                case .failure:
-                    XCTFail("Should not fail")
+        dispatchQueue.async { [unowned self] in
+            retrier.attempt(
+                task: { completion in
+                    attemptCount += 1
+                    completion(.success("Success"))
+                },
+                condition: { _ in true },
+                maxAttempts: 3,
+                completion: { result in
+                    switch result {
+                    case .success(let value):
+                        XCTAssertEqual(value, "Success")
+                    case .failure:
+                        XCTFail("Should not fail")
+                    }
+                    expectation.fulfill()
                 }
-                expectation.fulfill()
-            }
-        )
+            )
+        }
 
         waitForExpectations(timeout: 1.0)
         XCTAssertEqual(attemptCount, 1)
@@ -49,28 +51,30 @@ final class RetrierTests: XCTestCase {
         let expectation = self.expectation(description: "Task should succeed after retries")
         var attemptCount = 0
 
-        // Fail twice, succeed on the 3rd time
-        retrier.attempt(
-            task: { (completion: @escaping (Result<String, Error>) -> Void) in
-                attemptCount += 1
-                if attemptCount < 3 {
-                    completion(.failure(NSError(domain: "test", code: 500, userInfo: nil)))
-                } else {
-                    completion(.success("Success"))
+        dispatchQueue.async { [unowned self] in
+            // Fail twice, succeed on the 3rd time
+            retrier.attempt(
+                task: { (completion: @escaping (Result<String, Error>) -> Void) in
+                    attemptCount += 1
+                    if attemptCount < 3 {
+                        completion(.failure(NSError(domain: "test", code: 500, userInfo: nil)))
+                    } else {
+                        completion(.success("Success"))
+                    }
+                },
+                condition: { _ in true },
+                maxAttempts: 5,
+                completion: { result in
+                    switch result {
+                    case .success(let value):
+                        XCTAssertEqual(value, "Success")
+                    case .failure:
+                        XCTFail("Should not fail eventually")
+                    }
+                    expectation.fulfill()
                 }
-            },
-            condition: { _ in true },
-            maxAttempts: 5,
-            completion: { result in
-                switch result {
-                case .success(let value):
-                    XCTAssertEqual(value, "Success")
-                case .failure:
-                    XCTFail("Should not fail eventually")
-                }
-                expectation.fulfill()
-            }
-        )
+            )
+        }
 
         // Timeout needs to be long enough to account for backoff delays (1s + 2s = 3s total delay before 3rd attempt)
         waitForExpectations(timeout: 5.0)
@@ -82,24 +86,26 @@ final class RetrierTests: XCTestCase {
         var attemptCount = 0
         let expectedError = NSError(domain: "test", code: 500, userInfo: nil)
 
-        retrier.attempt(
-            // Explicitly define type so compiler knows T is String
-            task: { (completion: @escaping (Result<String, Error>) -> Void) in
-                attemptCount += 1
-                completion(.failure(expectedError))
-            },
-            condition: { _ in true },
-            maxAttempts: 3,
-            completion: { result in
-                switch result {
-                case .success:
-                    XCTFail("Should not succeed")
-                case .failure(let error):
-                    XCTAssertEqual((error as NSError).code, 500)
+        dispatchQueue.async { [unowned self] in
+            retrier.attempt(
+                // Explicitly define type so compiler knows T is String
+                task: { (completion: @escaping (Result<String, Error>) -> Void) in
+                    attemptCount += 1
+                    completion(.failure(expectedError))
+                },
+                condition: { _ in true },
+                maxAttempts: 3,
+                completion: { result in
+                    switch result {
+                    case .success:
+                        XCTFail("Should not succeed")
+                    case .failure(let error):
+                        XCTAssertEqual((error as NSError).code, 500)
+                    }
+                    expectation.fulfill()
                 }
-                expectation.fulfill()
-            }
-        )
+            )
+        }
 
         // Delays: 1s (after 1st fail) + 2s (after 2nd fail) = 3s total.
         // Wait slightly longer to ensure completion is called.
@@ -113,27 +119,29 @@ final class RetrierTests: XCTestCase {
         // Error code 400 usually implies client error, shouldn't retry
         let fatalError = NSError(domain: "test", code: 400, userInfo: nil)
 
-        retrier.attempt(
-            // Explicitly define type so compiler knows T is String
-            task: { (completion: @escaping (Result<String, Error>) -> Void) in
-                attemptCount += 1
-                completion(.failure(fatalError))
-            },
-            condition: { error in
-                // Only retry for 500 errors
-                (error as NSError).code == 500
-            },
-            maxAttempts: 3,
-            completion: { result in
-                switch result {
-                case .success:
-                    XCTFail("Should not succeed")
-                case .failure(let error):
-                    XCTAssertEqual((error as NSError).code, 400)
+        dispatchQueue.async { [unowned self] in
+            retrier.attempt(
+                // Explicitly define type so compiler knows T is String
+                task: { (completion: @escaping (Result<String, Error>) -> Void) in
+                    attemptCount += 1
+                    completion(.failure(fatalError))
+                },
+                condition: { error in
+                    // Only retry for 500 errors
+                    (error as NSError).code == 500
+                },
+                maxAttempts: 3,
+                completion: { result in
+                    switch result {
+                    case .success:
+                        XCTFail("Should not succeed")
+                    case .failure(let error):
+                        XCTAssertEqual((error as NSError).code, 400)
+                    }
+                    expectation.fulfill()
                 }
-                expectation.fulfill()
-            }
-        )
+            )
+        }
 
         waitForExpectations(timeout: 1.0)
         XCTAssertEqual(attemptCount, 1) // Should only try once
