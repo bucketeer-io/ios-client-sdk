@@ -23,8 +23,8 @@ final class RetrierTests: XCTestCase {
         let expectation = self.expectation(description: "Task should succeed immediately")
         var attemptCount = 0
 
-        dispatchQueue.async { [unowned self] in
-            retrier.attempt(
+        dispatchQueue.async { [weak self] in
+            self?.retrier.attempt(
                 task: { completion in
                     attemptCount += 1
                     completion(.success("Success"))
@@ -51,9 +51,9 @@ final class RetrierTests: XCTestCase {
         let expectation = self.expectation(description: "Task should succeed after retries")
         var attemptCount = 0
 
-        dispatchQueue.async { [unowned self] in
+        dispatchQueue.async { [weak self] in
             // Fail twice, succeed on the 3rd time
-            retrier.attempt(
+            self?.retrier.attempt(
                 task: { (completion: @escaping (Result<String, Error>) -> Void) in
                     attemptCount += 1
                     if attemptCount < 3 {
@@ -86,8 +86,8 @@ final class RetrierTests: XCTestCase {
         var attemptCount = 0
         let expectedError = NSError(domain: "test", code: 500, userInfo: nil)
 
-        dispatchQueue.async { [unowned self] in
-            retrier.attempt(
+        dispatchQueue.async { [weak self] in
+            self?.retrier.attempt(
                 // Explicitly define type so compiler knows T is String
                 task: { (completion: @escaping (Result<String, Error>) -> Void) in
                     attemptCount += 1
@@ -119,8 +119,8 @@ final class RetrierTests: XCTestCase {
         // Error code 400 usually implies client error, shouldn't retry
         let fatalError = NSError(domain: "test", code: 400, userInfo: nil)
 
-        dispatchQueue.async { [unowned self] in
-            retrier.attempt(
+        dispatchQueue.async { [weak self] in
+            self?.retrier.attempt(
                 // Explicitly define type so compiler knows T is String
                 task: { (completion: @escaping (Result<String, Error>) -> Void) in
                     attemptCount += 1

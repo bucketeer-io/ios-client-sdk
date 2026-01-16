@@ -139,6 +139,7 @@ final class ApiClientImpl: ApiClient {
     /// Retries are only triggered on deployment-related 499 errors
     ///
     /// - Parameters:
+    ///   - requestId: The unique identifier for the request to track and potentially cancel outdated requests.
     ///   - requestBody: The request body to encode and send
     ///   - path: The API endpoint path to append to the base URL
     ///   - timeoutMillis: Request timeout in milliseconds
@@ -202,7 +203,8 @@ final class ApiClientImpl: ApiClient {
             )
         }
 
-    // noted: this method will run `synchronized`. It will blocking the current queue please do not make network call from the app main thread
+    // Note: This method blocks the calling thread using a semaphore until the network request completes
+    // or fails. Do not call this method from the main thread; invoke it only from the SDK queue.
     func sendInternal<RequestBody: Encodable, Response: Decodable>(
         requestBody: RequestBody,
         path: String,
