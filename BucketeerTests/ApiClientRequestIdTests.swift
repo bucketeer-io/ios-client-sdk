@@ -39,6 +39,7 @@ final class ApiClientRequestIdTests: XCTestCase {
                 apiEndpoint: apiEndpointURL,
                 apiKey: apiKey,
                 featureTag: "tag1",
+                sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
                 session: session,
                 retrier: Retrier(queue: mockDispatchQueue),
                 logger: nil
@@ -91,6 +92,7 @@ final class ApiClientRequestIdTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
+            sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             session: session,
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
@@ -149,6 +151,7 @@ final class ApiClientRequestIdTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
+            sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             session: session,
             retrier: Retrier(queue: mockDispatchQueue),
             logger: nil
