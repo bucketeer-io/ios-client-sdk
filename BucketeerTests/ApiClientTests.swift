@@ -37,8 +37,8 @@ class ApiClientTests: XCTestCase {
                 let jsonString = String(data: data, encoding: .utf8) ?? ""
                 let expected = """
 {
-  "sdkVersion" : "\(Version.current)",
-  "sourceId" : 2,
+  "sdkVersion" : "12.3.5",
+  "sourceId" : 101,
   "tag" : "tag1",
   "user" : {
     "data" : {
@@ -68,6 +68,7 @@ class ApiClientTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
+            sdkInfo: SDKInfo(sourceId: .openFeatureSwift, sdkVersion: "12.3.5"),
             session: session,
             logger: nil
         )
@@ -115,8 +116,8 @@ class ApiClientTests: XCTestCase {
                 let jsonString = String(data: data, encoding: .utf8) ?? ""
                 let expected = """
 {
-  "sdkVersion" : "\(Version.current)",
-  "sourceId" : 2,
+  "sdkVersion" : "10.3.5",
+  "sourceId" : 101,
   "tag" : "tag1",
   "user" : {
     "data" : {
@@ -146,6 +147,7 @@ class ApiClientTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
+            sdkInfo: SDKInfo(sourceId: .openFeatureSwift, sdkVersion: "10.3.5"),
             session: session,
             logger: nil
         )
@@ -174,7 +176,7 @@ class ApiClientTests: XCTestCase {
         let expectation = XCTestExpectation()
         expectation.expectedFulfillmentCount = 2
 
-        let events: [Event] = [.mockGoal1, .mockEvaluation1]
+        let events: [Event] = [.mockGoalSourceFlutter, .mockEvaluationSourceFlutter]
         let errors: [String: RegisterEventsResponse.ErrorResponse] = [
             Event.mockEvaluation1.id: .init(retriable: true, message: "error")
         ]
@@ -202,8 +204,8 @@ class ApiClientTests: XCTestCase {
           "device_type" : "mobile",
           "os_version" : "16.0"
         },
-        "sdkVersion" : "0.0.1",
-        "sourceId" : 2,
+        "sdkVersion" : "13.3.1",
+        "sourceId" : 8,
         "tag" : "tag1",
         "timestamp" : 1,
         "user" : {
@@ -233,8 +235,8 @@ class ApiClientTests: XCTestCase {
           "ruleId" : "rule1",
           "type" : "RULE"
         },
-        "sdkVersion" : "0.0.1",
-        "sourceId" : 2,
+        "sdkVersion" : "13.3.1",
+        "sourceId" : 8,
         "tag" : "tag1",
         "timestamp" : 1,
         "user" : {
@@ -250,8 +252,8 @@ class ApiClientTests: XCTestCase {
       "type" : 3
     }
   ],
-  "sdkVersion" : "\(Version.current)",
-  "sourceId" : 2
+  "sdkVersion" : "13.3.1",
+  "sourceId" : 8
 }
 """
                 XCTAssertEqual(jsonString, expected)
@@ -269,6 +271,7 @@ class ApiClientTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
+            sdkInfo: SDKInfo(sourceId: .flutter, sdkVersion: "13.3.1"),
             session: session,
             logger: nil
         )
@@ -380,6 +383,7 @@ class ApiClientTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
+            sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             session: session,
             logger: nil
         )
@@ -457,6 +461,7 @@ class ApiClientTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
+            sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             session: session,
             logger: nil
         )
@@ -518,6 +523,7 @@ class ApiClientTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
+            sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             defaultRequestTimeoutMills: 200,
             session: session,
             logger: nil
@@ -580,6 +586,7 @@ class ApiClientTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
+            sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             defaultRequestTimeoutMills: 200,
             session: session,
             logger: nil
@@ -643,6 +650,7 @@ class ApiClientTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
+            sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             defaultRequestTimeoutMills: 200,
             session: session,
             logger: nil
@@ -703,6 +711,7 @@ class ApiClientTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
+            sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             session: session,
             logger: nil
         )
@@ -763,6 +772,7 @@ class ApiClientTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
+            sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             session: session,
             logger: nil
         )
@@ -823,6 +833,7 @@ class ApiClientTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
+            sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             session: session,
             logger: nil
         )
@@ -889,6 +900,7 @@ class ApiClientTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
+            sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             session: session,
             logger: nil
         )
@@ -932,6 +944,7 @@ class ApiClientTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
+            sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             session: session,
             logger: nil
         )
@@ -1013,6 +1026,7 @@ class ApiClientTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
+            sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             session: session,
             logger: MockLogger()
         )
@@ -1125,6 +1139,7 @@ class ApiClientTests: XCTestCase {
             apiEndpoint: apiEndpointURL,
             apiKey: apiKey,
             featureTag: "tag1",
+            sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
             session: session,
             logger: nil
         )
@@ -1218,6 +1233,7 @@ class ApiClientTests: XCTestCase {
                 apiEndpoint: apiEndpointURL,
                 apiKey: apiKey,
                 featureTag: "tag1",
+                sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
                 defaultRequestTimeoutMills: 200,
                 session: session,
                 logger: nil
@@ -1291,6 +1307,7 @@ class ApiClientTests: XCTestCase {
                 apiEndpoint: apiEndpointURL,
                 apiKey: apiKey,
                 featureTag: "tag1",
+                sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
                 defaultRequestTimeoutMills: 200,
                 session: session,
                 logger: nil

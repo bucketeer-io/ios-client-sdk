@@ -2,8 +2,8 @@ import Foundation
 
 struct RegisterEventsRequestBody: Codable {
     internal init(events: [Event] = [],
-                  sdkVersion: String = Version.current,
-                  sourceId: SourceID = SourceID.ios
+                  sdkVersion: String,
+                  sourceId: SourceID
     ) {
         self.events = events
         self.sdkVersion = sdkVersion

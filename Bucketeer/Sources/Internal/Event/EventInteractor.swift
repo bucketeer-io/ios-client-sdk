@@ -18,7 +18,7 @@ extension EventInteractor {
 }
 
 final class EventInteractorImpl: EventInteractor {
-    let sdkVersion: String
+    let sdkInfo: SDKInfo
     let eventsMaxBatchQueueCount: Int
     let apiClient: ApiClient
     let eventSQLDao: EventSQLDao
@@ -31,7 +31,7 @@ final class EventInteractorImpl: EventInteractor {
     private var eventUpdateListener: EventUpdateListener?
 
     init(
-        sdkVersion: String,
+        sdkInfo: SDKInfo,
         appVersion: String,
         device: Device,
         eventsMaxBatchQueueCount: Int,
@@ -42,7 +42,7 @@ final class EventInteractorImpl: EventInteractor {
         logger: Logger?,
         featureTag: String
     ) {
-        self.sdkVersion = sdkVersion
+        self.sdkInfo = sdkInfo
         self.eventsMaxBatchQueueCount = eventsMaxBatchQueueCount
         self.apiClient = apiClient
         self.eventSQLDao = eventSQLDao
@@ -75,8 +75,8 @@ final class EventInteractorImpl: EventInteractor {
                     user: user,
                     reason: evaluation.reason,
                     tag: featureTag,
-                    sourceId: .ios,
-                    sdkVersion: sdkVersion,
+                    sourceId: sdkInfo.sourceId,
+                    sdkVersion: sdkInfo.sdkVersion,
                     metadata: metadata
                 )),
                 type: .evaluation
@@ -96,8 +96,8 @@ final class EventInteractorImpl: EventInteractor {
                     user: user,
                     reason: .init(type: .client),
                     tag: featureTag,
-                    sourceId: .ios,
-                    sdkVersion: sdkVersion,
+                    sourceId: sdkInfo.sourceId,
+                    sdkVersion: sdkInfo.sdkVersion,
                     metadata: metadata
                 )),
                 type: .evaluation
@@ -117,8 +117,8 @@ final class EventInteractorImpl: EventInteractor {
                     value: value,
                     user: user,
                     tag: featureTag,
-                    sourceId: .ios,
-                    sdkVersion: sdkVersion,
+                    sourceId: sdkInfo.sourceId,
+                    sdkVersion: sdkInfo.sdkVersion,
                     metadata: metadata
                 )),
                 type: .goal
@@ -140,8 +140,8 @@ final class EventInteractorImpl: EventInteractor {
                             latencySecond: seconds
                         )),
                         type: .responseLatency,
-                        sourceId: .ios,
-                        sdk_version: sdkVersion,
+                        sourceId: sdkInfo.sourceId,
+                        sdk_version: sdkInfo.sdkVersion,
                         metadata: metadata
                     )),
                     type: .metrics
@@ -156,8 +156,8 @@ final class EventInteractorImpl: EventInteractor {
                             sizeByte: sizeByte
                         )),
                         type: .responseSize,
-                        sourceId: .ios,
-                        sdk_version: sdkVersion,
+                        sourceId: sdkInfo.sourceId,
+                        sdk_version: sdkInfo.sdkVersion,
                         metadata: metadata
                     )),
                     type: .metrics
@@ -192,9 +192,10 @@ final class EventInteractorImpl: EventInteractor {
             apiId: apiId,
             labels: ["tag": featureTag],
             currentTimeSeconds: clock.currentTimeSeconds,
-            sdkVersion: sdkVersion,
+            sdkInfo: sdkInfo,
             metadata: metadata
         )
+
         try trackMetricsEvent(events: [
             .init(
                 id: idGenerator.id(),
@@ -332,8 +333,12 @@ extension Event {
 }
 
 extension BKTError {
-    func toMetricsEventData(apiId: ApiId, labels: [String: String], currentTimeSeconds: Int64, sdkVersion: String, metadata: [String: String]?) ->
-    EventData {
+    func toMetricsEventData(
+        apiId: ApiId,
+        labels: [String: String],
+        currentTimeSeconds: Int64,
+        sdkInfo: SDKInfo,
+        metadata: [String: String]?) -> EventData {
         let error = self
         let metricsEventData: MetricsEventData
         let metricsEventType: MetricsEventType
@@ -427,8 +432,8 @@ extension BKTError {
             timestamp: currentTimeSeconds,
             event: metricsEventData,
             type: metricsEventType,
-            sourceId: .ios,
-            sdk_version: sdkVersion,
+            sourceId: sdkInfo.sourceId,
+            sdk_version: sdkInfo.sdkVersion,
             metadata: metadata
         ))
     }

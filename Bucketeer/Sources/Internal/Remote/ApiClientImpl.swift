@@ -7,6 +7,7 @@ final class ApiClientImpl: ApiClient {
     private let apiEndpoint: URL
     private let apiKey: String
     private let featureTag: String
+    private let sdkInfo: SDKInfo
     private let session: Session
     private let defaultRequestTimeoutMills: Int64
     private let logger: Logger?
@@ -23,14 +24,15 @@ final class ApiClientImpl: ApiClient {
         apiEndpoint: URL,
         apiKey: String,
         featureTag: String,
+        sdkInfo: SDKInfo,
         defaultRequestTimeoutMills: Int64 = ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS,
         session: Session,
         logger: Logger?
     ) {
-
         self.apiEndpoint = apiEndpoint
         self.apiKey = apiKey
         self.featureTag = featureTag
+        self.sdkInfo = sdkInfo
         self.defaultRequestTimeoutMills = defaultRequestTimeoutMills
         self.session = session
         self.logger = logger
@@ -48,12 +50,12 @@ final class ApiClientImpl: ApiClient {
             tag: self.featureTag,
             user: user,
             userEvaluationsId: userEvaluationsId,
-            sourceId: .ios,
+            sourceId: sdkInfo.sourceId,
             userEvaluationCondition: UserEvaluationCondition(
                 evaluatedAt: condition.evaluatedAt,
                 userAttributesUpdated: condition.userAttributesUpdated
             ),
-            sdkVersion: Version.current
+            sdkVersion: sdkInfo.sdkVersion
         )
         let featureTag = self.featureTag
         let timeoutMillisValue = timeoutMillis ?? defaultRequestTimeoutMills
@@ -82,7 +84,8 @@ final class ApiClientImpl: ApiClient {
     func registerEvents(events: [Event], completion: ((Result<RegisterEventsResponse, BKTError>) -> Void)?) {
         let requestBody = RegisterEventsRequestBody(
             events: events,
-            sdkVersion: Version.current
+            sdkVersion: sdkInfo.sdkVersion,
+            sourceId: sdkInfo.sourceId
         )
         logger?.debug(message: "[API] Register events: \(requestBody)")
         let encoder = JSONEncoder()

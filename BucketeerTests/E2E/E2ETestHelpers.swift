@@ -16,16 +16,26 @@ let GOAL_VALUE = 1.0
 
 @available(iOS 13, *)
 extension BKTConfig {
-    static func e2e(featureTag: String = FEATURE_TAG) throws -> BKTConfig {
+    static func e2e(
+        featureTag: String = FEATURE_TAG,
+        wrapperSdkSourceId: SourceID? = nil,
+        wrapperSdkVersion: String? = nil
+    ) throws -> BKTConfig {
         let apiKey = ProcessInfo.processInfo.environment["E2E_API_KEY"]!
         let apiEndpoint = ProcessInfo.processInfo.environment["E2E_API_ENDPOINT"]!
 
-        let builder = BKTConfig.Builder()
+        var builder = BKTConfig.Builder()
             .with(apiKey: apiKey)
             .with(apiEndpoint: apiEndpoint)
             .with(featureTag: featureTag)
             .with(appVersion: "1.2.3")
             .with(logger: E2ELogger())
+        if let wrapperSdkSourceId = wrapperSdkSourceId, let sdkVersion = wrapperSdkVersion {
+            // Set only when using wrapper SDK
+            builder = builder
+                .with(wrapperSdkSourceId: wrapperSdkSourceId.rawValue)
+                .with(wrapperSdkVersion: sdkVersion)
+        }
 
         return try builder.build()
     }

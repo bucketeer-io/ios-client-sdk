@@ -266,7 +266,14 @@ class BKTErrorTests: XCTestCase {
         for errorCase in BKTError.allCases {
             let apiId : ApiId = .getEvaluations
             let labels = ["key":"value"]
-            let eventData = errorCase.toMetricsEventData(apiId: .getEvaluations, labels: ["key":"value"], currentTimeSeconds: 1000, sdkVersion: "1.0.0", metadata: ["key_metadata":"data"])
+            let sdkInfo = SDKInfo.testSample()
+            let eventData = errorCase.toMetricsEventData(
+                apiId: .getEvaluations,
+                labels: ["key":"value"],
+                currentTimeSeconds: 1000,
+                sdkInfo: sdkInfo,
+                metadata: ["key_metadata":"data"]
+            )
             let metricsEventData: MetricsEventData
             let metricsEventType: MetricsEventType
             switch errorCase {
@@ -334,8 +341,8 @@ class BKTErrorTests: XCTestCase {
                 timestamp: 1000,
                 event: metricsEventData,
                 type: metricsEventType,
-                sourceId: .ios,
-                sdk_version: "1.0.0",
+                sourceId: sdkInfo.sourceId,
+                sdk_version: sdkInfo.sdkVersion,
                 metadata: ["key_metadata":"data"]
             ))
             XCTAssertEqual(eventData, expectedEventData)

@@ -70,7 +70,6 @@ final class E2EMetricsEventTests: XCTestCase {
         }
 
         let events2 : [Event] = try component.dataModule.eventSQLDao.getEvents()
-        // It includes the Latency and ResponseSize metrics
         XCTAssertEqual(events2.count, 0)
     }
 

@@ -3,15 +3,13 @@ import XCTest
 @testable import Bucketeer
 
 @available(iOS 13, *)
-final class E2EEventTests: XCTestCase {
-
-    private var config: BKTConfig!
+final class E2EEventWrapperSourceIdTests: XCTestCase {
 
     override func setUp() async throws {
         try await super.setUp()
         UserDefaults.standard.removeObject(forKey: "bucketeer_user_evaluations_id")
 
-        let config = try BKTConfig.e2e()
+        let config = try BKTConfig.e2e(wrapperSdkSourceId: SourceID.flutter, wrapperSdkVersion: "1.2.10")
         let user = try BKTUser.Builder().with(id: USER_ID).build()
         try await BKTClient.initialize(
             config: config,
@@ -43,17 +41,15 @@ final class E2EEventTests: XCTestCase {
             client.assert(expectedEventCount: 3)
 
             let events = try component.dataModule.eventSQLDao.getEvents()
-
             XCTAssertTrue(events.contains { event in
                 if case .goal = event.type,
                    case .goal(let data) = event.event,
-                   case .ios = data.sourceId,
-                   data.sdkVersion == Version.current {
+                   case .flutter = data.sourceId,
+                   data.sdkVersion == "1.2.10" && data.sdkVersion != Version.current {
                     return true
                 }
                 return false
             })
-
             try await client.flush()
             client.assert(expectedEventCount: 0)
         } catch {
@@ -70,7 +66,6 @@ final class E2EEventTests: XCTestCase {
             XCTAssertEqual(client.intVariation(featureId: FEATURE_ID_DOUBLE, defaultValue: 0), 2)
             XCTAssertEqual(client.doubleVariation(featureId: FEATURE_ID_DOUBLE, defaultValue: 0.0), 2.1)
             XCTAssertEqual(client.boolVariation(featureId: FEATURE_ID_BOOLEAN, defaultValue: false), true)
-            XCTAssertEqual(client.jsonVariation(featureId: FEATURE_ID_JSON, defaultValue: [:]), ["key":"value-1"])
 
             guard let component = client.component as? ComponentImpl else {
                 XCTFail("could not access client.component")
@@ -86,8 +81,8 @@ final class E2EEventTests: XCTestCase {
                 if case .evaluation = event.type,
                    case .evaluation(let data) = event.event,
                    case .default = data.reason.type,
-                   case .ios = data.sourceId,
-                   data.sdkVersion == Version.current {
+                   case .flutter = data.sourceId,
+                   data.sdkVersion == "1.2.10" && data.sdkVersion != Version.current {
                     return true
                 }
                 return false
@@ -133,25 +128,19 @@ final class E2EEventTests: XCTestCase {
             XCTAssertEqual(client.intVariation(featureId: FEATURE_ID_INT, defaultValue: 100), 100)
             XCTAssertEqual(client.doubleVariation(featureId: FEATURE_ID_DOUBLE, defaultValue: 3.0), 3.0)
             XCTAssertEqual(client.boolVariation(featureId: FEATURE_ID_BOOLEAN, defaultValue: false), false)
-            XCTAssertEqual(client.jsonVariation(featureId: FEATURE_ID_JSON, defaultValue: ["key":"value-default"]), ["key":"value-default"])
-
-            guard let component = client.component as? ComponentImpl else {
-                XCTFail("could not access client.component")
-                return
-            }
 
             // Wait for events to be processed
             try await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
 
             let events = try component.dataModule.eventSQLDao.getEvents()
             // It includes the Latency and ResponseSize metrics
-            XCTAssertTrue(events.count >= 7, "Expected at least 7 events but got \(events.count)")
+            XCTAssertTrue(events.count >= 5, "Expected at least 5 events but got \(events.count)")
             XCTAssertTrue(events.contains { event in
                 if case .evaluation = event.type,
                    case .evaluation(let data) = event.event,
                    case .client = data.reason.type,
-                   case .ios = data.sourceId,
-                   data.sdkVersion == Version.current {
+                   case .flutter = data.sourceId,
+                   data.sdkVersion == "1.2.10" && data.sdkVersion != Version.current {
                     return true
                 }
                 return false
