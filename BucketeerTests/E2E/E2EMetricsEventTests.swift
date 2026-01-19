@@ -10,7 +10,7 @@ final class E2EMetricsEventTests: XCTestCase {
     override func tearDown() async throws {
         try await super.tearDown()
         try BKTClient.destroy()
-        EvaluationUserDefaultDaoImpl(defaults: UserDefaults.standard).deleteAll()
+        UserDefaults.removeAllEvaluationData()
         try? FileManager.default.removeItem(at: .database)
     }
 

@@ -10,7 +10,7 @@ final class E2EEvaluationTests: XCTestCase {
     override func setUp() async throws {
         try await super.setUp()
 
-        EvaluationUserDefaultDaoImpl(defaults: UserDefaults.standard).deleteAll()
+        UserDefaults.removeAllEvaluationData()
 
         let config = try BKTConfig.e2e()
         let user = try BKTUser.Builder().with(id: USER_ID).build()
@@ -26,7 +26,7 @@ final class E2EEvaluationTests: XCTestCase {
 
         try await BKTClient.shared.flush()
         try BKTClient.destroy()
-        EvaluationUserDefaultDaoImpl(defaults: UserDefaults.standard).deleteAll()
+        UserDefaults.removeAllEvaluationData()
         try FileManager.default.removeItem(at: .database)
     }
 

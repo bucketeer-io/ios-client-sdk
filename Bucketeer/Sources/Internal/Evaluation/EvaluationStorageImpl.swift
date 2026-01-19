@@ -48,6 +48,8 @@ final class EvaluationStorageImpl: EvaluationStorage {
         evaluationMemCacheDao.get(key: userId) ?? []
     }
 
+    /// Deletes all evaluations and inserts new evaluations in storage.
+    /// - Note: Caller must ensure this is called from the SDK queue. Not thread-safe
     func deleteAllAndInsert(
         evaluationId: String,
         evaluations: [Evaluation],
@@ -63,6 +65,8 @@ final class EvaluationStorageImpl: EvaluationStorage {
         evaluationMemCacheDao.set(key: userId, value: evaluations)
     }
 
+    /// Updates evaluations in storage.
+    /// - Note: Caller must ensure this is called from the SDK queue. Not thread-safe for concurrent writes.
     func update(
         evaluationId: String ,
         evaluations: [Evaluation],

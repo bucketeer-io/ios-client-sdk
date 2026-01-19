@@ -9,7 +9,7 @@ final class E2EBKTClientForceUpdateTests: XCTestCase {
 
     override func setUp() async throws {
         try await super.setUp()
-        EvaluationUserDefaultDaoImpl(defaults: UserDefaults.standard).deleteAll()
+        UserDefaults.removeAllEvaluationData()
     }
 
     @MainActor
@@ -18,7 +18,7 @@ final class E2EBKTClientForceUpdateTests: XCTestCase {
 
         try await BKTClient.shared.flush()
         try BKTClient.destroy()
-        EvaluationUserDefaultDaoImpl(defaults: UserDefaults.standard).deleteAll()
+        UserDefaults.removeAllEvaluationData()
         try FileManager.default.removeItem(at: .database)
     }
 

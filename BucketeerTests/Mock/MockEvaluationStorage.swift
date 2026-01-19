@@ -30,15 +30,6 @@ final class MockEvaluationStorage: EvaluationStorage {
         }
     }
 
-    var userAttributesUpdated: Bool {
-        get {
-            return evaluationUserDefaultsDao.userAttributesUpdated
-        }
-        set {
-            evaluationUserDefaultsDao.userAttributesUpdated = newValue
-        }
-    }
-
     typealias PutHandler = ((String, [Evaluation]) throws -> Void)
     typealias GetHandler = () throws -> [Evaluation]
     typealias DeleteAllAndInsertHandler = ([Evaluation]) throws -> Void
@@ -56,6 +47,14 @@ final class MockEvaluationStorage: EvaluationStorage {
     var setUserAttributesUpdatedLock = NSLock()
     // protected by setUserAttributesUpdatedLock
     private var userAttributesUpdatedVersion: Int = 0
+    private var userAttributesUpdated: Bool {
+        get {
+            return evaluationUserDefaultsDao.userAttributesUpdated
+        }
+        set {
+            evaluationUserDefaultsDao.userAttributesUpdated = newValue
+        }
+    }
 
     init(userId: String,
          getHandler: GetHandler? = nil,

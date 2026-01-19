@@ -227,7 +227,6 @@ final class EvaluationStorageTests: XCTestCase {
         storage.setUserAttributesUpdated()
 
         let userAttributesState = storage.userAttributesState
-        let updatedVersion = userAttributesState.version
         storage.setFeatureTag(value: "featureTagForTest")
 
         let result = try storage.update(
