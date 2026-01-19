@@ -164,8 +164,14 @@ final class ApiClientImpl: ApiClient {
             // if ApiClientImpl is deallocated, the task will not be executed
             let task: Retrier.Task<(Response, URLResponse)> = { [weak self] callback in
                 do {
+                    guard let strongSelf = self else {
+                        callback(.failure(
+                            BKTError.illegalState(message: "ApiClient deallocated before request could complete")
+                        ))
+                        return
+                    }
                     guard
-                        let currentRequestId = try self?.getLatestRequestId(apiPath: path)
+                        let currentRequestId = try strongSelf.getLatestRequestId(apiPath: path)
                     else {
                         callback(.failure(
                             BKTError.illegalState(message: "Could not get latest request ID for path: \(path)")
@@ -180,7 +186,7 @@ final class ApiClientImpl: ApiClient {
                         return
                     }
 
-                    self?.sendInternal(
+                    strongSelf.sendInternal(
                         requestBody: requestBody,
                         path: path,
                         timeoutMillis: timeoutMillis,
@@ -216,8 +222,7 @@ final class ApiClientImpl: ApiClient {
         }
 
         let requestId = Date().unixTimestamp
-        logger?.debug(message: "[API] RequestID enqueue: \(requestId)")
-        logger?.debug(message: "[API] Register events: \(requestBody)")
+        logger?.debug(message: "[API] Register events: \(requestBody) for requestID \(requestId)")
         do {
             if #available(iOS 11.0, *) {
                 encoder.outputFormatting = [encoder.outputFormatting, .prettyPrinted, .sortedKeys]
@@ -334,6 +339,7 @@ final class ApiClientImpl: ApiClient {
 
     /// For tests only. Sets the current `getEvaluations` request id.
     /// Not thread-safe — should be called on the SDK `dispatchQueue`.
+#if DEBUG
     func setEvaluationsRequestId(_ id: UUID) {
         getEvaluationsRequestId = id
     }
@@ -343,6 +349,7 @@ final class ApiClientImpl: ApiClient {
     func setRegisterEventsRequestId(_ id: UUID) {
         registerEventsRequestId = id
     }
+#endif
 }
 
 enum ResponseError: Error {

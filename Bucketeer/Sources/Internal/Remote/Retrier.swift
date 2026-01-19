@@ -73,7 +73,7 @@ final class Retrier {
                     completion(result)
                     return
                 }
-                // Exponential backoff delay in seconds: 2^retryCount (e.g., 1s before the 1st retry, 2s before the 2nd retry)
+                // Exponential backoff delay = baseDelay * multiplier^attemptsMade (defaults yield 2s, 4s, 8s, ...)
                 let attemptsMade = maxAttempts - remaining
                 let nextDelay = pow(Retrier.DEFAULT_MULTIPLIER, Double(attemptsMade)) * Retrier.DEFAULT_BASE_DELAY_SECONDS
                 self?.dispatchQueue.asyncAfter(deadline: .now() + nextDelay, execute: {

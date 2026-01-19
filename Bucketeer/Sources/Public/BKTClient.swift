@@ -81,9 +81,10 @@ public class BKTClient {
     private func destroy() {
         taskScheduler?.invalidate()
         taskScheduler = nil
-        execute { [weak self] in
+        execute { [self] in
+            // Keep a strong reference so destroy always executes before the client deallocates
             // must destroy in the intenal queue to prevent race condition
-            self?.component.destroy()
+            self.component.destroy()
         }
     }
 }

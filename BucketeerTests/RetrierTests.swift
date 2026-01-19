@@ -146,4 +146,38 @@ final class RetrierTests: XCTestCase {
         waitForExpectations(timeout: 1.0)
         XCTAssertEqual(attemptCount, 1) // Should only try once
     }
+
+    func testRetrierDeallocationStopsRetries() {
+        let expectation = self.expectation(description: "Retry should stop when Retrier is deallocated")
+        var attemptCount = 0
+
+        var retrier: Retrier? = Retrier(queue: dispatchQueue)
+
+        dispatchQueue.async {
+            retrier?.attempt(
+                task: { (completion: @escaping (Result<String, Error>) -> Void) in
+                    attemptCount += 1
+                    completion(.failure(NSError(domain: "test", code: 499, userInfo: nil)))
+                },
+                condition: { _ in true },
+                maxAttempts: 5,
+                completion: { _ in
+                    // Should not be called if retrier is deallocated
+                }
+            )
+        }
+
+        // Deallocate retrier after first attempt
+        dispatchQueue.asyncAfter(deadline: .now() + 0.5) {
+            retrier = nil
+        }
+
+        // Wait and verify retries stopped
+        dispatchQueue.asyncAfter(deadline: .now() + 5.0) {
+            XCTAssertEqual(attemptCount, 1, "Should only attempt once before deallocation")
+            expectation.fulfill()
+        }
+
+        waitForExpectations(timeout: 10.0)
+    }
 }
