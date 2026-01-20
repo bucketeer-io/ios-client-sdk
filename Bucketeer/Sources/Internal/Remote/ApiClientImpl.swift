@@ -70,7 +70,7 @@ final class ApiClientImpl: ApiClient {
         // Generate a new ID for any new request call
         let newRequestId = UUID()
         self.getEvaluationsRequestId = newRequestId
-        logger?.debug(message: "[API] Fetch Evaluation: \(requestBody) for requestID \(newRequestId)")
+
         send(
             requestId: newRequestId,
             requestBody: requestBody,
@@ -102,7 +102,7 @@ final class ApiClientImpl: ApiClient {
         // Generate a new ID for any new request call
         let newRequestId = UUID()
         self.registerEventsRequestId = newRequestId
-        logger?.debug(message: "[API] Register events: \(requestBody) for requestID \(newRequestId)")
+
         let encoder = JSONEncoder()
         if #available(iOS 13.0, tvOS 13.0, *) {
             encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
@@ -223,7 +223,7 @@ final class ApiClientImpl: ApiClient {
         }
 
         let requestId = Date().unixTimestamp
-        logger?.debug(message: "[API] Register events: \(requestBody) for requestID \(requestId)")
+        logger?.debug(message: "[API] \(path): \(requestBody) for requestID \(requestId)")
         do {
             if #available(iOS 11.0, *) {
                 encoder.outputFormatting = [encoder.outputFormatting, .prettyPrinted, .sortedKeys]
