@@ -83,7 +83,7 @@ public class BKTClient {
         taskScheduler = nil
         execute { [self] in
             // Keep a strong reference so destroy always executes before the client deallocates
-            // must destroy in the intenal queue to prevent race condition
+            // must destroy in the internal queue to prevent race condition
             self.component.destroy()
         }
     }
