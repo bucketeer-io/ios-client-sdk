@@ -1,0 +1,100 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:base"],
+  "labels": ["dependencies"],
+  "timezone": "Asia/Tokyo",
+  "schedule": ["* 10 1 * *"],
+  "platformAutomerge": true,
+  "semanticCommits": "enabled",
+  "commitMessagePrefix": "build(deps):",
+  "commitMessageAction": "bump",
+  "commitMessageSuffix": "",
+  "major": {
+    "automerge": false,
+    "commitMessageExtra": "",
+    "commitMessageSuffix": ""
+  },
+  "packageRules": [
+    {
+      "description": "GitHub Actions - ignore major updates",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "GitHub Actions - group patch, minor, and digest updates",
+      "groupName": "ci-dependencies",
+      "groupSlug": "ci-deps",
+      "commitMessagePrefix": "ci(deps):",
+      "commitMessageTopic": "ci-dependencies group",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["patch", "minor", "digest"],
+      "automerge": true
+    },
+    {
+      "description": "XcodeGen - exclude all updates",
+      "matchPackageNames": ["yonaskolb/xcodegen"],
+      "enabled": false
+    },
+    {
+      "description": "SwiftLint - only allow patch and minor updates",
+      "matchPackageNames": ["realm/SwiftLint"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "Build/dev tools - ignore major updates",
+      "matchPackageNames": ["bloomberg/xcdiff"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "Test dependencies - ignore major updates",
+      "matchPackagePatterns": ["Quick", "Nimble", "Swifter", "OHHTTPStubs", "Mocker"],
+      "matchManagers": ["swift"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "Test dependencies - group patch and minor updates",
+      "groupName": "test-dependencies",
+      "groupSlug": "test-deps",
+      "commitMessagePrefix": "test(deps):",
+      "commitMessageTopic": "test-dependencies group",
+      "matchPackagePatterns": ["Quick", "Nimble", "Swifter", "OHHTTPStubs", "Mocker"],
+      "matchManagers": ["swift"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": true
+    },
+    {
+      "description": "Swift Package Manager - group patch updates (auto-mergeable)",
+      "groupName": "swift-patch",
+      "groupSlug": "swift-patch",
+      "commitMessageTopic": "swift-patch group",
+      "matchManagers": ["swift"],
+      "excludePackagePatterns": ["Quick", "Nimble", "Swifter", "OHHTTPStubs", "Mocker"],
+      "matchUpdateTypes": ["patch"],
+      "automerge": true
+    },
+    {
+      "description": "Swift Package Manager - group minor updates (auto-mergeable)",
+      "groupName": "swift-minor",
+      "groupSlug": "swift-minor",
+      "commitMessageTopic": "swift-minor group",
+      "matchManagers": ["swift"],
+      "excludePackagePatterns": ["Quick", "Nimble", "Swifter", "OHHTTPStubs", "Mocker"],
+      "matchUpdateTypes": ["minor"],
+      "automerge": true
+    },
+    {
+      "description": "Swift Package Manager - group major updates (REQUIRES REVIEW)",
+      "groupName": "swift-major",
+      "groupSlug": "swift-major",
+      "commitMessageTopic": "swift-major group",
+      "matchManagers": ["swift"],
+      "excludePackagePatterns": ["Quick", "Nimble", "Swifter", "OHHTTPStubs", "Mocker"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    }
+  ]
+}
