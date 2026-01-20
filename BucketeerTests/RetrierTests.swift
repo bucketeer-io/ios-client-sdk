@@ -180,4 +180,49 @@ final class RetrierTests: XCTestCase {
 
         waitForExpectations(timeout: 10.0)
     }
+
+    func testNextExponentialBackoffDelay() {
+        // attemptsMade=0 -> 2^0 * 1.0 = 1.0
+        XCTAssertEqual(retrier.nextExponentialBackoffDelay(attemptsMade: 0), 1.0)
+        // attemptsMade=1 -> 2^1 * 1.0 = 2.0
+        XCTAssertEqual(retrier.nextExponentialBackoffDelay(attemptsMade: 1), 2.0)
+        // attemptsMade=2 -> 2^2 * 1.0 = 4.0
+        XCTAssertEqual(retrier.nextExponentialBackoffDelay(attemptsMade: 2), 4.0)
+    }
+
+    func testConditionCheckCount() {
+        let expectation = self.expectation(description: "Condition check count")
+        var conditionCheckCount = 0
+        let maxAttempts = 3
+        let expectedError = NSError(domain: "test", code: 500, userInfo: nil)
+
+        dispatchQueue.async { [weak self] in
+            self?.retrier.attempt(
+                task: { (completion: @escaping (Result<String, Error>) -> Void) in
+                    completion(.failure(expectedError))
+                },
+                condition: { _ in
+                    conditionCheckCount += 1
+                    return true
+                },
+                maxAttempts: maxAttempts,
+                completion: { _ in
+                    expectation.fulfill()
+                }
+            )
+        }
+
+        // Delays:
+        // 1st failure (remaining=3) -> delay 1s
+        // 2nd failure (remaining=2) -> delay 2s
+        // 3rd failure (remaining=1) -> stop
+        // Total delay 3s. Wait 5s to be safe.
+        waitForExpectations(timeout: 5.0)
+
+        // Condition is checked on failure if remaining > 1.
+        // 1st failure: remaining=3 > 1 (True). Check condition. (1)
+        // 2nd failure: remaining=2 > 1 (True). Check condition. (2)
+        // 3rd failure: remaining=1 > 1 (False). No check.
+        XCTAssertEqual(conditionCheckCount, 2)
+    }
 }
