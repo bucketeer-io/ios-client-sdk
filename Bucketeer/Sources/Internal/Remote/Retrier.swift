@@ -64,6 +64,7 @@ final class Retrier {
         // weak self - we don't want to retain self in case the Retrier is deallocated
         // if self is deallocated, no further retries will be attempted
         task { [weak self] result in
+            guard let self = self else { return }
             switch result {
             case .success:
                 completion(result)
@@ -73,11 +74,11 @@ final class Retrier {
                     completion(result)
                     return
                 }
-                // Exponential backoff delay = baseDelay * multiplier^attemptsMade (defaults yield 2s, 4s, 8s, ...)
+                // Exponential backoff delay = baseDelay * multiplier^attemptsMade (defaults yield 1s, 2s, 4s, ...)
                 let attemptsMade = maxAttempts - remaining
-                let nextDelay = pow(Retrier.DEFAULT_MULTIPLIER, Double(attemptsMade)) * Retrier.DEFAULT_BASE_DELAY_SECONDS
-                self?.dispatchQueue.asyncAfter(deadline: .now() + nextDelay, execute: {
-                    self?.attemptRecursive(
+                let nextDelay = nextExponentialBackoffDelay(attemptsMade: attemptsMade)
+                self.dispatchQueue.asyncAfter(deadline: .now() + nextDelay, execute: {
+                    self.attemptRecursive(
                         task: task,
                         condition: condition,
                         remaining: remaining - 1,
@@ -87,5 +88,14 @@ final class Retrier {
                 })
             }
         }
+    }
+
+    /// Calculates the next exponential backoff delay in seconds.
+    /// - Returns: The delay in seconds.
+    func nextExponentialBackoffDelay(attemptsMade: Int) -> TimeInterval {
+        let baseDelay: TimeInterval = Retrier.DEFAULT_BASE_DELAY_SECONDS // in seconds
+        let multiplier: TimeInterval = Retrier.DEFAULT_MULTIPLIER
+        let delay = pow(multiplier, Double(attemptsMade)) * baseDelay
+        return delay
     }
 }
