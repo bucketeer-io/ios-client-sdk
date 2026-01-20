@@ -64,7 +64,6 @@ final class Retrier {
         // weak self - we don't want to retain self in case the Retrier is deallocated
         // if self is deallocated, no further retries will be attempted
         task { [weak self] result in
-            guard let self = self else { return }
             switch result {
             case .success:
                 completion(result)
@@ -76,16 +75,18 @@ final class Retrier {
                 }
                 // Exponential backoff delay = baseDelay * multiplier^attemptsMade (defaults yield 1s, 2s, 4s, ...)
                 let attemptsMade = maxAttempts - remaining
-                let nextDelay = nextExponentialBackoffDelay(attemptsMade: attemptsMade)
-                self.dispatchQueue.asyncAfter(deadline: .now() + nextDelay, execute: {
-                    self.attemptRecursive(
-                        task: task,
-                        condition: condition,
-                        remaining: remaining - 1,
-                        maxAttempts: maxAttempts,
-                        completion: completion
-                    )
-                })
+                if let nextDelay = self?.nextExponentialBackoffDelay(attemptsMade: attemptsMade) {
+                    // Keep using weak self to avoid retain cycle in closure
+                    self?.dispatchQueue.asyncAfter(deadline: .now() + nextDelay, execute: {
+                        self?.attemptRecursive(
+                            task: task,
+                            condition: condition,
+                            remaining: remaining - 1,
+                            maxAttempts: maxAttempts,
+                            completion: completion
+                        )
+                    })
+                }
             }
         }
     }
