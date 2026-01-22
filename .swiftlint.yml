@@ -20,6 +20,7 @@ excluded:
   - Example
   - ExampleTVOS
   - DerivedData
+  - .build
 
 
 allow_zero_lintable_files: false
