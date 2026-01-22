@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.3.0](https://github.com/bucketeer-io/ios-client-sdk/compare/v2.2.1...v2.3.0) (2026-01-22)
+
+
+### Features
+
+* auto retry on deployment-related 499 errors ([#114](https://github.com/bucketeer-io/ios-client-sdk/issues/114)) ([ae98404](https://github.com/bucketeer-io/ios-client-sdk/commit/ae9840467fed9546b5a2c7e554dc279af91b63e6))
+* thread-safe user attribute update tracking and safe reading/updating of evaluations ([#116](https://github.com/bucketeer-io/ios-client-sdk/issues/116)) ([b88f0a3](https://github.com/bucketeer-io/ios-client-sdk/commit/b88f0a339c54f6d4854d8cf6406004a0bbbc9288))
+
+
+### Miscellaneous
+
+* allow to set wrapper SDK info (sourceId & version) ([#115](https://github.com/bucketeer-io/ios-client-sdk/issues/115)) ([ac73182](https://github.com/bucketeer-io/ios-client-sdk/commit/ac73182eee4409e15a99ffc23925e8301bcd5c52))
+
+
+### Build System
+
+* update the minimum development target vesion to 12.0 ([#110](https://github.com/bucketeer-io/ios-client-sdk/issues/110)) ([f2ec1c9](https://github.com/bucketeer-io/ios-client-sdk/commit/f2ec1c925713270c91f5c5c49b03c857721c0e44))
+
 ## [2.2.1](https://github.com/bucketeer-io/ios-client-sdk/compare/v2.2.0...v2.2.1) (2024-11-01)
 
 
