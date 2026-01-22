@@ -8,13 +8,14 @@ enum ReasonType: String, Codable, Hashable {
     case rule = "RULE"
     /// Evaluated using the default strategy.
     case `default` = "DEFAULT"
-    /// The flag is missing in the cache; the default value was returned.
-    @available(*, deprecated, message: "ReasonType `client` has been deprecated. Use `error` prefixed reason types instead.")
-    case client = "CLIENT"
     /// Evaluated using the off variation.
     case offVariation = "OFF_VARIATION"
     /// Evaluated using a prerequisite.
     case prerequisite = "PREREQUISITE"
+    /// Legacy client-side reason type. Previously used when the flag was missing in the cache
+    /// and the default value was returned. Deprecated in favor of `errorFlagNotFound`.
+    @available(*, deprecated, message: "ReasonType `client` has been deprecated. Use `error` prefixed reason types instead.")
+    case client = "CLIENT"
     /// Error evaluations:
     /// No evaluations were performed.
     case errorNoEvaluations = "ERROR_NO_EVALUATIONS"
@@ -30,6 +31,7 @@ enum ReasonType: String, Codable, Hashable {
     case errorException = "ERROR_EXCEPTION"
     /// The cache is not ready after SDK initialization.
     case errorCacheNotFound = "ERROR_CACHE_NOT_FOUND"
+
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         let rawValue = try container.decode(String.self)

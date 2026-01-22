@@ -25,6 +25,7 @@ public struct BKTEvaluationDetails<T:Equatable>: Equatable {
         case errorUserIdNotSpecified = "ERROR_USER_ID_NOT_SPECIFIED"
         case errorFeatureFlagIdNotSpecified = "ERROR_FEATURE_FLAG_ID_NOT_SPECIFIED"
         case errorException = "ERROR_EXCEPTION"
+        case errorCacheNotFound = "ERROR_CACHE_NOT_FOUND"
 
         public static func fromString(value: String) -> Reason {
             return Reason(rawValue: value) ?? .errorException

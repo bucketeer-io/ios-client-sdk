@@ -421,5 +421,57 @@ final class BKTClientEvaluationDetailTests: XCTestCase {
                 reason: BKTEvaluationDetails.Reason.fromString(value: expectedEvaluation.reason.type.rawValue))
         )
     }
+
+    func testAllReasonTypesConvertToEvaluationDetailsReason() {
+        let allReasonTypes: [ReasonType] = [
+            .target,
+            .rule,
+            .default,
+            .client,
+            .offVariation,
+            .prerequisite,
+            .errorNoEvaluations,
+            .errorFlagNotFound,
+            .errorWrongType,
+            .errorUserIdNotSpecified,
+            .errorFeatureFlagIdNotSpecified,
+            .errorException,
+            .errorCacheNotFound
+        ]
+
+        for reasonType in allReasonTypes {
+            let converted = BKTEvaluationDetails<String>.Reason.fromString(value: reasonType.rawValue)
+
+            // Verify the conversion produces the expected Reason case
+            switch reasonType {
+            case .target:
+                XCTAssertEqual(converted, .target, "ReasonType.target should convert to BKTEvaluationDetails.Reason.target")
+            case .rule:
+                XCTAssertEqual(converted, .rule, "ReasonType.rule should convert to BKTEvaluationDetails.Reason.rule")
+            case .default:
+                XCTAssertEqual(converted, .default, "ReasonType.default should convert to BKTEvaluationDetails.Reason.default")
+            case .client:
+                XCTAssertEqual(converted, .client, "ReasonType.client should convert to BKTEvaluationDetails.Reason.client")
+            case .offVariation:
+                XCTAssertEqual(converted, .offVariation, "ReasonType.offVariation should convert to BKTEvaluationDetails.Reason.offVariation")
+            case .prerequisite:
+                XCTAssertEqual(converted, .prerequisite, "ReasonType.prerequisite should convert to BKTEvaluationDetails.Reason.prerequisite")
+            case .errorNoEvaluations:
+                XCTAssertEqual(converted, .errorNoEvaluations, "ReasonType.errorNoEvaluations should convert to BKTEvaluationDetails.Reason.errorNoEvaluations")
+            case .errorFlagNotFound:
+                XCTAssertEqual(converted, .errorFlagNotFound, "ReasonType.errorFlagNotFound should convert to BKTEvaluationDetails.Reason.errorFlagNotFound")
+            case .errorWrongType:
+                XCTAssertEqual(converted, .errorWrongType, "ReasonType.errorWrongType should convert to BKTEvaluationDetails.Reason.errorWrongType")
+            case .errorUserIdNotSpecified:
+                XCTAssertEqual(converted, .errorUserIdNotSpecified, "ReasonType.errorUserIdNotSpecified should convert to BKTEvaluationDetails.Reason.errorUserIdNotSpecified")
+            case .errorFeatureFlagIdNotSpecified:
+                XCTAssertEqual(converted, .errorFeatureFlagIdNotSpecified, "ReasonType.errorFeatureFlagIdNotSpecified should convert to BKTEvaluationDetails.Reason.errorFeatureFlagIdNotSpecified")
+            case .errorException:
+                XCTAssertEqual(converted, .errorException, "ReasonType.errorException should convert to BKTEvaluationDetails.Reason.errorException")
+            case .errorCacheNotFound:
+                XCTAssertEqual(converted, .errorCacheNotFound, "ReasonType.errorCacheNotFound should convert to BKTEvaluationDetails.Reason.errorCacheNotFound")
+            }
+        }
+    }
 }
 // swiftlint:enable type_body_length
