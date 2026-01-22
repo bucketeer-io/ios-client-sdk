@@ -18,7 +18,7 @@ class ReasonTypeDecodingTests: XCTestCase {
             "ERROR_FEATURE_FLAG_ID_NOT_SPECIFIED",
             "ERROR_EXCEPTION",
             "ERROR_CACHE_NOT_FOUND",
-            "INVALID_VALUE",
+            "INVALID_VALUE"
         ]
         """.data(using: .utf8)!
 
