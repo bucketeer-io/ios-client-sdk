@@ -12,7 +12,8 @@ final class BKTEvaluationDetailTests: XCTestCase {
                         variationId: "",
                         variationName: "",
                         variationValue: 2,
-                        reason: .errorException), BKTEvaluationDetails(
+                        reason: .errorException),
+                       BKTEvaluationDetails(
                             featureId: "1",
                             featureVersion: 0,
                             userId: "2",
@@ -27,7 +28,8 @@ final class BKTEvaluationDetailTests: XCTestCase {
                             variationId: "",
                             variationName: "",
                             variationValue: 2,
-                            reason: .errorException), BKTEvaluationDetails(
+                            reason: .errorException),
+                          BKTEvaluationDetails(
                                 featureId: "12",
                                 featureVersion: 0,
                                 userId: "2",
@@ -43,7 +45,8 @@ final class BKTEvaluationDetailTests: XCTestCase {
                         variationId: "",
                         variationName: "",
                         variationValue: "2",
-                        reason: .errorException), BKTEvaluationDetails(
+                        reason: .errorException),
+                       BKTEvaluationDetails(
                             featureId: "2",
                             featureVersion: 0,
                             userId: "3",
@@ -58,7 +61,8 @@ final class BKTEvaluationDetailTests: XCTestCase {
                             variationId: "",
                             variationName: "",
                             variationValue: "2",
-                            reason: .errorException), BKTEvaluationDetails(
+                            reason: .errorException),
+                          BKTEvaluationDetails(
                                 featureId: "2",
                                 featureVersion: 0,
                                 userId: "3",
@@ -74,7 +78,8 @@ final class BKTEvaluationDetailTests: XCTestCase {
                         variationId: "",
                         variationName: "",
                         variationValue: 3.0,
-                        reason: .errorException), BKTEvaluationDetails(
+                        reason: .errorException),
+                       BKTEvaluationDetails(
                             featureId: "3",
                             featureVersion: 0,
                             userId: "3",
@@ -90,7 +95,8 @@ final class BKTEvaluationDetailTests: XCTestCase {
                             variationId: "",
                             variationName: "",
                             variationValue: 3.0,
-                            reason: .errorException), BKTEvaluationDetails(
+                            reason: .errorException),
+                          BKTEvaluationDetails(
                                 featureId: "3",
                                 featureVersion: 1,
                                 userId: "3",
@@ -106,7 +112,8 @@ final class BKTEvaluationDetailTests: XCTestCase {
                         variationId: "",
                         variationName: "",
                         variationValue: true,
-                        reason: .errorException), BKTEvaluationDetails(
+                        reason: .errorException),
+                       BKTEvaluationDetails(
                             featureId: "4",
                             featureVersion: 0,
                             userId: "3",
@@ -122,7 +129,8 @@ final class BKTEvaluationDetailTests: XCTestCase {
                             variationId: "",
                             variationName: "",
                             variationValue: true,
-                            reason: .errorException), BKTEvaluationDetails(
+                            reason: .errorException),
+                          BKTEvaluationDetails(
                                 featureId: "4",
                                 featureVersion: 0,
                                 userId: "3",
@@ -141,7 +149,8 @@ final class BKTEvaluationDetailTests: XCTestCase {
                             "key1" : "value1",
                             "key2" : "value2"
                         ],
-                        reason: .errorException), BKTEvaluationDetails(
+                        reason: .errorException),
+                       BKTEvaluationDetails(
                             featureId: "5",
                             featureVersion: 0,
                             userId: "3",
@@ -163,7 +172,8 @@ final class BKTEvaluationDetailTests: XCTestCase {
                                 "key1" : "value1",
                                 "key2" : "value2"
                             ],
-                            reason: .errorException), BKTEvaluationDetails(
+                            reason: .errorException),
+                          BKTEvaluationDetails(
                                 featureId: "5",
                                 featureVersion: 0,
                                 userId: "3",
