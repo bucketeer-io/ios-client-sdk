@@ -35,7 +35,7 @@ enum ReasonType: String, Codable, Hashable {
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         let rawValue = try container.decode(String.self)
-        // If the raw value does not match any case, default to `.default`
-        self = ReasonType(rawValue: rawValue) ?? .default
+        // If the raw value does not match any case, default to `.errorException`
+        self = ReasonType(rawValue: rawValue) ?? .errorException
     }
 }

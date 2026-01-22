@@ -14,12 +14,12 @@ public struct BKTEvaluationDetails<T:Equatable>: Equatable {
     /// This public enum lists why an evaluation returned a particular variation
     /// (for example: the user matched a targeting rule, the default value was used,
     /// the flag was off, or an error occurred). For a more detailed internal
-    /// classification used by the evaluator, see `Reason.ReasonType`.
-    public enum Reason: String, Codable, Hashable {
+    /// classification used by the evaluator, see `ReasonType`.
+    public enum Reason: String, Hashable {
         case target = "TARGET"
         case rule = "RULE"
         case `default` = "DEFAULT"
-        @available(*, deprecated, message: "ReasonType `client` has been deprecated")
+        @available(*, deprecated, message: "Reason `client` has been deprecated; use one of the `error*` reason cases instead.")
         case client = "CLIENT"
 
         case offVariation = "OFF_VARIATION"
