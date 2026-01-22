@@ -9,6 +9,12 @@ public struct BKTEvaluationDetails<T:Equatable>: Equatable {
     public let variationValue: T
     public let reason: Reason
 
+    /// The reason for the evaluation result.
+    ///
+    /// This public enum lists why an evaluation returned a particular variation
+    /// (for example: the user matched a targeting rule, the default value was used,
+    /// the flag was off, or an error occurred). For a more detailed internal
+    /// classification used by the evaluator, see `Reason.ReasonType`.
     public enum Reason: String, Codable, Hashable {
         case target = "TARGET"
         case rule = "RULE"
