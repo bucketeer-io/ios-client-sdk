@@ -81,9 +81,11 @@ public class BKTClient {
     private func destroy() {
         taskScheduler?.invalidate()
         taskScheduler = nil
-        execute { [weak self] in
-            // must destroy in the intenal queue to prevent race condition
-            self?.component.destroy()
+        let component = self.component
+        execute {
+            // Keep a strong reference to the component so destroy always executes even when the client deallocates
+            // must destroy in the internal queue to prevent race condition
+            component.destroy()
         }
     }
 }
@@ -104,7 +106,7 @@ extension BKTClient {
             }
             do {
                 let dispatchQueue = DispatchQueue(label: "io.bucketeer.taskQueue")
-                let dataModule = try DataModuleImpl(user: user.toUser(), config: config)
+                let dataModule = try DataModuleImpl(user: user.toUser(), config: config, dispatchQueue: dispatchQueue)
                 let client = BKTClient(dataModule: dataModule, dispatchQueue: dispatchQueue)
                 client.scheduleTasks()
                 client.execute { [weak client] in

@@ -3,15 +3,21 @@ import Foundation
 final class ApiClientImpl: ApiClient {
 
     static let DEFAULT_REQUEST_TIMEOUT_MILLIS: Int64 = 30_000
+    static let CLIENT_CLOSED_THE_CONNECTION_CODE: Int = 499
+    static let DEFAULT_MAX_ATTEMPTS = 4 // 1 original try + 3 retries
 
     private let apiEndpoint: URL
     private let apiKey: String
     private let featureTag: String
     private let sdkInfo: SDKInfo
     private let session: Session
-    private let defaultRequestTimeoutMills: Int64
+    private let defaultRequestTimeoutMillis: Int64
     private let logger: Logger?
     private let semaphore = DispatchSemaphore(value: 0)
+    private let retrier: Retrier
+    // Add this property to track the latest request generation
+    private var getEvaluationsRequestId: UUID?
+    private var registerEventsRequestId: UUID?
     private var closed = false
 
     deinit {
@@ -25,18 +31,20 @@ final class ApiClientImpl: ApiClient {
         apiKey: String,
         featureTag: String,
         sdkInfo: SDKInfo,
-        defaultRequestTimeoutMills: Int64 = ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS,
+        defaultRequestTimeoutMillis: Int64 = ApiClientImpl.DEFAULT_REQUEST_TIMEOUT_MILLIS,
         session: Session,
+        retrier: Retrier,
         logger: Logger?
     ) {
         self.apiEndpoint = apiEndpoint
         self.apiKey = apiKey
         self.featureTag = featureTag
         self.sdkInfo = sdkInfo
-        self.defaultRequestTimeoutMills = defaultRequestTimeoutMills
+        self.defaultRequestTimeoutMillis = defaultRequestTimeoutMillis
         self.session = session
         self.logger = logger
-        self.session.configuration.timeoutIntervalForRequest = TimeInterval(self.defaultRequestTimeoutMills) / 1000
+        self.session.configuration.timeoutIntervalForRequest = TimeInterval(self.defaultRequestTimeoutMillis) / 1000
+        self.retrier = retrier
     }
 
     func getEvaluations(
@@ -58,11 +66,15 @@ final class ApiClientImpl: ApiClient {
             sdkVersion: sdkInfo.sdkVersion
         )
         let featureTag = self.featureTag
-        let timeoutMillisValue = timeoutMillis ?? defaultRequestTimeoutMills
-        logger?.debug(message: "[API] Fetch Evaluation: \(requestBody)")
+        let timeoutMillisValue = timeoutMillis ?? defaultRequestTimeoutMillis
+        // Generate a new ID for any new request call
+        let newRequestId = UUID()
+        self.getEvaluationsRequestId = newRequestId
+
         send(
+            requestId: newRequestId,
             requestBody: requestBody,
-            path: "get_evaluations",
+            path: ApiPaths.getEvaluations.rawValue,
             timeoutMillis: timeoutMillisValue,
             completion: { (result: Result<(GetEvaluationsResponse, URLResponse), Error>) in
                 switch result {
@@ -87,7 +99,10 @@ final class ApiClientImpl: ApiClient {
             sdkVersion: sdkInfo.sdkVersion,
             sourceId: sdkInfo.sourceId
         )
-        logger?.debug(message: "[API] Register events: \(requestBody)")
+        // Generate a new ID for any new request call
+        let newRequestId = UUID()
+        self.registerEventsRequestId = newRequestId
+
         let encoder = JSONEncoder()
         if #available(iOS 13.0, tvOS 13.0, *) {
             encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
@@ -99,37 +114,116 @@ final class ApiClientImpl: ApiClient {
             return keys.last ?? keys[0]
         })
 
+        let timeoutMillisValue = defaultRequestTimeoutMillis
         send(
+            requestId: newRequestId,
             requestBody: requestBody,
-            path: "register_events",
-            timeoutMillis: defaultRequestTimeoutMills,
+            path: ApiPaths.registerEvents.rawValue,
+            timeoutMillis: timeoutMillisValue,
             encoder: encoder,
-            completion: { [self] (result: Result<(RegisterEventsResponse, URLResponse), Error>) in
+            completion: { (result: Result<(RegisterEventsResponse, URLResponse), Error>) in
                 switch result {
                 case .success((let response, _)):
                     completion?(.success(response))
                 case .failure(let error):
-                    completion?(.failure(.init(error: error).copyWith(timeoutMillis: defaultRequestTimeoutMills)))
+                    completion?(.failure(.init(error: error).copyWith(timeoutMillis: timeoutMillisValue)))
                 }
             }
         )
     }
 
-    // noted: this method will run `synchronized`. It will blocking the current queue please do not call it from the app main thread
+    /// Sends a network request with automatic retry logic for transient failures.
+    ///
+    /// This method implements an exponential backoff retry strategy for specific error conditions.
+    /// Retries are only triggered on deployment-related 499 errors
+    ///
+    /// - Parameters:
+    ///   - requestId: The unique identifier for the request to track and potentially cancel outdated requests.
+    ///   - requestBody: The request body to encode and send
+    ///   - path: The API endpoint path to append to the base URL
+    ///   - timeoutMillis: Request timeout in milliseconds
+    ///   - encoder: JSON encoder for the request body (default: JSONEncoder())
+    ///   - completion: Callback with the result of the request
+    ///
+    /// - Retry Behavior:
+    ///   - **Maximum Attempts**: 4 total attempts (initial + 3 retries)
+    ///   - **Retry Condition**: Only HTTP 499 status code
+    ///   - **Backoff Strategy**: Exponential with base delay of 1 second
+    ///   - **Queue**: Retries are scheduled asynchronously on the dispatch queue provided during initialization
+    ///
+    /// - Note: All other errors (network failures, HTTP 4xx/5xx codes except 499) will not trigger retries
+    ///         and will be returned immediately via the completion handler.
     func send<RequestBody: Encodable, Response: Decodable>(
+        requestId: UUID,
         requestBody: RequestBody,
         path: String,
         timeoutMillis: Int64,
         encoder: JSONEncoder = JSONEncoder(),
         completion: ((Result<(Response, URLResponse), Error>) -> Void)?) {
-        if (closed) {
+            // weak self - we don't want to retain ApiClientImpl in the retrier task closure
+            // if ApiClientImpl is deallocated, the task will not be executed
+            let task: Retrier.Task<(Response, URLResponse)> = { [weak self] callback in
+                do {
+                    // return early if self has been deallocated
+                    guard self != nil else {
+                        callback(.failure(
+                            BKTError.illegalState(message: "ApiClient deallocated before request could complete")
+                        ))
+                        return
+                    }
+                    guard
+                        let currentRequestId = try self?.getLatestRequestId(apiPath: path)
+                    else {
+                        callback(.failure(
+                            BKTError.illegalState(message: "Could not get latest request ID for path: \(path)")
+                        ))
+                        return
+                    }
+
+                    guard currentRequestId == requestId else {
+                        callback(.failure(
+                            BKTError.illegalState(message: "Request cancelled by newer execution")
+                        ))
+                        return
+                    }
+
+                    self?.sendInternal(
+                        requestBody: requestBody,
+                        path: path,
+                        timeoutMillis: timeoutMillis,
+                        encoder: encoder,
+                        completion: callback
+                    )
+                } catch {
+                    callback(.failure(error))
+                }
+            }
+
+            retrier.attempt(
+                task: task,
+                condition: self.shouldRetry,
+                maxAttempts: ApiClientImpl.DEFAULT_MAX_ATTEMPTS, // 1 original try + 3 retries
+                completion: { (result: Result<(Response, URLResponse), Error>) in
+                    completion?(result)
+                }
+            )
+        }
+
+    // Note: This method blocks the calling thread using a semaphore until the network request completes
+    // or fails. Do not call this method from the main thread; invoke it only from the SDK queue.
+    func sendInternal<RequestBody: Encodable, Response: Decodable>(
+        requestBody: RequestBody,
+        path: String,
+        timeoutMillis: Int64,
+        encoder: JSONEncoder = JSONEncoder(),
+        completion: ((Result<(Response, URLResponse), Error>) -> Void)?) {
+        if closed {
             completion?(.failure(BKTError.illegalState(message: "API Client has been closed")))
             return
         }
 
         let requestId = Date().unixTimestamp
-        logger?.debug(message: "[API] RequestID enqueue: \(requestId)")
-        logger?.debug(message: "[API] Register events: \(requestBody)")
+        logger?.debug(message: "[API] \(path): \(requestBody) for requestID \(requestId)")
         do {
             if #available(iOS 11.0, *) {
                 encoder.outputFormatting = [encoder.outputFormatting, .prettyPrinted, .sortedKeys]
@@ -215,6 +309,48 @@ final class ApiClientImpl: ApiClient {
         closed = true
         session.invalidateAndCancel()
     }
+
+    private func shouldRetry(error: Error) -> Bool {
+        if let responseError = error as? ResponseError {
+            switch responseError {
+            case .unacceptableCode(let code, _):
+                if code == ApiClientImpl.CLIENT_CLOSED_THE_CONNECTION_CODE {
+                    return true
+                }
+            default:
+                return false
+            }
+        }
+        return false
+    }
+
+    private func getLatestRequestId(apiPath: String) throws -> UUID? {
+        guard let apiPath = ApiPaths(rawValue: apiPath) else {
+            // This could happen if we add a new API path but forget to update it.
+            // Throw an illegal state for an unknown path to help us catch this mistake during development.
+            throw BKTError.illegalState(message: "Unknown API path: \(apiPath)")
+        }
+        switch apiPath {
+        case .getEvaluations:
+            return getEvaluationsRequestId
+        case .registerEvents:
+            return registerEventsRequestId
+        }
+    }
+
+    /// For tests only. Sets the current `getEvaluations` request id.
+    /// Not thread-safe — should be called on the SDK `dispatchQueue`.
+#if DEBUG
+    func setEvaluationsRequestId(_ id: UUID) {
+        getEvaluationsRequestId = id
+    }
+
+    /// For tests only. Sets the current `registerEvents` request id.
+    /// Not thread-safe — should be called on the SDK `dispatchQueue`.
+    func setRegisterEventsRequestId(_ id: UUID) {
+        registerEventsRequestId = id
+    }
+#endif
 }
 
 enum ResponseError: Error {

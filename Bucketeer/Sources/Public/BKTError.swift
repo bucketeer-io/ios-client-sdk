@@ -102,7 +102,7 @@ extension BKTError : LocalizedError {
                 }
                 self = .network(message: "Network connection error: \(message)", error: error)
             case .invalidJSONResponse(let code, _):
-                let message: String = "invaild JSON response for status \(code)"
+                let message: String = "invalid JSON response for status \(code)"
                 self = .unknownServer(message: "Unknown server error: \(message)", error: error, statusCode: code)
             }
             return

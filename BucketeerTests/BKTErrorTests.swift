@@ -134,7 +134,7 @@ class BKTErrorTests: XCTestCase {
         assertEqual(
             .init(error: ResponseError.invalidJSONResponse(code: 200, error: SomeError.a)),
             .unknownServer(
-                message: "Unknown server error: invaild JSON response for status 200",
+                message: "Unknown server error: invalid JSON response for status 200",
                 error: ResponseError.invalidJSONResponse(code: 200, error: SomeError.a),
                 statusCode: 200
             )
