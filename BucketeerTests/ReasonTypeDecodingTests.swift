@@ -9,7 +9,7 @@ class ReasonTypeDecodingTests: XCTestCase {
             "RULE",
             "OFF_VARIATION",
             "PREREQUISITE",
-            "INVALID_VALUE",
+            "INVALID_VALUE"
         ]
         """.data(using: .utf8)!
 
@@ -19,9 +19,10 @@ class ReasonTypeDecodingTests: XCTestCase {
         XCTAssertEqual(decoded, [
             .target,
             .rule,
-            .default, // "INVALID_VALUE"
             .offVariation,
-            .prerequisite
+            .prerequisite,
+            // "INVALID_VALUE" should default to .default
+            .default
         ])
     }
 }
