@@ -75,23 +75,23 @@ final class BKTClientEvaluationDetailTests: XCTestCase {
         let userId = User.mock1.id
         XCTAssertEqual(
             client.intVariationDetails(featureId: unknowFeatureId, defaultValue: 1),
-            BKTEvaluationDetails.newDefaultInstance(featureId: unknowFeatureId, userId: userId, defaultValue: 1)
+            BKTEvaluationDetails.newDefaultInstance(featureId: unknowFeatureId, userId: userId, defaultValue: 1, reason: .errorFlagNotFound)
         )
         XCTAssertEqual(
             client.stringVariationDetails(featureId: unknowFeatureId, defaultValue: "2"),
-            BKTEvaluationDetails.newDefaultInstance(featureId: unknowFeatureId, userId: userId, defaultValue: "2")
+            BKTEvaluationDetails.newDefaultInstance(featureId: unknowFeatureId, userId: userId, defaultValue: "2", reason: .errorFlagNotFound)
         )
         XCTAssertEqual(
             client.boolVariationDetails(featureId: unknowFeatureId, defaultValue: true),
-            BKTEvaluationDetails.newDefaultInstance(featureId: unknowFeatureId, userId: userId, defaultValue: true)
+            BKTEvaluationDetails.newDefaultInstance(featureId: unknowFeatureId, userId: userId, defaultValue: true, reason: .errorFlagNotFound)
         )
         XCTAssertEqual(
             client.doubleVariationDetails(featureId: unknowFeatureId, defaultValue: 1.2),
-            BKTEvaluationDetails.newDefaultInstance(featureId: unknowFeatureId, userId: userId, defaultValue: 1.2)
+            BKTEvaluationDetails.newDefaultInstance(featureId: unknowFeatureId, userId: userId, defaultValue: 1.2, reason: .errorFlagNotFound)
         )
         XCTAssertEqual(
             client.objectVariationDetails(featureId: unknowFeatureId, defaultValue: .boolean(false)),
-            BKTEvaluationDetails.newDefaultInstance(featureId: unknowFeatureId, userId: userId, defaultValue: .boolean(false))
+            BKTEvaluationDetails.newDefaultInstance(featureId: unknowFeatureId, userId: userId, defaultValue: .boolean(false), reason: .errorFlagNotFound)
         )
     }
 
@@ -119,17 +119,17 @@ final class BKTClientEvaluationDetailTests: XCTestCase {
 
         XCTAssertEqual(
             client.doubleVariationDetails(featureId: featureId, defaultValue: 2.1),
-            BKTEvaluationDetails.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: 2.1)
+            BKTEvaluationDetails.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: 2.1, reason: .errorWrongType)
         )
 
         XCTAssertEqual(
             client.boolVariationDetails(featureId: featureId, defaultValue: true),
-            BKTEvaluationDetails.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: true)
+            BKTEvaluationDetails.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: true, reason: .errorWrongType)
         )
 
         XCTAssertEqual(
             client.intVariationDetails(featureId: featureId, defaultValue: 1),
-            BKTEvaluationDetails.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: 1)
+            BKTEvaluationDetails.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: 1, reason: .errorWrongType)
         )
 
         XCTAssertEqual(
@@ -195,7 +195,7 @@ final class BKTClientEvaluationDetailTests: XCTestCase {
 
         XCTAssertEqual(
             client.boolVariationDetails(featureId: featureId, defaultValue: true),
-            BKTEvaluationDetails.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: true)
+            BKTEvaluationDetails.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: true, reason: .errorWrongType)
         )
         XCTAssertEqual(
             client.objectVariationDetails(featureId: featureId, defaultValue: .string("default")),
@@ -248,12 +248,12 @@ final class BKTClientEvaluationDetailTests: XCTestCase {
 
         XCTAssertEqual(
             client.doubleVariationDetails(featureId: featureId, defaultValue: 2.1),
-            BKTEvaluationDetails.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: 2.1)
+            BKTEvaluationDetails.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: 2.1, reason: .errorWrongType)
         )
 
         XCTAssertEqual(
             client.intVariationDetails(featureId: featureId, defaultValue: 1),
-            BKTEvaluationDetails.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: 1)
+            BKTEvaluationDetails.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: 1, reason: .errorWrongType)
         )
         XCTAssertEqual(
             client.objectVariationDetails(featureId: featureId, defaultValue: .string("default")),
@@ -306,7 +306,7 @@ final class BKTClientEvaluationDetailTests: XCTestCase {
 
         XCTAssertEqual(
             client.boolVariationDetails(featureId: featureId, defaultValue: true),
-            BKTEvaluationDetails.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: true)
+            BKTEvaluationDetails.newDefaultInstance(featureId: featureId, userId: expectedEvaluation.userId, defaultValue: true, reason: .errorWrongType)
         )
 
         XCTAssertEqual(
@@ -420,6 +420,58 @@ final class BKTClientEvaluationDetailTests: XCTestCase {
                 variationValue: expectedEvaluationValue,
                 reason: BKTEvaluationDetails.Reason.fromString(value: expectedEvaluation.reason.type.rawValue))
         )
+    }
+
+    func testAllReasonTypesConvertToEvaluationDetailsReason() {
+        let allReasonTypes: [ReasonType] = [
+            .target,
+            .rule,
+            .default,
+            .client,
+            .offVariation,
+            .prerequisite,
+            .errorNoEvaluations,
+            .errorFlagNotFound,
+            .errorWrongType,
+            .errorUserIdNotSpecified,
+            .errorFeatureFlagIdNotSpecified,
+            .errorException,
+            .errorCacheNotFound
+        ]
+
+        for reasonType in allReasonTypes {
+            let converted = BKTEvaluationDetails<String>.Reason.fromString(value: reasonType.rawValue)
+
+            // Verify the conversion produces the expected Reason case
+            switch reasonType {
+            case .target:
+                XCTAssertEqual(converted, .target, "ReasonType.target should convert to BKTEvaluationDetails.Reason.target")
+            case .rule:
+                XCTAssertEqual(converted, .rule, "ReasonType.rule should convert to BKTEvaluationDetails.Reason.rule")
+            case .default:
+                XCTAssertEqual(converted, .default, "ReasonType.default should convert to BKTEvaluationDetails.Reason.default")
+            case .client:
+                XCTAssertEqual(converted, .client, "ReasonType.client should convert to BKTEvaluationDetails.Reason.client")
+            case .offVariation:
+                XCTAssertEqual(converted, .offVariation, "ReasonType.offVariation should convert to BKTEvaluationDetails.Reason.offVariation")
+            case .prerequisite:
+                XCTAssertEqual(converted, .prerequisite, "ReasonType.prerequisite should convert to BKTEvaluationDetails.Reason.prerequisite")
+            case .errorNoEvaluations:
+                XCTAssertEqual(converted, .errorNoEvaluations, "ReasonType.errorNoEvaluations should convert to BKTEvaluationDetails.Reason.errorNoEvaluations")
+            case .errorFlagNotFound:
+                XCTAssertEqual(converted, .errorFlagNotFound, "ReasonType.errorFlagNotFound should convert to BKTEvaluationDetails.Reason.errorFlagNotFound")
+            case .errorWrongType:
+                XCTAssertEqual(converted, .errorWrongType, "ReasonType.errorWrongType should convert to BKTEvaluationDetails.Reason.errorWrongType")
+            case .errorUserIdNotSpecified:
+                XCTAssertEqual(converted, .errorUserIdNotSpecified, "ReasonType.errorUserIdNotSpecified should convert to BKTEvaluationDetails.Reason.errorUserIdNotSpecified")
+            case .errorFeatureFlagIdNotSpecified:
+                XCTAssertEqual(converted, .errorFeatureFlagIdNotSpecified, "ReasonType.errorFeatureFlagIdNotSpecified should convert to BKTEvaluationDetails.Reason.errorFeatureFlagIdNotSpecified")
+            case .errorException:
+                XCTAssertEqual(converted, .errorException, "ReasonType.errorException should convert to BKTEvaluationDetails.Reason.errorException")
+            case .errorCacheNotFound:
+                XCTAssertEqual(converted, .errorCacheNotFound, "ReasonType.errorCacheNotFound should convert to BKTEvaluationDetails.Reason.errorCacheNotFound")
+            }
+        }
     }
 }
 // swiftlint:enable type_body_length

@@ -149,7 +149,7 @@ final class E2EEventTests: XCTestCase {
             XCTAssertTrue(events.contains { event in
                 if case .evaluation = event.type,
                    case .evaluation(let data) = event.event,
-                   case .client = data.reason.type,
+                   case .errorFlagNotFound = data.reason.type,
                    case .ios = data.sourceId,
                    data.sdkVersion == Version.current {
                     return true
