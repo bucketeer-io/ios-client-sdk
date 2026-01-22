@@ -3,7 +3,7 @@ import Foundation
 protocol EventInteractor {
     func set(eventUpdateListener: EventUpdateListener?)
     func trackEvaluationEvent(featureTag: String, user: User, evaluation: Evaluation) throws
-    func trackDefaultEvaluationEvent(featureTag: String, user: User, featureId: String) throws
+    func trackDefaultEvaluationEvent(featureTag: String, user: User, featureId: String, reason: ReasonType) throws
     func trackGoalEvent(featureTag: String, user: User, goalId: String, value: Double) throws
     func trackFetchEvaluationsSuccess(featureTag: String, seconds: Double, sizeByte: Int64) throws
     func trackFetchEvaluationsFailure(featureTag: String, error: BKTError) throws
@@ -85,7 +85,7 @@ final class EventInteractorImpl: EventInteractor {
         updateEventsAndNotify()
     }
 
-    func trackDefaultEvaluationEvent(featureTag: String, user: User, featureId: String) throws {
+    func trackDefaultEvaluationEvent(featureTag: String, user: User, featureId: String, reason: ReasonType) throws {
         try eventSQLDao.add(
             event: .init(
                 id: idGenerator.id(),
@@ -94,7 +94,7 @@ final class EventInteractorImpl: EventInteractor {
                     featureId: featureId,
                     userId: user.id,
                     user: user,
-                    reason: .init(type: .client),
+                    reason: .init(type: reason),
                     tag: featureTag,
                     sourceId: sdkInfo.sourceId,
                     sdkVersion: sdkInfo.sdkVersion,

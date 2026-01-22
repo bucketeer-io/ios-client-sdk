@@ -21,22 +21,42 @@ public class BKTClient {
         let user = component.userHolder.user
         let featureTag = component.config.featureTag
 
-        guard let raw = raw, let value: T = raw.getVariationValue(
-            logger: component.config.logger
-        ) else {
+        guard let raw = raw else {
+            // Evaluation not found in storage
             execute {
                 try self.component.eventInteractor.trackDefaultEvaluationEvent(
                     featureTag: featureTag,
                     user: user,
-                    featureId: featureId
+                    featureId: featureId,
+                    reason: .errorFlagNotFound
                 )
             }
             return BKTEvaluationDetails.newDefaultInstance(
                 featureId: featureId,
                 userId: user.id,
-                defaultValue: defaultValue
+                defaultValue: defaultValue,
+                reason: .errorFlagNotFound
             )
         }
+
+        guard let value: T = raw.getVariationValue(logger: component.config.logger) else {
+            // Evaluation found but type mismatch
+            execute {
+                try self.component.eventInteractor.trackDefaultEvaluationEvent(
+                    featureTag: featureTag,
+                    user: user,
+                    featureId: featureId,
+                    reason: .errorWrongType
+                )
+            }
+            return BKTEvaluationDetails.newDefaultInstance(
+                featureId: featureId,
+                userId: user.id,
+                defaultValue: defaultValue,
+                reason: .errorWrongType
+            )
+        }
+
         execute {
             try self.component.eventInteractor.trackEvaluationEvent(
                 featureTag: featureTag,
