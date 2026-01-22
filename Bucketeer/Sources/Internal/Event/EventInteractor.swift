@@ -10,9 +10,10 @@ protocol EventInteractor {
     ///   - user: The user for whom the event is tracked.
     ///   - featureId: The ID of the feature.
     ///   - reason: The reason for the default evaluation.
-    ///   Typically uses `.errorFlagNotFound` (for missing evaluations when `raw == nil`)
-    ///   and `.errorWrongType` (for type conversion failures when `raw != nil` but `getVariationValue<T>()` returns `nil`),
-    ///   as other reasons are detected from server context.
+    /// - Note:
+    ///   - Typically uses `.errorFlagNotFound` for missing evaluations when `raw == nil`.
+    ///   - Typically uses `.errorWrongType` for type conversion failures when `raw != nil` but `getVariationValue<T>()` returns `nil`, as other reasons are detected from server context.
+    ///   - There is no error thrown during evaluation, so errorException will not be used.
     /// - Throws: An error if the event cannot be tracked.
     func trackDefaultEvaluationEvent(featureTag: String, user: User, featureId: String, reason: ReasonType) throws
     func trackGoalEvent(featureTag: String, user: User, goalId: String, value: Double) throws
