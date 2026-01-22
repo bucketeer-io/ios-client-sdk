@@ -47,9 +47,11 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
 
         let logger = self.logger
         let evaluatedAt = evaluationStorage.evaluatedAt
-        let userAttributesUpdated = evaluationStorage.userAttributesUpdated
+        let userAttributesState = evaluationStorage.userAttributesState
+        let userAttributesUpdated = userAttributesState.isUpdated
         let currentEvaluationsId = evaluationStorage.currentEvaluationsId
         let featureTag = evaluationStorage.featureTag
+
         apiClient.getEvaluations(
             user: user,
             userEvaluationsId: currentEvaluationsId,
@@ -62,8 +64,8 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
                 let newEvaluationsId = response.userEvaluationsId
                 if currentEvaluationsId == newEvaluationsId {
                     logger?.debug(message: "Nothing to sync")
-                    // Reset UserAttributesUpdated
-                    self?.evaluationStorage.clearUserAttributesUpdated()
+                    // Clear logic is now encapsulated in `evaluationStorage` via the state snapshot
+                    self?.evaluationStorage.clearUserAttributesUpdated(state: userAttributesState)
                     completion?(result)
                     return
                 }
@@ -97,7 +99,9 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
                     return
                 }
 
-                self?.evaluationStorage.clearUserAttributesUpdated()
+                // Clear logic is now encapsulated in `evaluationStorage` via the state snapshot
+                self?.evaluationStorage.clearUserAttributesUpdated(state: userAttributesState)
+
                 if shouldNotifyListener {
                     // Update listeners should be called on the main thread
                     // to avoid unintentional lock on Interactor's execution thread.

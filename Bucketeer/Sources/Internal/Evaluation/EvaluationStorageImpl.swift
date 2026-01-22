@@ -12,16 +12,24 @@ final class EvaluationStorageImpl: EvaluationStorage {
         return evaluationUserDefaultsDao.evaluatedAt
     }
 
-    var userAttributesUpdated: Bool {
-        return evaluationUserDefaultsDao.userAttributesUpdated
+    var userAttributesState: UserAttributesState {
+        // read atomically 2 values
+        return setUserAttributesUpdatedLock.withLock {
+            return UserAttributesState(
+                version: userAttributesUpdatedVersion,
+                isUpdated: evaluationUserDefaultsDao.userAttributesUpdated
+            )
+        }
     }
 
     private let userId: String
-    // Expected SQL Dao
     private let evaluationSQLDao: EvaluationSQLDao
-    // Expected in-memory cache Dao
     private let evaluationMemCacheDao: EvaluationMemCacheDao
     private let evaluationUserDefaultsDao: EvaluationUserDefaultsDao
+    private let setUserAttributesUpdatedLock = NSLock()
+    /// Version counter used as an in-memory transaction id for attribute updates.
+    /// Protected by `setUserAttributesUpdatedLock`.
+    private var userAttributesUpdatedVersion: Int = 0
 
     init(
         userId: String,
@@ -40,6 +48,8 @@ final class EvaluationStorageImpl: EvaluationStorage {
         evaluationMemCacheDao.get(key: userId) ?? []
     }
 
+    /// Deletes all evaluations and inserts new evaluations in storage.
+    /// - Note: Caller must ensure this is called from the SDK queue. Not thread-safe
     func deleteAllAndInsert(
         evaluationId: String,
         evaluations: [Evaluation],
@@ -55,6 +65,8 @@ final class EvaluationStorageImpl: EvaluationStorage {
         evaluationMemCacheDao.set(key: userId, value: evaluations)
     }
 
+    /// Updates evaluations in storage.
+    /// - Note: Caller must ensure this is called from the SDK queue. Not thread-safe for concurrent writes.
     func update(
         evaluationId: String ,
         evaluations: [Evaluation],
@@ -87,6 +99,14 @@ final class EvaluationStorageImpl: EvaluationStorage {
 
     // getBy will return the data from the cache to speed up the response time
     func getBy(featureId: String) -> Evaluation? {
+        // evaluationMemCacheDao is thread-safe (uses internal concurrent queue).
+        // We rely on it without adding extra locks even though this storage layer can be accessed from multiple threads:
+        // writes and most operations are serialized on the SDK queue, but reads (like getBy) may be invoked from the
+        // main/UI thread concurrently with background SDK operations.
+        //
+        // We access the memory cache directly without waiting for pending database writes.
+        // If we enforced strict consistency (locking during Disk I/O with SQL), this method would block the calling thread (often the Main Thread), causing UI freezes.
+        // This behavior prioritizes application responsiveness, accepting momentary data staleness during background updates.
         return evaluationMemCacheDao.get(key: userId)?.first { evaluation in
             evaluation.featureId == featureId
         } ?? nil
@@ -106,10 +126,28 @@ final class EvaluationStorageImpl: EvaluationStorage {
     }
 
     func setUserAttributesUpdated() {
-        evaluationUserDefaultsDao.setUserAttributesUpdated(value: true)
+        setUserAttributesUpdatedLock.withLock {
+            // Increment version on every update
+            userAttributesUpdatedVersion += 1
+            evaluationUserDefaultsDao.setUserAttributesUpdated(value: true)
+        }
     }
 
-    func clearUserAttributesUpdated() {
-        evaluationUserDefaultsDao.setUserAttributesUpdated(value: false)
+    // Called from SDK queue (fetch callback)
+    @discardableResult func clearUserAttributesUpdated(state: UserAttributesState) -> Bool {
+        guard state.isUpdated else {
+            // No-op if flag is already false
+            return false
+        }
+        return setUserAttributesUpdatedLock.withLock {
+            // Only clear if the version matches what we captured at the start of the request.
+            // If userAttributesUpdatedVersion > version, it means a new update happened
+            // while the request was in-flight, so we MUST NOT clear the flag.
+            if userAttributesUpdatedVersion == state.version {
+                evaluationUserDefaultsDao.setUserAttributesUpdated(value: false)
+                return true
+            }
+            return false
+        }
     }
 }

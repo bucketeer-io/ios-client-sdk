@@ -148,7 +148,7 @@ final class BKTClientTests: XCTestCase {
             // mark the next request ready
             requestCount = 2
             XCTAssertEqual(
-                dataModule.evaluationStorage.userAttributesUpdated,
+                dataModule.evaluationStorage.userAttributesState.isUpdated,
                 true, "userAttributesUpdated should be true")
             client.fetchEvaluations(timeoutMillis: nil) { error in
                 XCTAssertEqual(error, nil)

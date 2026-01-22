@@ -221,11 +221,14 @@ final class EvaluationStorageTests: XCTestCase {
 
         XCTAssertEqual(storage.evaluatedAt, "0", "should = 0")
         XCTAssertEqual(storage.currentEvaluationsId, "")
-        XCTAssertFalse(storage.userAttributesUpdated)
+        XCTAssertFalse(storage.userAttributesState.isUpdated)
         XCTAssertEqual(storage.featureTag, "")
 
         storage.setUserAttributesUpdated()
+
+        let userAttributesState = storage.userAttributesState
         storage.setFeatureTag(value: "featureTagForTest")
+
         let result = try storage.update(
             evaluationId:"evaluationIdForTest",
             evaluations: [.mock2],
@@ -235,10 +238,96 @@ final class EvaluationStorageTests: XCTestCase {
         XCTAssertTrue(result, "update action should success")
         XCTAssertEqual(storage.evaluatedAt, "1024", "should save last evaluatedAt")
         XCTAssertEqual(storage.currentEvaluationsId, "evaluationIdForTest")
-        XCTAssertTrue(storage.userAttributesUpdated)
+        XCTAssertTrue(storage.userAttributesState.isUpdated)
         XCTAssertEqual(storage.featureTag, "featureTagForTest")
 
-        storage.clearUserAttributesUpdated()
-        XCTAssertFalse(storage.userAttributesUpdated)
+        XCTAssertTrue(storage.clearUserAttributesUpdated(state: userAttributesState))
+        XCTAssertFalse(storage.userAttributesState.isUpdated)
+    }
+
+    func testShouldOnlyClearUserAttributesUpdatedWhenVersionMatches() throws {
+        let testUserId1 = Evaluation.mock1.userId
+        let mockDao = MockEvaluationSQLDao()
+        let mockUserDefsDao = MockEvaluationUserDefaultsDao()
+        let storage = EvaluationStorageImpl(
+            userId: testUserId1,
+            evaluationDao: mockDao,
+            evaluationMemCacheDao: EvaluationMemCacheDao(),
+            evaluationUserDefaultsDao: mockUserDefsDao
+        )
+
+        XCTAssertFalse(storage.userAttributesState.isUpdated)
+
+        storage.setUserAttributesUpdated()
+        let firstState = storage.userAttributesState
+        XCTAssertTrue(firstState.isUpdated)
+        XCTAssertEqual(firstState.version, 1)
+
+        storage.setUserAttributesUpdated()
+        let finalState = storage.userAttributesState
+
+        XCTAssertTrue(finalState.isUpdated)
+        XCTAssertEqual(finalState.version, 2)
+
+        // Attempt to clear with an incorrect version
+        XCTAssertFalse(storage.clearUserAttributesUpdated(state: firstState))
+        XCTAssertTrue(storage.userAttributesState.isUpdated, "userAttributesUpdated should remain true when version does not match")
+
+        // Now clear with the correct version
+        XCTAssertTrue(storage.clearUserAttributesUpdated(state: finalState))
+        XCTAssertFalse(storage.userAttributesState.isUpdated, "userAttributesUpdated should be false after clearing with correct version")
+    }
+
+    func testSetUserAttributesUpdatedConcurrency() {
+        let testUserId1 = Evaluation.mock1.userId
+        let mockDao = MockEvaluationSQLDao()
+        // Use `EvaluationUserDefaultDaoImpl` because it serializes access to `UserDefaults.standard` with an internal lock,
+        // giving a realistic, thread-safe backing store for concurrent reads/writes.
+        // The test concurrently performs user updates and SDK reads/clears; with correct locking the version counter
+        // must equal the number of updates and the final `userAttributesUpdated` flag should be `false` after all clears.
+        let mockUserDefsDao = EvaluationUserDefaultDaoImpl(defaults: UserDefaults.standard)
+        let storage = EvaluationStorageImpl(
+            userId: testUserId1,
+            evaluationDao: mockDao,
+            evaluationMemCacheDao: EvaluationMemCacheDao(),
+            evaluationUserDefaultsDao: mockUserDefsDao
+        )
+
+        let iterations = 10000
+        let group = DispatchGroup()
+
+        // Simulating the Main Thread (UI events triggering updates)
+        let mainQueue = DispatchQueue(label: "io.bucketeer.test.main")
+
+        // Simulating the SDK Queue (Network callbacks triggering clears)
+        let sdkQueue = DispatchQueue(label: "io.bucketeer.test.sdk")
+
+        for _ in 0..<iterations {
+            group.enter()
+            sdkQueue.async {
+                // Simulate SDK reading version for a fetch (Read)
+                let userAttributesState = storage.userAttributesState
+                // Simulate SDK clearing after fetch (Read/Write)
+                storage.clearUserAttributesUpdated(state: userAttributesState)
+                group.leave()
+            }
+
+            group.enter()
+            mainQueue.async {
+                // Simulate User updating attributes (Write)
+                storage.setUserAttributesUpdated()
+                group.leave()
+            }
+        }
+
+        // Wait for all operations to complete
+        let result = group.wait(timeout: .now() + 10.0)
+        XCTAssertEqual(result, .success, "Test timed out")
+        // Due to the inherent race between concurrent "update" and "clear" operations, the final value of
+        // `userAttributesUpdated` can legitimately be either true or false. This test therefore only asserts
+        // that the version counter matches the number of update calls, proving there are no race conditions
+        // when incrementing the version.
+        let userAttributesState = storage.userAttributesState
+        XCTAssertEqual(userAttributesState.version, iterations, "Version should exactly match the number of update calls, proving no race conditions")
     }
 }

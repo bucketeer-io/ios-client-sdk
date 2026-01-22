@@ -30,15 +30,6 @@ final class MockEvaluationStorage: EvaluationStorage {
         }
     }
 
-    var userAttributesUpdated: Bool {
-        get {
-            return evaluationUserDefaultsDao.userAttributesUpdated
-        }
-        set {
-            evaluationUserDefaultsDao.userAttributesUpdated = newValue
-        }
-    }
-
     typealias PutHandler = ((String, [Evaluation]) throws -> Void)
     typealias GetHandler = () throws -> [Evaluation]
     typealias DeleteAllAndInsertHandler = ([Evaluation]) throws -> Void
@@ -53,6 +44,17 @@ final class MockEvaluationStorage: EvaluationStorage {
     let evaluationUserDefaultsDao = MockEvaluationUserDefaultsDao()
     let refreshCacheHandler: RefreshCacheHandler?
     let userId: String
+    var setUserAttributesUpdatedLock = NSLock()
+    // protected by setUserAttributesUpdatedLock
+    private var userAttributesUpdatedVersion: Int = 0
+    private var userAttributesUpdated: Bool {
+        get {
+            return evaluationUserDefaultsDao.userAttributesUpdated
+        }
+        set {
+            evaluationUserDefaultsDao.userAttributesUpdated = newValue
+        }
+    }
 
     init(userId: String,
          getHandler: GetHandler? = nil,
@@ -111,19 +113,34 @@ final class MockEvaluationStorage: EvaluationStorage {
         evaluatedAt = value
     }
 
-    private func setUserAttributesUpdated(value: Bool) {
-        userAttributesUpdated = value
-    }
-
     func setUserAttributesUpdated() {
-        setUserAttributesUpdated(value: true)
-    }
-
-    func clearUserAttributesUpdated() {
-        setUserAttributesUpdated(value: false)
+        setUserAttributesUpdatedLock.withLock {
+            userAttributesUpdatedVersion += 1
+            userAttributesUpdated = true
+        }
     }
 
     func clearCurrentEvaluationsId() {
         currentEvaluationsId = ""
+    }
+
+    var userAttributesState: UserAttributesState {
+        return setUserAttributesUpdatedLock.withLock {
+            return UserAttributesState(
+                version: userAttributesUpdatedVersion,
+                isUpdated: userAttributesUpdated
+            )
+        }
+    }
+
+    func clearUserAttributesUpdated(state: UserAttributesState) -> Bool {
+        guard state.isUpdated else { return false }
+        return setUserAttributesUpdatedLock.withLock {
+            if userAttributesUpdatedVersion == state.version {
+                userAttributesUpdated = false
+                return true
+            }
+            return false
+        }
     }
 }

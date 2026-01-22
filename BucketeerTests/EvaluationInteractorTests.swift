@@ -83,7 +83,7 @@ final class EvaluationInteractorTests: XCTestCase {
             "currentEvaluationsId should be empty string"
         )
         XCTAssertEqual(
-            storage.userAttributesUpdated,
+            storage.userAttributesState.isUpdated,
             false,
             "userAttributesUpdated should be false"
         )
@@ -119,7 +119,7 @@ final class EvaluationInteractorTests: XCTestCase {
             "currentEvaluationsId should not be a empty string after fetch evaluation success"
         )
         XCTAssertEqual(
-            storage.userAttributesUpdated,
+            storage.userAttributesState.isUpdated,
             false,
             "userAttributesUpdated should be false"
         )
@@ -455,11 +455,10 @@ final class EvaluationInteractorTests: XCTestCase {
         storage.currentEvaluationsId =  baseUserEvaluationsId
         storage.featureTag =  config.featureTag
         storage.evaluatedAt = evaluationCreatedAt
-        storage.userAttributesUpdated = false
         XCTAssertEqual(storage.currentEvaluationsId, baseUserEvaluationsId)
         XCTAssertEqual(storage.featureTag, config.featureTag)
         XCTAssertEqual(storage.evaluatedAt, evaluationCreatedAt)
-        XCTAssertEqual(storage.userAttributesUpdated, false)
+        XCTAssertEqual(storage.userAttributesState.isUpdated, false)
         let api = MockApiClient(
             getEvaluationsHandler: { user, userEvaluationsId, _, condition, completion in
                 XCTAssertEqual(user, .mock1)
@@ -485,13 +484,13 @@ final class EvaluationInteractorTests: XCTestCase {
         XCTAssertEqual(storage.currentEvaluationsId, baseUserEvaluationsId)
         XCTAssertEqual(storage.featureTag, config.featureTag)
         XCTAssertEqual(storage.evaluatedAt, evaluationCreatedAt)
-        XCTAssertEqual(storage.userAttributesUpdated, false)
+        XCTAssertEqual(storage.userAttributesState.isUpdated, false)
 
         interactor.setUserAttributesUpdated()
         XCTAssertEqual(storage.currentEvaluationsId, baseUserEvaluationsId)
         XCTAssertEqual(storage.featureTag, config.featureTag)
         XCTAssertEqual(storage.evaluatedAt, evaluationCreatedAt)
-        XCTAssertEqual(storage.userAttributesUpdated, true)
+        XCTAssertEqual(storage.userAttributesState.isUpdated, true)
 
         interactor.fetch(user: .mock1) { result in
             switch result {
@@ -508,7 +507,7 @@ final class EvaluationInteractorTests: XCTestCase {
         XCTAssertEqual(storage.featureTag, config.featureTag)
         XCTAssertEqual(storage.evaluatedAt, UserEvaluations.mock1.createdAt)
         // because `userAttributesUpdated` == true before fetch new evaluations, now it should be `false`
-        XCTAssertEqual(storage.userAttributesUpdated, false, "userAttributesUpdated should be `false`")
+        XCTAssertEqual(storage.userAttributesState.isUpdated, false, "userAttributesUpdated should be `false`")
 
         wait(for: [expectation], timeout: 1)
     }
@@ -605,7 +604,7 @@ final class EvaluationInteractorTests: XCTestCase {
         XCTAssertEqual(storage.featureTag, config.featureTag)
         XCTAssertEqual(storage.evaluatedAt, UserEvaluations.mock1ForceUpdate.createdAt)
         // because `userAttributesUpdated` == true before fetch new evaluations, now it should be `false`
-        XCTAssertEqual(storage.userAttributesUpdated, false, "userAttributesUpdated should be `false`")
+        XCTAssertEqual(storage.userAttributesState.isUpdated, false, "userAttributesUpdated should be `false`")
 
         wait(for: [expectation], timeout: 0.1)
     }
@@ -676,7 +675,7 @@ final class EvaluationInteractorTests: XCTestCase {
         XCTAssertEqual(storage.featureTag, config.featureTag)
         XCTAssertEqual(storage.evaluatedAt, UserEvaluations.mock1UpsertAndArchivedFeature.createdAt)
         // because `userAttributesUpdated` == true before fetch new evaluations, now it should be `false`
-        XCTAssertEqual(storage.userAttributesUpdated, false, "userAttributesUpdated should be `false`")
+        XCTAssertEqual(storage.userAttributesState.isUpdated, false, "userAttributesUpdated should be `false`")
 
         wait(for: [expectation], timeout: 0.1)
     }

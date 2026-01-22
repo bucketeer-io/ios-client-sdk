@@ -196,3 +196,13 @@ final class MockAsyncEventUpdateListener: EvaluationUpdateListener {
         mockContinuation?.resume(returning: true)
     }
 }
+
+extension UserDefaults {
+    static func removeAllEvaluationData() {
+        let userDefs = UserDefaults.standard
+        userDefs.removeObject(forKey: EvaluationUserDefaultsKey.userEvaluationsId.rawValue)
+        userDefs.removeObject(forKey: EvaluationUserDefaultsKey.featureTag.rawValue)
+        userDefs.removeObject(forKey: EvaluationUserDefaultsKey.evaluatedAt.rawValue)
+        userDefs.removeObject(forKey: EvaluationUserDefaultsKey.userAttributesUpdated.rawValue)
+    }
+}

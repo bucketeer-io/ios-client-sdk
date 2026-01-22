@@ -1,6 +1,6 @@
 import Foundation
 import XCTest
-import Bucketeer
+@testable import Bucketeer
 
 @available(iOS 13, *)
 final class E2EEvaluationTests: XCTestCase {
@@ -10,7 +10,7 @@ final class E2EEvaluationTests: XCTestCase {
     override func setUp() async throws {
         try await super.setUp()
 
-        UserDefaults.standard.removeObject(forKey: "bucketeer_user_evaluations_id")
+        UserDefaults.removeAllEvaluationData()
 
         let config = try BKTConfig.e2e()
         let user = try BKTUser.Builder().with(id: USER_ID).build()
@@ -26,7 +26,7 @@ final class E2EEvaluationTests: XCTestCase {
 
         try await BKTClient.shared.flush()
         try BKTClient.destroy()
-        UserDefaults.standard.removeObject(forKey: "bucketeer_user_evaluations_id")
+        UserDefaults.removeAllEvaluationData()
         try FileManager.default.removeItem(at: .database)
     }
 

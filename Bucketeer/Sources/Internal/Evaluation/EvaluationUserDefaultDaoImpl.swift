@@ -1,10 +1,7 @@
 import Foundation
 
 class EvaluationUserDefaultDaoImpl: EvaluationUserDefaultsDao {
-    private static let userEvaluationsIdKey = "bucketeer_user_evaluations_id"
-    private static let featureTagKey = "bucketeer_feature_tag"
-    private static let evaluatedAtKey = "bucketeer_evaluated_at"
-    private static let userAttributesUpdatedKey = "bucketeer_user_attributes_updated"
+
     private let defs: Defaults
 
     init(defaults: Defaults) {
@@ -13,34 +10,34 @@ class EvaluationUserDefaultDaoImpl: EvaluationUserDefaultsDao {
 
     var userAttributesUpdated: Bool {
         get {
-            return defs.bool(forKey: Self.userAttributesUpdatedKey)
+            return defs.bool(forKey: EvaluationUserDefaultsKey.userAttributesUpdated.rawValue)
         }
         set {
-            defs.set(newValue, forKey: Self.userAttributesUpdatedKey)
+            defs.set(newValue, forKey: EvaluationUserDefaultsKey.userAttributesUpdated.rawValue)
         }
     }
     var currentEvaluationsId: String {
         get {
-            return defs.string(forKey: Self.userEvaluationsIdKey) ?? ""
+            return defs.string(forKey: EvaluationUserDefaultsKey.userEvaluationsId.rawValue) ?? ""
         }
         set {
-            defs.set(newValue, forKey: Self.userEvaluationsIdKey)
+            defs.set(newValue, forKey: EvaluationUserDefaultsKey.userEvaluationsId.rawValue)
         }
     }
     var featureTag: String {
         get {
-            return defs.string(forKey: Self.featureTagKey) ?? ""
+            return defs.string(forKey: EvaluationUserDefaultsKey.featureTag.rawValue) ?? ""
         }
         set {
-            defs.set(newValue, forKey: Self.featureTagKey)
+            defs.set(newValue, forKey: EvaluationUserDefaultsKey.featureTag.rawValue)
         }
     }
     var evaluatedAt: String {
         get {
-            return defs.string(forKey: Self.evaluatedAtKey) ?? "0"
+            return defs.string(forKey: EvaluationUserDefaultsKey.evaluatedAt.rawValue) ?? "0"
         }
         set {
-            defs.set(newValue, forKey: Self.evaluatedAtKey)
+            defs.set(newValue, forKey: EvaluationUserDefaultsKey.evaluatedAt.rawValue)
         }
     }
 
