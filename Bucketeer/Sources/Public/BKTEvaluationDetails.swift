@@ -45,7 +45,7 @@ public struct BKTEvaluationDetails<T:Equatable>: Equatable {
         featureId: String,
         userId: String,
         defaultValue: T,
-        reason: Reason? = nil
+        reason: Reason
     ) -> BKTEvaluationDetails<T> {
         return BKTEvaluationDetails(
             featureId: featureId,
@@ -54,7 +54,7 @@ public struct BKTEvaluationDetails<T:Equatable>: Equatable {
             variationId: "",
             variationName: "",
             variationValue: defaultValue,
-            reason: reason ?? .client
+            reason: reason
         )
     }
 
