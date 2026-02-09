@@ -7,10 +7,16 @@ import BackgroundTasks
 final class EvaluationBackgroundTask {
     private weak var component: Component?
     private let queue: DispatchQueue
+    private var isTaskEnabled: Bool
 
-    init(component: Component, queue: DispatchQueue) {
+    init(component: Component, queue: DispatchQueue, enabled: Bool = true) {
         self.component = component
         self.queue = queue
+        self.isTaskEnabled = enabled
+    }
+
+    func enable() {
+        isTaskEnabled = true
     }
 
     func scheduleAppRefresh() {
@@ -28,6 +34,11 @@ final class EvaluationBackgroundTask {
     }
 
     private func handleAppRefresh(_ task: BGTask) {
+        guard isTaskEnabled else {
+            component?.config.logger?.debug(message: "[EvaluationBackgroundTask] Task not enabled, skipping")
+            task.setTaskCompleted(success: true)
+            return
+        }
         component?.config.logger?.debug(message: "[EvaluationBackgroundTask] handleAppRefresh")
         // Schedule a new refresh task.
         scheduleAppRefresh()

@@ -6,6 +6,7 @@ final class TaskScheduler {
 
     private lazy var foregroundSchedulers: [ScheduledTask] = [
         EvaluationForegroundTask(component: component, queue: dispatchQueue),
+        EvaluationForegroundTask(component: component, queue: dispatchQueue, enabled: false),
         EventForegroundTask(component: component, queue: dispatchQueue)
     ]
 
@@ -14,7 +15,7 @@ final class TaskScheduler {
             return []
         }
         let tasks : [BackgroundTask] =  [
-            EvaluationBackgroundTask(component: component, queue: dispatchQueue),
+            EvaluationBackgroundTask(component: component, queue: dispatchQueue, enabled: false),
             EventBackgroundTask(component: component, queue: dispatchQueue)
         ]
         // Register background task handler when init
@@ -88,5 +89,18 @@ final class TaskScheduler {
         stop()
         foregroundSchedulers.removeAll()
         backgroundSchedulers.removeAll()
+    }
+
+    func enableEvaluationTask() {
+        foregroundSchedulers
+            .compactMap { $0 as? EvaluationForegroundTask }
+            .first?
+            .enable()
+        if #available(iOS 13.0, tvOS 13.0, *) {
+            backgroundSchedulers
+                .compactMap { $0 as? EvaluationBackgroundTask }
+                .first?
+                .enable()
+        }
     }
 }

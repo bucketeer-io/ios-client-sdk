@@ -56,7 +56,7 @@ public class BKTClient {
         )
     }
 
-    fileprivate func scheduleTasks() {
+    func scheduleTasks() {
         self.taskScheduler = TaskScheduler(component: component, dispatchQueue: dispatchQueue)
     }
 
@@ -111,7 +111,12 @@ extension BKTClient {
                 client.scheduleTasks()
                 client.execute { [weak client] in
                     client?.refreshCache()
-                    client?.fetchEvaluations(timeoutMillis: timeoutMillis, completion: initializeCompletion)
+                    client?.fetchEvaluations(timeoutMillis: timeoutMillis, completion: { error in
+                        // Enable evaluation task after initial fetch completes (success or failure)
+                        // This prevents the background poller from cancelling the initialization request
+                        client?.taskScheduler?.enableEvaluationTask()
+                        initializeCompletion(error)
+                    })
                 }
                 BKTClient.default = client
             } catch let error {

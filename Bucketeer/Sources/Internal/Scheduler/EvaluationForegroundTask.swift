@@ -8,16 +8,23 @@ final class EvaluationForegroundTask: ScheduledTask {
     private var maxRetryCount: Int
 
     private var retryCount: Int = 0
+    private var isTaskEnabled: Bool
 
     init(component: Component,
          queue: DispatchQueue,
          retryPollingInterval: Int64 = Constant.RETRY_POLLING_INTERVAL,
-         maxRetryCount: Int = Constant.MAX_RETRY_COUNT) {
+         maxRetryCount: Int = Constant.MAX_RETRY_COUNT,
+         enabled: Bool = true) {
 
         self.component = component
         self.queue = queue
         self.retryPollingInterval = retryPollingInterval
         self.maxRetryCount = maxRetryCount
+        self.isTaskEnabled = enabled
+    }
+
+    func enable() {
+        isTaskEnabled = true
     }
 
     private func reschedule(interval: Int64) {
@@ -45,6 +52,9 @@ final class EvaluationForegroundTask: ScheduledTask {
     }
 
     private func fetchEvaluations() {
+        guard isTaskEnabled else {
+            return
+        }
         let eventInteractor = component.eventInteractor
         let retryCount = self.retryCount
         let maxRetryCount = self.maxRetryCount
