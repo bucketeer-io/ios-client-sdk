@@ -70,7 +70,7 @@ final class EventInteractorTests: XCTestCase {
         wait(for: [expectation], timeout: 1)
     }
 
-    func testTrackDefaultEvaluationEvent() throws {
+    func testTrackDefaultEvaluationEventErrorFlagNotFound() throws {
         let expectation = XCTestExpectation()
         expectation.assertForOverFulfill = true
 
@@ -85,7 +85,7 @@ final class EventInteractorTests: XCTestCase {
                     featureId: "featureId1",
                     userId: User.mock1.id,
                     user: .mock1,
-                    reason: .init(type: .client),
+                    reason: .init(type: .errorFlagNotFound),
                     tag: "featureTag1",
                     sourceId: sdkInfo.sourceId,
                     sdkVersion: sdkInfo.sdkVersion,
@@ -105,7 +105,49 @@ final class EventInteractorTests: XCTestCase {
         try interactor.trackDefaultEvaluationEvent(
             featureTag: "featureTag1",
             user: .mock1,
-            featureId: "featureId1"
+            featureId: "featureId1",
+            reason: .errorFlagNotFound
+        )
+        wait(for: [expectation], timeout: 1)
+    }
+
+    func testTrackDefaultEvaluationEventErrorWrongType() throws {
+        let expectation = XCTestExpectation()
+        expectation.assertForOverFulfill = true
+
+        let sdkInfo = self.sdkInfoTestSample()
+        let interactor = self.eventInteractor(sdkInfo: sdkInfo)
+        let listener = MockEventUpdateListener { events in
+            XCTAssertEqual(events.count, 1)
+            let expected = Event(
+                id: "id",
+                event: .evaluation(.init(
+                    timestamp: 1,
+                    featureId: "featureId1",
+                    userId: User.mock1.id,
+                    user: .mock1,
+                    reason: .init(type: .errorWrongType),
+                    tag: "featureTag1",
+                    sourceId: sdkInfo.sourceId,
+                    sdkVersion: sdkInfo.sdkVersion,
+                    metadata: [
+                        "app_version": "1.2.3",
+                        "os_version": "16.0",
+                        "device_model": "iPhone14,7",
+                        "device_type": "mobile"
+                    ]
+                )),
+                type: .evaluation
+            )
+            XCTAssertEqual(events, [expected])
+            expectation.fulfill()
+        }
+        interactor.set(eventUpdateListener: listener)
+        try interactor.trackDefaultEvaluationEvent(
+            featureTag: "featureTag1",
+            user: .mock1,
+            featureId: "featureId1",
+            reason: .errorWrongType
         )
         wait(for: [expectation], timeout: 1)
     }

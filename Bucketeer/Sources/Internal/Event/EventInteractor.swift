@@ -3,7 +3,19 @@ import Foundation
 protocol EventInteractor {
     func set(eventUpdateListener: EventUpdateListener?)
     func trackEvaluationEvent(featureTag: String, user: User, evaluation: Evaluation) throws
-    func trackDefaultEvaluationEvent(featureTag: String, user: User, featureId: String) throws
+
+    /// Tracks a default evaluation event for the specified feature ID when no evaluation is available.
+    /// - Parameters:
+    ///   - featureTag: The tag associated with the feature.
+    ///   - user: The user for whom the event is tracked.
+    ///   - featureId: The ID of the feature.
+    ///   - reason: The reason for the default evaluation.
+    /// - Note:
+    ///   - Typically uses `.errorFlagNotFound` for missing evaluations when `raw == nil`.
+    ///   - Typically uses `.errorWrongType` for type conversion failures when `raw != nil` but `getVariationValue<T>()` returns `nil`, as other reasons are detected from server context.
+    ///   - There is no error thrown during evaluation, so errorException will not be used.
+    /// - Throws: An error if the event cannot be tracked.
+    func trackDefaultEvaluationEvent(featureTag: String, user: User, featureId: String, reason: ReasonType) throws
     func trackGoalEvent(featureTag: String, user: User, goalId: String, value: Double) throws
     func trackFetchEvaluationsSuccess(featureTag: String, seconds: Double, sizeByte: Int64) throws
     func trackFetchEvaluationsFailure(featureTag: String, error: BKTError) throws
@@ -85,7 +97,7 @@ final class EventInteractorImpl: EventInteractor {
         updateEventsAndNotify()
     }
 
-    func trackDefaultEvaluationEvent(featureTag: String, user: User, featureId: String) throws {
+    func trackDefaultEvaluationEvent(featureTag: String, user: User, featureId: String, reason: ReasonType) throws {
         try eventSQLDao.add(
             event: .init(
                 id: idGenerator.id(),
@@ -94,7 +106,7 @@ final class EventInteractorImpl: EventInteractor {
                     featureId: featureId,
                     userId: user.id,
                     user: user,
-                    reason: .init(type: .client),
+                    reason: .init(type: reason),
                     tag: featureTag,
                     sourceId: sdkInfo.sourceId,
                     sdkVersion: sdkInfo.sdkVersion,

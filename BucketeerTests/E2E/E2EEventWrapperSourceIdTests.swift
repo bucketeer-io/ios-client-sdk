@@ -138,7 +138,7 @@ final class E2EEventWrapperSourceIdTests: XCTestCase {
             XCTAssertTrue(events.contains { event in
                 if case .evaluation = event.type,
                    case .evaluation(let data) = event.event,
-                   case .client = data.reason.type,
+                   case .errorFlagNotFound = data.reason.type,
                    case .flutter = data.sourceId,
                    data.sdkVersion == "1.2.10" && data.sdkVersion != Version.current {
                     return true

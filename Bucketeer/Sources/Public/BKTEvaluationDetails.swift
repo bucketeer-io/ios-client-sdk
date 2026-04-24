@@ -9,16 +9,32 @@ public struct BKTEvaluationDetails<T:Equatable>: Equatable {
     public let variationValue: T
     public let reason: Reason
 
-    public enum Reason: String, Codable, Hashable {
+    /// The reason for the evaluation result.
+    ///
+    /// This public enum lists why an evaluation returned a particular variation
+    /// (for example: the user matched a targeting rule, the default value was used,
+    /// the flag was off, or an error occurred). For a more detailed internal
+    /// classification used by the evaluator, see `ReasonType`.
+    public enum Reason: String, Hashable {
         case target = "TARGET"
         case rule = "RULE"
         case `default` = "DEFAULT"
+        @available(*, deprecated, message: "Reason `client` has been deprecated; use one of the `error*` reason cases instead.")
         case client = "CLIENT"
+
         case offVariation = "OFF_VARIATION"
         case prerequisite = "PREREQUISITE"
 
+        case errorNoEvaluations = "ERROR_NO_EVALUATIONS"
+        case errorFlagNotFound = "ERROR_FLAG_NOT_FOUND"
+        case errorWrongType = "ERROR_WRONG_TYPE"
+        case errorUserIdNotSpecified = "ERROR_USER_ID_NOT_SPECIFIED"
+        case errorFeatureFlagIdNotSpecified = "ERROR_FEATURE_FLAG_ID_NOT_SPECIFIED"
+        case errorException = "ERROR_EXCEPTION"
+        case errorCacheNotFound = "ERROR_CACHE_NOT_FOUND"
+
         public static func fromString(value: String) -> Reason {
-            return Reason(rawValue: value) ?? .client
+            return Reason(rawValue: value) ?? .errorException
         }
     }
 
@@ -32,7 +48,12 @@ public struct BKTEvaluationDetails<T:Equatable>: Equatable {
             lhs.variationValue == rhs.variationValue
     }
 
-    static func newDefaultInstance(featureId: String, userId: String, defaultValue: T) -> BKTEvaluationDetails<T> {
+    static func newDefaultInstance(
+        featureId: String,
+        userId: String,
+        defaultValue: T,
+        reason: Reason
+    ) -> BKTEvaluationDetails<T> {
         return BKTEvaluationDetails(
             featureId: featureId,
             featureVersion: 0,
@@ -40,7 +61,7 @@ public struct BKTEvaluationDetails<T:Equatable>: Equatable {
             variationId: "",
             variationName: "",
             variationValue: defaultValue,
-            reason: .client
+            reason: reason
         )
     }
 

@@ -30,7 +30,7 @@ final class MockEventInteractor: EventInteractor {
     }
     func trackEvaluationEvent(featureTag: String, user: User, evaluation: Evaluation) throws {
     }
-    func trackDefaultEvaluationEvent(featureTag: String, user: User, featureId: String) throws {
+    func trackDefaultEvaluationEvent(featureTag: String, user: User, featureId: String, reason: ReasonType) throws {
     }
     func trackGoalEvent(featureTag: String, user: User, goalId: String, value: Double) throws {
     }
