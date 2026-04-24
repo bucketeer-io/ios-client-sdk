@@ -5,7 +5,6 @@ final class TaskScheduler {
     let dispatchQueue: DispatchQueue
 
     private lazy var foregroundSchedulers: [ScheduledTask] = [
-        EvaluationForegroundTask(component: component, queue: dispatchQueue),
         EvaluationForegroundTask(component: component, queue: dispatchQueue, enabled: false),
         EventForegroundTask(component: component, queue: dispatchQueue)
     ]
