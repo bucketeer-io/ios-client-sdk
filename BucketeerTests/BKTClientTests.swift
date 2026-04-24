@@ -254,7 +254,15 @@ final class BKTClientTests: XCTestCase {
                 XCTAssertEqual(user, .mock1)
                 XCTAssertEqual(userEvaluationsId, "")
                 XCTAssertEqual(timeoutMillis, expectedTimeoutMillis)
-                handler?(.failure(error: .timeout(message: "timeout", error: NSError(), timeoutMillis: timeoutMillis ?? 0), featureTag: "feature"))
+                handler?(
+                    .failure(
+                        error: .timeout(
+                            message: "timeout",
+                            error: NSError(domain: "test", code: -1, userInfo: nil),
+                            timeoutMillis: timeoutMillis ?? 0),
+                        featureTag: "feature"
+                    )
+                )
                 expectation.fulfill()
             }),
             eventSQLDao: MockEventSQLDao(addEventsHandler: { events in
@@ -295,7 +303,14 @@ final class BKTClientTests: XCTestCase {
         )
         let client = BKTClient(dataModule: dataModule, dispatchQueue: .global())
         client.fetchEvaluations(timeoutMillis: expectedTimeoutMillis) { error in
-            XCTAssertEqual(error, .timeout(message: "timeout", error: NSError(), timeoutMillis: expectedTimeoutMillis))
+            XCTAssertEqual(
+                error,
+                .timeout(
+                    message: "timeout",
+                    error: NSError(domain: "test", code: -1, userInfo: nil),
+                    timeoutMillis: expectedTimeoutMillis
+                )
+            )
             expectation.fulfill()
         }
         wait(for: [expectation], timeout: 0.1)
