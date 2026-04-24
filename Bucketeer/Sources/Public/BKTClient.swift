@@ -63,7 +63,6 @@ public class BKTClient {
     /// Performs the full SDK initialization sequence:
     /// sets up the task scheduler, refreshes the local cache, fetches evaluations from the server,
     /// and enables the background poller once the fetch completes (success or failure).
-    /// Must be called from the SDK dispatch queue (inside `execute {}`).
     func performInitialFetch(timeoutMillis: Int64, completion: ((BKTError?) -> Void)?) {
         execute { [weak self] in
             self?.scheduleTasks()
