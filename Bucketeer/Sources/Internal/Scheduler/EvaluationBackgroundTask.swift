@@ -7,16 +7,29 @@ import BackgroundTasks
 final class EvaluationBackgroundTask {
     private weak var component: Component?
     private let queue: DispatchQueue
-    private(set) var isTaskEnabled: Bool
+
+    // MARK: - Thread Safety
+    // `isTaskEnabled` can be written from any caller queue (e.g. main thread via
+    // performInitialFetch → fetchEvaluations completion) and read from the OS background
+    // task system queue inside handleAppRefresh.
+    // We protect it with NSLock instead of relying on queue confinement, so callers
+    // do not need to be on a specific queue.
+    private let lock = NSLock()
+    private var _isTaskEnabled: Bool
+
+    /// Thread-safe read of the enabled flag.
+    var isTaskEnabled: Bool { lock.withLock { _isTaskEnabled } }
 
     init(component: Component, queue: DispatchQueue, enabled: Bool = true) {
         self.component = component
         self.queue = queue
-        self.isTaskEnabled = enabled
+        _isTaskEnabled = enabled
     }
 
+    /// Enables the task so the next background refresh will execute a fetch.
+    /// Thread-safe — may be called from any queue.
     func enable() {
-        isTaskEnabled = true
+        lock.withLock { _isTaskEnabled = true }
     }
 
     func scheduleAppRefresh() {
@@ -40,6 +53,7 @@ final class EvaluationBackgroundTask {
 
         guard let component = self.component else { return }
         queue.async { [weak self] in
+            // Read isTaskEnabled via the thread-safe getter (NSLock-protected).
             guard self?.isTaskEnabled == true else {
                 component.config.logger?.debug(message: "[EvaluationBackgroundTask] Task not enabled, skipping")
                 task.setTaskCompleted(success: true)

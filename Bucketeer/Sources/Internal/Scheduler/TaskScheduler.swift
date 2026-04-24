@@ -33,6 +33,8 @@ final class TaskScheduler {
     init(component: Component, dispatchQueue: DispatchQueue) {
         self.component = component
         self.dispatchQueue = dispatchQueue
+        // Threading model: `isTaskEnabled` inside each task is protected by NSLock,
+        // so `enableEvaluationTask()` is safe to call from any queue (including main thread).
         onForeground()
         if #available(iOS 13.0, tvOS 13.0, *) {
             NotificationCenter.default.addObserver(
@@ -90,6 +92,10 @@ final class TaskScheduler {
         backgroundSchedulers.removeAll()
     }
 
+    /// Enables the evaluation tasks (foreground and background) after the initial fetch completes.
+    /// Thread-safe — `isTaskEnabled` is protected by NSLock inside each task, so this may be
+    /// called from any queue. Typically called from the fetchEvaluations completion in
+    /// BKTClient.performInitialFetch.
     func enableEvaluationTask() {
         foregroundSchedulers
             .compactMap { $0 as? EvaluationForegroundTask }

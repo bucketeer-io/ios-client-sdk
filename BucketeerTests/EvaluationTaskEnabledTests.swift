@@ -70,7 +70,7 @@ final class EvaluationTaskEnabledTests: XCTestCase {
 
         task.start()
         XCTAssertFalse(task.isTaskEnabled, "Task should be disabled initially")
-        // Enable the task
+        // enable() is thread-safe (NSLock-protected), so no queue dispatch needed.
         task.enable()
         XCTAssertTrue(task.isTaskEnabled, "Task should be enabled")
 
@@ -277,7 +277,9 @@ final class EvaluationTaskEnabledTests: XCTestCase {
         XCTAssertNotNil(evaluationBackgroundTask)
         XCTAssertFalse(evaluationBackgroundTask!.isTaskEnabled, "Background task should be disabled initially")
 
-        // After enableEvaluationTask(), both tasks should be enabled
+        // After enableEvaluationTask(), both tasks should be enabled.
+        // enableEvaluationTask() is thread-safe (NSLock-protected inside each task),
+        // so no queue dispatch is required.
         scheduler.enableEvaluationTask()
         XCTAssertTrue(evaluationForegroundTask!.isTaskEnabled, "Foreground task should be enabled after scheduler enables it")
         XCTAssertTrue(evaluationBackgroundTask!.isTaskEnabled, "Background task should be enabled after scheduler enables it")

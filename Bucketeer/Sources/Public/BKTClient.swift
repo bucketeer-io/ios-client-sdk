@@ -70,6 +70,8 @@ public class BKTClient {
         fetchEvaluations(timeoutMillis: timeoutMillis) { [weak self] error in
             // Enable evaluation task after initial fetch completes (success or failure).
             // This prevents the background poller from cancelling the initialization request.
+            // enableEvaluationTask() is thread-safe (NSLock-protected inside each task),
+            // so it is safe to call from this completion regardless of which queue it runs on.
             self?.taskScheduler?.enableEvaluationTask()
             completion?(error)
         }
