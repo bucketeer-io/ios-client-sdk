@@ -38,14 +38,13 @@ final class EvaluationBackgroundTask {
         // Schedule a new refresh task.
         scheduleAppRefresh()
 
-        guard isTaskEnabled else {
-            component?.config.logger?.debug(message: "[EvaluationBackgroundTask] Task not enabled, skipping")
-            task.setTaskCompleted(success: true)
-            return
-        }
-
         guard let component = self.component else { return }
         queue.async { [weak self] in
+            guard self?.isTaskEnabled == true else {
+                component.config.logger?.debug(message: "[EvaluationBackgroundTask] Task not enabled, skipping")
+                task.setTaskCompleted(success: true)
+                return
+            }
             if let taskQueue = self?.queue {
                 BKTClient.fetchEvaluationsSync(
                     component: component,
