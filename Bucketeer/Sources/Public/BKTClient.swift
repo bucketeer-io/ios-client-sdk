@@ -65,15 +65,17 @@ public class BKTClient {
     /// and enables the background poller once the fetch completes (success or failure).
     /// Must be called from the SDK dispatch queue (inside `execute {}`).
     func performInitialFetch(timeoutMillis: Int64, completion: ((BKTError?) -> Void)?) {
-        scheduleTasks()
-        refreshCache()
-        fetchEvaluations(timeoutMillis: timeoutMillis) { [weak self] error in
-            // Enable evaluation task after initial fetch completes (success or failure).
-            // This prevents the background poller from cancelling the initialization request.
-            // enableEvaluationTask() is thread-safe (NSLock-protected inside each task),
-            // so it is safe to call from this completion regardless of which queue it runs on.
-            self?.taskScheduler?.enableEvaluationTask()
-            completion?(error)
+        execute { [weak self] in
+            self?.scheduleTasks()
+            self?.refreshCache()
+            self?.fetchEvaluations(timeoutMillis: timeoutMillis) { [weak self] error in
+                // Enable evaluation task after initial fetch completes (success or failure).
+                // This prevents the background poller from cancelling the initialization request.
+                // enableEvaluationTask() is thread-safe (NSLock-protected inside each task),
+                // so it is safe to call from this completion regardless of which queue it runs on.
+                self?.taskScheduler?.enableEvaluationTask()
+                completion?(error)
+            }
         }
     }
 
@@ -125,9 +127,7 @@ extension BKTClient {
                 let dispatchQueue = DispatchQueue(label: "io.bucketeer.taskQueue")
                 let dataModule = try DataModuleImpl(user: user.toUser(), config: config, dispatchQueue: dispatchQueue)
                 let client = BKTClient(dataModule: dataModule, dispatchQueue: dispatchQueue)
-                client.execute { [weak client] in
-                    client?.performInitialFetch(timeoutMillis: timeoutMillis, completion: initializeCompletion)
-                }
+                client.performInitialFetch(timeoutMillis: timeoutMillis, completion: initializeCompletion)
                 BKTClient.default = client
             } catch let error {
                 config.logger?.error(error)

@@ -44,6 +44,7 @@ final class EvaluationTaskEnabledTests: XCTestCase {
 
         let expectation = self.expectation(description: "Should execute after enabled")
         expectation.expectedFulfillmentCount = 1
+        expectation.assertForOverFulfill = true
 
         let evaluationInteractor = MockEvaluationInteractor(
             fetchHandler: { _, _, completion in
@@ -283,5 +284,6 @@ final class EvaluationTaskEnabledTests: XCTestCase {
         scheduler.enableEvaluationTask()
         XCTAssertTrue(evaluationForegroundTask!.isTaskEnabled, "Foreground task should be enabled after scheduler enables it")
         XCTAssertTrue(evaluationBackgroundTask!.isTaskEnabled, "Background task should be enabled after scheduler enables it")
+        scheduler.stop()
     }
 }
