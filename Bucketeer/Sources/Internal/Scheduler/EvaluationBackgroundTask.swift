@@ -34,14 +34,15 @@ final class EvaluationBackgroundTask {
     }
 
     private func handleAppRefresh(_ task: BGTask) {
+        component?.config.logger?.debug(message: "[EvaluationBackgroundTask] handleAppRefresh")
+        // Schedule a new refresh task.
+        scheduleAppRefresh()
+        
         guard isTaskEnabled else {
             component?.config.logger?.debug(message: "[EvaluationBackgroundTask] Task not enabled, skipping")
             task.setTaskCompleted(success: true)
             return
         }
-        component?.config.logger?.debug(message: "[EvaluationBackgroundTask] handleAppRefresh")
-        // Schedule a new refresh task.
-        scheduleAppRefresh()
 
         guard let component = self.component else { return }
         queue.async { [weak self] in
