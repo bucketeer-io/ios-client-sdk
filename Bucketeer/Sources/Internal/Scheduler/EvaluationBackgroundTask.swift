@@ -37,7 +37,7 @@ final class EvaluationBackgroundTask {
         component?.config.logger?.debug(message: "[EvaluationBackgroundTask] handleAppRefresh")
         // Schedule a new refresh task.
         scheduleAppRefresh()
-        
+
         guard isTaskEnabled else {
             component?.config.logger?.debug(message: "[EvaluationBackgroundTask] Task not enabled, skipping")
             task.setTaskCompleted(success: true)

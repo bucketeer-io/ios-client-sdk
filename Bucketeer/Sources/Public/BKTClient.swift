@@ -56,7 +56,7 @@ public class BKTClient {
         )
     }
 
-    func scheduleTasks() {
+    fileprivate func scheduleTasks() {
         self.taskScheduler = TaskScheduler(component: component, dispatchQueue: dispatchQueue)
     }
 
