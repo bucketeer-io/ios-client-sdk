@@ -4,12 +4,12 @@ final class TaskScheduler {
     let component: Component
     let dispatchQueue: DispatchQueue
 
-    private lazy var foregroundSchedulers: [ScheduledTask] = [
+    private(set) lazy var foregroundSchedulers: [ScheduledTask] = [
         EvaluationForegroundTask(component: component, queue: dispatchQueue, enabled: false),
         EventForegroundTask(component: component, queue: dispatchQueue)
     ]
 
-    private lazy var backgroundSchedulers: [ScheduledTask] = {
+    private(set) lazy var backgroundSchedulers: [ScheduledTask] = {
         guard #available(iOS 13.0, tvOS 13.0, *) else {
             return []
         }

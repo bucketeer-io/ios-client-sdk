@@ -7,7 +7,7 @@ import BackgroundTasks
 final class EvaluationBackgroundTask {
     private weak var component: Component?
     private let queue: DispatchQueue
-    private var isTaskEnabled: Bool
+    private(set) var isTaskEnabled: Bool
 
     init(component: Component, queue: DispatchQueue, enabled: Bool = true) {
         self.component = component

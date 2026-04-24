@@ -8,7 +8,7 @@ final class EvaluationForegroundTask: ScheduledTask {
     private var maxRetryCount: Int
 
     private var retryCount: Int = 0
-    private var isTaskEnabled: Bool
+    private(set) var isTaskEnabled: Bool
 
     init(component: Component,
          queue: DispatchQueue,
@@ -52,14 +52,21 @@ final class EvaluationForegroundTask: ScheduledTask {
     }
 
     private func fetchEvaluations() {
-        guard isTaskEnabled else {
-            return
-        }
         let eventInteractor = component.eventInteractor
         let retryCount = self.retryCount
         let maxRetryCount = self.maxRetryCount
         let retryPollingInterval = self.retryPollingInterval
         let pollingInterval = component.config.pollingInterval
+
+        guard isTaskEnabled else {
+            // if the task is not enabled, we don't want to fetch evaluations and
+            // we reset the retry count and reschedule it to use the default polling interval configured in the BKTConfig
+            component.config.logger?.debug(message: "[EvaluationForegroundTask] Task not enabled, skipping")
+            self.retryCount = 0
+            self.reschedule(interval: pollingInterval)
+            return
+        }
+
         component.evaluationInteractor.fetch(user: component.userHolder.user, timeoutMillis: nil) { [weak self] result in
             do {
                 switch result {
