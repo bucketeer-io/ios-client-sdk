@@ -67,8 +67,9 @@ public class BKTClient {
     /// - Important: This method must be called **exactly once** per client lifecycle.
     ///   Calling it more than once on the same client instance is not supported and may lead to unexpected behavior.
     func performInitialFetch(timeoutMillis: Int64, completion: ((BKTError?) -> Void)?) {
+        // scheduleTasks() registers UIKit lifecycle observers, which must be done on the main thread.
+        self.scheduleTasks()
         execute { [weak self] in
-            self?.scheduleTasks()
             self?.refreshCache()
             self?.fetchEvaluations(timeoutMillis: timeoutMillis) { [weak self] error in
                 // Enable evaluation task after initial fetch completes (success or failure).
