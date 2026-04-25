@@ -44,7 +44,6 @@ final class EvaluationTaskEnabledTests: XCTestCase {
 
         let expectation = self.expectation(description: "Should execute after enabled")
         expectation.expectedFulfillmentCount = 1
-        expectation.assertForOverFulfill = true
 
         let evaluationInteractor = MockEvaluationInteractor(
             fetchHandler: { _, _, completion in
