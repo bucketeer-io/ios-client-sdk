@@ -46,6 +46,7 @@ final class EvaluationForegroundTaskTests: XCTestCase {
             queue: dispatchQueue
         )
         task.start()
+        task.enable()
 
         wait(for: [expectation], timeout: 20)
     }
@@ -97,6 +98,7 @@ final class EvaluationForegroundTaskTests: XCTestCase {
             maxRetryCount: 5
         )
         task.start()
+        task.enable()
 
         wait(for: [expectation], timeout: 20)
     }

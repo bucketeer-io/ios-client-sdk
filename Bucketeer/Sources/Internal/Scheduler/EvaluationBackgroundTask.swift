@@ -10,7 +10,7 @@ final class EvaluationBackgroundTask {
 
     // MARK: - Thread Safety
     // `isTaskEnabled` can be written from any caller queue (e.g. main thread via
-    // performInitialFetch → fetchEvaluations completion) and read from the OS background
+    // performInitialFetch or fetchEvaluations completion) and read from the OS background
     // task system queue inside handleAppRefresh.
     // We protect it with NSLock instead of relying on queue confinement, so callers
     // do not need to be on a specific queue.
@@ -20,7 +20,7 @@ final class EvaluationBackgroundTask {
     /// Thread-safe read of the enabled flag.
     var isTaskEnabled: Bool { lock.withLock { _isTaskEnabled } }
 
-    init(component: Component, queue: DispatchQueue, enabled: Bool = true) {
+    init(component: Component, queue: DispatchQueue, enabled: Bool = false) {
         self.component = component
         self.queue = queue
         _isTaskEnabled = enabled

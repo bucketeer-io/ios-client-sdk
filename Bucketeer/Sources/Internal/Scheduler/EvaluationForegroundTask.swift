@@ -24,7 +24,7 @@ final class EvaluationForegroundTask: ScheduledTask {
          queue: DispatchQueue,
          retryPollingInterval: Int64 = Constant.RETRY_POLLING_INTERVAL,
          maxRetryCount: Int = Constant.MAX_RETRY_COUNT,
-         enabled: Bool = true) {
+         enabled: Bool = false) {
 
         self.component = component
         self.queue = queue
