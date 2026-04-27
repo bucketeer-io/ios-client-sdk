@@ -5,7 +5,7 @@ final class TaskScheduler {
     let dispatchQueue: DispatchQueue
 
     private(set) lazy var foregroundSchedulers: [ScheduledTask] = [
-        EvaluationForegroundTask(component: component, queue: dispatchQueue, enabled: false),
+        EvaluationForegroundTask(component: component, queue: dispatchQueue),
         EventForegroundTask(component: component, queue: dispatchQueue)
     ]
 
@@ -14,7 +14,7 @@ final class TaskScheduler {
             return []
         }
         let tasks : [BackgroundTask] =  [
-            EvaluationBackgroundTask(component: component, queue: dispatchQueue, enabled: false),
+            EvaluationBackgroundTask(component: component, queue: dispatchQueue),
             EventBackgroundTask(component: component, queue: dispatchQueue)
         ]
         // Register background task handler when init
@@ -91,6 +91,7 @@ final class TaskScheduler {
         backgroundSchedulers.removeAll()
     }
 
+    /// The evaluation tasks are disabled by default.
     /// Enables the evaluation tasks (foreground and background) after the initial fetch completes.
     /// Thread-safe — `isTaskEnabled` is protected by NSLock inside each task, so this may be
     /// called from any queue. Typically called from the fetchEvaluations completion in

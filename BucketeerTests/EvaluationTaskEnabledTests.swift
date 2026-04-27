@@ -11,11 +11,9 @@ final class EvaluationTaskEnabledTests: XCTestCase {
         let config = BKTConfig.mock(pollingInterval: 100)
         let component = MockComponent(config: config)
 
-        // Create task with enabled: false (as TaskScheduler does)
         let task = EvaluationForegroundTask(
             component: component,
             queue: dispatchQueue,
-            enabled: false
         )
 
         let expectation = self.expectation(description: "Should not execute when disabled")
@@ -59,13 +57,11 @@ final class EvaluationTaskEnabledTests: XCTestCase {
         )
         component.evaluationInteractor = evaluationInteractor
 
-        // Create disabled task
         let task = EvaluationForegroundTask(
             component: component,
             queue: dispatchQueue,
             retryPollingInterval: 100,
             maxRetryCount: 1,
-            enabled: false
         )
 
         task.start()

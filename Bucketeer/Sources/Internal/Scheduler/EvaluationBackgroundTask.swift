@@ -15,15 +15,14 @@ final class EvaluationBackgroundTask {
     // We protect it with NSLock instead of relying on queue confinement, so callers
     // do not need to be on a specific queue.
     private let lock = NSLock()
-    private var _isTaskEnabled: Bool
+    private var _isTaskEnabled: Bool = false
 
     /// Thread-safe read of the enabled flag.
     var isTaskEnabled: Bool { lock.withLock { _isTaskEnabled } }
 
-    init(component: Component, queue: DispatchQueue, enabled: Bool = false) {
+    init(component: Component, queue: DispatchQueue) {
         self.component = component
         self.queue = queue
-        _isTaskEnabled = enabled
     }
 
     /// Enables the task so the next background refresh will execute a fetch.
