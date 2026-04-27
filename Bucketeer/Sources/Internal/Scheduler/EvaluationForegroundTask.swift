@@ -11,7 +11,7 @@ final class EvaluationForegroundTask: ScheduledTask {
 
     // MARK: - Thread Safety
     // `isTaskEnabled` can be read from the poller queue and written from any caller queue
-    // (e.g. main thread via performInitialFetch → fetchEvaluations completion).
+    // (e.g. main thread via performInitialFetch or fetchEvaluations completion).
     // We protect it with NSLock instead of relying on queue confinement, so callers
     // do not need to be on a specific queue.
     private let lock = NSLock()
@@ -70,7 +70,6 @@ final class EvaluationForegroundTask: ScheduledTask {
         let retryPollingInterval = self.retryPollingInterval
         let pollingInterval = component.config.pollingInterval
 
-        // Read isTaskEnabled under lock to avoid a data race with enable().
         guard isTaskEnabled else {
             // if the task is not enabled, we don't want to fetch evaluations and
             // we reset the retry count and reschedule it to use the default polling interval configured in the BKTConfig

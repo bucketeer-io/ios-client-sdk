@@ -33,8 +33,7 @@ final class TaskScheduler {
     init(component: Component, dispatchQueue: DispatchQueue) {
         self.component = component
         self.dispatchQueue = dispatchQueue
-        // Threading model: `isTaskEnabled` inside each task is protected by NSLock,
-        // so `enableEvaluationTask()` is safe to call from any queue (including main thread).
+
         onForeground()
         if #available(iOS 13.0, tvOS 13.0, *) {
             NotificationCenter.default.addObserver(
