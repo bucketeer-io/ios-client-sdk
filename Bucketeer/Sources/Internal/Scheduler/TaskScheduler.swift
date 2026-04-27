@@ -93,8 +93,8 @@ final class TaskScheduler {
 
     /// The evaluation tasks are disabled by default.
     /// Enables the evaluation tasks (foreground and background) after the initial fetch completes.
-    /// Thread-safe — `isTaskEnabled` is protected by NSLock inside each task, so this may be
-    /// called from any queue. Typically called from the fetchEvaluations completion in
+    /// `enable()` is thread-safe, so this may be called from any queue.
+    /// Typically called from the fetchEvaluations completion in
     /// BKTClient.performInitialFetch.
     func enableEvaluationTask() {
         foregroundSchedulers
