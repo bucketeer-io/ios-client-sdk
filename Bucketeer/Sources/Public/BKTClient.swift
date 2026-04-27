@@ -99,7 +99,11 @@ public class BKTClient {
         }
     }
 
-    private func destroy() {
+    /// Destroys the client and releases all resources.
+    /// After calling this method, the client instance should no longer be used.
+    /// This method is internal for testing purposes and should not be called directly by SDK consumers.
+    /// Always call BKTClient.destroy() to destroy the default client instance instead of calling this method directly.
+    func destroy() {
         taskScheduler?.invalidate()
         taskScheduler = nil
         let component = self.component

@@ -5,7 +5,7 @@ final class EvaluationTaskEnabledTests: XCTestCase {
 
     // MARK: - Test 1: Enable/Disable Functionality
 
-    func testForegroundTaskStartsDisabledWhenCreatedByTaskScheduler() {
+    func testForegroundTaskStartsDisabledByDefault() {
         let dispatchQueue = DispatchQueue(label: "test.init.queue")
         // Use a config with short intervals to trigger execution quickly
         let config = BKTConfig.mock(pollingInterval: 100)
@@ -31,6 +31,23 @@ final class EvaluationTaskEnabledTests: XCTestCase {
         // Wait briefly - task should NOT execute
         wait(for: [expectation], timeout: 1.0)
         XCTAssertFalse(task.isTaskEnabled, "Task should be disabled initially")
+        task.stop()
+    }
+
+    func testBackgroundTaskStartsDisabledByDefault() {
+        let dispatchQueue = DispatchQueue(label: "test.init.queue")
+        let config = BKTConfig.mock(pollingInterval: 100)
+        let component = MockComponent(config: config)
+
+        let task = EvaluationBackgroundTask(
+            component: component,
+            queue: dispatchQueue
+        )
+
+        XCTAssertFalse(task.isTaskEnabled, "Background task should be disabled initially")
+        task.enable()
+        XCTAssertTrue(task.isTaskEnabled, "Background task should be enabled after calling enable()")
+
         task.stop()
     }
 
@@ -143,11 +160,18 @@ final class EvaluationTaskEnabledTests: XCTestCase {
             // Poller must be enabled after performInitialFetch completes
             let foregroundTask = client.taskScheduler?.foregroundSchedulers
                 .compactMap({ $0 as? EvaluationForegroundTask }).first
-            XCTAssertTrue(foregroundTask?.isTaskEnabled == true, "Evaluation task should be enabled after init")
+            XCTAssertTrue(foregroundTask?.isTaskEnabled == true, "Evaluation foreground task should be enabled after init")
+
+            let backgroundTask = client.taskScheduler?.backgroundSchedulers
+                .compactMap({ $0 as? EvaluationBackgroundTask }).first
+            XCTAssertTrue(backgroundTask?.isTaskEnabled == true, "Evaluation background task should be enabled after init")
+
             completeExpectation.fulfill()
         }
 
         wait(for: [completeExpectation], timeout: 15.0)
+
+        client.destroy()
     }
 
     // MARK: - Test 3: Tasks Stay Enabled After Init
@@ -190,11 +214,17 @@ final class EvaluationTaskEnabledTests: XCTestCase {
             XCTAssertNil(error)
             let foregroundTask = client.taskScheduler?.foregroundSchedulers
                 .compactMap({ $0 as? EvaluationForegroundTask }).first
-            XCTAssertTrue(foregroundTask?.isTaskEnabled == true, "Evaluation task should be enabled after init")
+            XCTAssertTrue(foregroundTask?.isTaskEnabled == true, "Evaluation foreground task should be enabled after init")
+
+            let backgroundTask = client.taskScheduler?.backgroundSchedulers
+                .compactMap({ $0 as? EvaluationBackgroundTask }).first
+            XCTAssertTrue(backgroundTask?.isTaskEnabled == true, "Evaluation background task should be enabled after init")
         }
 
         wait(for: [expectation], timeout: 1.5)
         XCTAssertGreaterThanOrEqual(fetchCount, 2, "Task should remain enabled and execute multiple times")
+
+        client.destroy()
     }
 
     // MARK: - Test 4: Tasks Enabled Even After Init Failure
@@ -246,11 +276,17 @@ final class EvaluationTaskEnabledTests: XCTestCase {
             XCTAssertNotNil(e, "First request should fail")
             let foregroundTask = client.taskScheduler?.foregroundSchedulers
                 .compactMap({ $0 as? EvaluationForegroundTask }).first
-            XCTAssertTrue(foregroundTask?.isTaskEnabled == true, "Evaluation task should be enabled even after failed init")
+            XCTAssertTrue(foregroundTask?.isTaskEnabled == true, "Evaluation foreground task should be enabled even after failed init")
+
+            let backgroundTask = client.taskScheduler?.backgroundSchedulers
+                .compactMap({ $0 as? EvaluationBackgroundTask }).first
+            XCTAssertTrue(backgroundTask?.isTaskEnabled == true, "Evaluation background task should be enabled even after failed init")
         }
 
         wait(for: [expectation], timeout: 1.5)
         XCTAssertGreaterThanOrEqual(fetchCount, 2, "Task should be enabled even after init failure")
+
+        client.destroy()
     }
 
     // MARK: - Test 5: TaskScheduler Integration
