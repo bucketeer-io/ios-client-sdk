@@ -13,7 +13,7 @@ final class EvaluationTaskEnabledTests: XCTestCase {
 
         let task = EvaluationForegroundTask(
             component: component,
-            queue: dispatchQueue,
+            queue: dispatchQueue
         )
 
         let expectation = self.expectation(description: "Should not execute when disabled")
@@ -78,7 +78,7 @@ final class EvaluationTaskEnabledTests: XCTestCase {
             component: component,
             queue: dispatchQueue,
             retryPollingInterval: 100,
-            maxRetryCount: 1,
+            maxRetryCount: 1
         )
 
         task.start()
