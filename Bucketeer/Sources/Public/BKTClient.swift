@@ -63,7 +63,7 @@ public class BKTClient {
     /// Performs the full SDK initialization sequence:
     /// sets up the task scheduler, refreshes the local cache, fetches evaluations from the server,
     /// and enables evaluation polling once the fetch completes (success or failure).
-    ///
+    /// This method is internal for testing purposes and can not be called directly by SDK consumers.
     /// - Important: This method must be called **exactly once** per client lifecycle.
     ///   Calling it more than once on the same client instance is not supported and may lead to unexpected behavior.
     func performInitialFetch(timeoutMillis: Int64, completion: ((BKTError?) -> Void)?) {
@@ -104,7 +104,7 @@ public class BKTClient {
 
     /// Destroys the client and releases all resources.
     /// After calling this method, the client instance should no longer be used.
-    /// This method is internal for testing purposes and should not be called directly by SDK consumers.
+    /// This method is internal for testing purposes and can not be called directly by SDK consumers.
     /// Always call BKTClient.destroy() to destroy the default client instance instead of calling this method directly.
     func destroy() {
         taskScheduler?.invalidate()
