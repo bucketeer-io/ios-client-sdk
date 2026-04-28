@@ -9,15 +9,31 @@ final class EvaluationForegroundTask: ScheduledTask {
 
     private var retryCount: Int = 0
 
+    // MARK: - Thread Safety
+    // `isTaskEnabled` can be read from the poller queue and written from any caller queue
+    // (e.g. main thread via performInitialFetch or fetchEvaluations completion).
+    // We protect it with NSLock instead of relying on queue confinement, so callers
+    // do not need to be on a specific queue.
+    private let lock = NSLock()
+    private var _isTaskEnabled: Bool = false
+
+    /// Thread-safe read of the enabled flag.
+    var isTaskEnabled: Bool { lock.withLock { _isTaskEnabled } }
+
     init(component: Component,
          queue: DispatchQueue,
          retryPollingInterval: Int64 = Constant.RETRY_POLLING_INTERVAL,
          maxRetryCount: Int = Constant.MAX_RETRY_COUNT) {
-
         self.component = component
         self.queue = queue
         self.retryPollingInterval = retryPollingInterval
         self.maxRetryCount = maxRetryCount
+    }
+
+    /// Enables the task so the next poller tick will execute a fetch.
+    /// Thread-safe — may be called from any queue.
+    func enable() {
+        lock.withLock { _isTaskEnabled = true }
     }
 
     private func reschedule(interval: Int64) {
@@ -50,6 +66,12 @@ final class EvaluationForegroundTask: ScheduledTask {
         let maxRetryCount = self.maxRetryCount
         let retryPollingInterval = self.retryPollingInterval
         let pollingInterval = component.config.pollingInterval
+
+        guard isTaskEnabled else {
+            component.config.logger?.debug(message: "[EvaluationForegroundTask] Task not enabled, skipping")
+            return
+        }
+
         component.evaluationInteractor.fetch(user: component.userHolder.user, timeoutMillis: nil) { [weak self] result in
             do {
                 switch result {

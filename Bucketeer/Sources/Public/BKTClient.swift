@@ -80,6 +80,30 @@ public class BKTClient {
         self.taskScheduler = TaskScheduler(component: component, dispatchQueue: dispatchQueue)
     }
 
+    /// Performs the full SDK initialization sequence:
+    /// sets up the task scheduler, refreshes the local cache, fetches evaluations from the server,
+    /// and enables evaluation polling once the fetch completes (success or failure).
+    /// This method is internal for testing purposes and can not be called directly by SDK consumers.
+    /// - Important: This method must be called **exactly once** per client lifecycle.
+    ///   Calling it more than once on the same client instance is not supported and may lead to unexpected behavior.
+    func performInitialFetch(timeoutMillis: Int64, completion: ((BKTError?) -> Void)?) {
+        self.scheduleTasks()
+        execute { [weak self] in
+            self?.refreshCache()
+            self?.fetchEvaluations(timeoutMillis: timeoutMillis) { [weak self] error in
+                completion?(error)
+                // NOTE: enableEvaluationTask() is intentionally called *after* invoking `completion`.
+                // The poller runs on the SDK's internal dispatch queue, while `completion` is
+                // dispatched on the main queue. If enableEvaluationTask() were called before
+                // `completion`, there would be a race condition where the poller could start
+                // a new evaluation fetch before the caller has been notified that initialization
+                // finished. Calling it after `completion` eliminates this race condition.
+                // enableEvaluationTask() is thread-safe (NSLock-protected inside each task).
+                self?.taskScheduler?.enableEvaluationTask()
+            }
+        }
+    }
+
     func refreshCache() {
         do {
             try component.evaluationInteractor.refreshCache()
@@ -98,7 +122,11 @@ public class BKTClient {
         }
     }
 
-    private func destroy() {
+    /// Destroys the client and releases all resources.
+    /// After calling this method, the client instance should no longer be used.
+    /// This method is internal for testing purposes and can not be called directly by SDK consumers.
+    /// Always call BKTClient.destroy() to destroy the default client instance instead of calling this method directly.
+    func destroy() {
         taskScheduler?.invalidate()
         taskScheduler = nil
         let component = self.component
@@ -128,11 +156,7 @@ extension BKTClient {
                 let dispatchQueue = DispatchQueue(label: "io.bucketeer.taskQueue")
                 let dataModule = try DataModuleImpl(user: user.toUser(), config: config, dispatchQueue: dispatchQueue)
                 let client = BKTClient(dataModule: dataModule, dispatchQueue: dispatchQueue)
-                client.scheduleTasks()
-                client.execute { [weak client] in
-                    client?.refreshCache()
-                    client?.fetchEvaluations(timeoutMillis: timeoutMillis, completion: initializeCompletion)
-                }
+                client.performInitialFetch(timeoutMillis: timeoutMillis, completion: initializeCompletion)
                 BKTClient.default = client
             } catch let error {
                 config.logger?.error(error)

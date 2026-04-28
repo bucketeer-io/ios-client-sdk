@@ -4,12 +4,12 @@ final class TaskScheduler {
     let component: Component
     let dispatchQueue: DispatchQueue
 
-    private lazy var foregroundSchedulers: [ScheduledTask] = [
+    private(set) lazy var foregroundSchedulers: [ScheduledTask] = [
         EvaluationForegroundTask(component: component, queue: dispatchQueue),
         EventForegroundTask(component: component, queue: dispatchQueue)
     ]
 
-    private lazy var backgroundSchedulers: [ScheduledTask] = {
+    private(set) lazy var backgroundSchedulers: [ScheduledTask] = {
         guard #available(iOS 13.0, tvOS 13.0, *) else {
             return []
         }
@@ -33,6 +33,7 @@ final class TaskScheduler {
     init(component: Component, dispatchQueue: DispatchQueue) {
         self.component = component
         self.dispatchQueue = dispatchQueue
+
         onForeground()
         if #available(iOS 13.0, tvOS 13.0, *) {
             NotificationCenter.default.addObserver(
@@ -88,5 +89,23 @@ final class TaskScheduler {
         stop()
         foregroundSchedulers.removeAll()
         backgroundSchedulers.removeAll()
+    }
+
+    /// The evaluation tasks are disabled by default.
+    /// Enables the evaluation tasks (foreground and background) after the initial fetch completes.
+    /// `enable()` is thread-safe, so this may be called from any queue.
+    /// Typically called from the fetchEvaluations completion in
+    /// BKTClient.performInitialFetch.
+    func enableEvaluationTask() {
+        foregroundSchedulers
+            .compactMap { $0 as? EvaluationForegroundTask }
+            .first?
+            .enable()
+        if #available(iOS 13.0, tvOS 13.0, *) {
+            backgroundSchedulers
+                .compactMap { $0 as? EvaluationBackgroundTask }
+                .first?
+                .enable()
+        }
     }
 }
