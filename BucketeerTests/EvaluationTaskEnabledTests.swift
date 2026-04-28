@@ -241,7 +241,7 @@ final class EvaluationTaskEnabledTests: XCTestCase {
     func testTasksEnabledAfterFailedInit() {
         let networkReqExpectation = self.expectation(description: "Total network request should be 2")
         networkReqExpectation.expectedFulfillmentCount = 2 // Failed init + one successful poller execution
-        networkReqExpectation.assertForOverFulfill = false
+        networkReqExpectation.assertForOverFulfill = true
 
         let postInitExpectation = self.expectation(description: "Should check poller enable after init")
         postInitExpectation.expectedFulfillmentCount = 2 // Callback from performInitialFetch + finish checking enabled state
