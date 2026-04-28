@@ -62,7 +62,7 @@ public class BKTClient {
 
     /// Performs the full SDK initialization sequence:
     /// sets up the task scheduler, refreshes the local cache, fetches evaluations from the server,
-    /// and enables the background poller once the fetch completes (success or failure).
+    /// and enables evaluation polling once the fetch completes (success or failure).
     ///
     /// - Important: This method must be called **exactly once** per client lifecycle.
     ///   Calling it more than once on the same client instance is not supported and may lead to unexpected behavior.
