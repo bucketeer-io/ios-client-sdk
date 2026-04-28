@@ -101,6 +101,7 @@ final class EvaluationTaskEnabledTests: XCTestCase {
     // With performInitialFetch, the poller is disabled until init completes, so all 4 attempts run cleanly.
     func testNoRequestCancelledErrorDuringInitialization() {
         let completeExpectation = self.expectation(description: "Init completes without cancellation error")
+        completeExpectation.expectedFulfillmentCount = 2 // performInitialFetch completion + client.execute completion
         completeExpectation.assertForOverFulfill = true
 
         let dispatchQueue = DispatchQueue(label: "test.init.queue")
@@ -157,16 +158,19 @@ final class EvaluationTaskEnabledTests: XCTestCase {
             }
             // All 4 attempts (1 original + 3 retries) must have completed without cancellation
             XCTAssertEqual(session.requestCount(), 4, "Should attempt exactly 4 times (1 + 3 retries)")
-            // Poller must be enabled after performInitialFetch completes
-            let foregroundTask = client.taskScheduler?.foregroundSchedulers
-                .compactMap({ $0 as? EvaluationForegroundTask }).first
-            XCTAssertTrue(foregroundTask?.isTaskEnabled == true, "Evaluation foreground task should be enabled after init")
-
-            let backgroundTask = client.taskScheduler?.backgroundSchedulers
-                .compactMap({ $0 as? EvaluationBackgroundTask }).first
-            XCTAssertTrue(backgroundTask?.isTaskEnabled == true, "Evaluation background task should be enabled after init")
-
             completeExpectation.fulfill()
+
+            client.execute {
+                // Poller must be enabled after performInitialFetch completes
+                let foregroundTask = client.taskScheduler?.foregroundSchedulers
+                    .compactMap({ $0 as? EvaluationForegroundTask }).first
+                XCTAssertTrue(foregroundTask?.isTaskEnabled == true, "Evaluation foreground task should be enabled after init")
+
+                let backgroundTask = client.taskScheduler?.backgroundSchedulers
+                    .compactMap({ $0 as? EvaluationBackgroundTask }).first
+                XCTAssertTrue(backgroundTask?.isTaskEnabled == true, "Evaluation background task should be enabled after init")
+                completeExpectation.fulfill()
+            }
         }
 
         wait(for: [completeExpectation], timeout: 15.0)
@@ -177,23 +181,25 @@ final class EvaluationTaskEnabledTests: XCTestCase {
     // MARK: - Test 3: Tasks Stay Enabled After Init
 
     func testTasksRemainEnabledAfterSuccessfulInit() {
-        let expectation = self.expectation(description: "Tasks remain enabled")
-        expectation.expectedFulfillmentCount = 2 // Initial fetch + one poller execution
-        expectation.assertForOverFulfill = false
+        let networkReqExpectation = self.expectation(description: "Total network request should be 2")
+        networkReqExpectation.expectedFulfillmentCount = 2 // Initial fetch + one poller execution
+        networkReqExpectation.assertForOverFulfill = true
 
-        var fetchCount = 0
+        let postInitExpectation = self.expectation(description: "Should check poller enable after init")
+        postInitExpectation.expectedFulfillmentCount = 2 // Callback from performInitialFetch + finish checking enabled state
+        postInitExpectation.assertForOverFulfill = true
+
         let config = BKTConfig.mock(
             eventsFlushInterval: 50,
             eventsMaxQueueSize: 3,
             pollingInterval: 200,
-            backgroundPollingInterval: 1000
+            backgroundPollingInterval: 10000
         )
 
         let dataModule = MockDataModule(
             config: config,
             userHolder: .init(user: .mock1),
             apiClient: MockApiClient(getEvaluationsHandler: { _, _, _, _, handler in
-                fetchCount += 1
                 handler?(.success(.init(
                     evaluations: .mock1,
                     userEvaluationsId: "id",
@@ -201,7 +207,7 @@ final class EvaluationTaskEnabledTests: XCTestCase {
                     sizeByte: 3,
                     featureTag: "feature"
                 )))
-                expectation.fulfill()
+                networkReqExpectation.fulfill()
             })
         )
 
@@ -212,27 +218,33 @@ final class EvaluationTaskEnabledTests: XCTestCase {
         // no manual taskScheduler?.enableEvaluationTask() needed
         client.performInitialFetch(timeoutMillis: 5000) { error in
             XCTAssertNil(error)
-            let foregroundTask = client.taskScheduler?.foregroundSchedulers
-                .compactMap({ $0 as? EvaluationForegroundTask }).first
-            XCTAssertTrue(foregroundTask?.isTaskEnabled == true, "Evaluation foreground task should be enabled after init")
+            postInitExpectation.fulfill()
+            client.execute {
+                let foregroundTask = client.taskScheduler?.foregroundSchedulers
+                    .compactMap({ $0 as? EvaluationForegroundTask }).first
+                XCTAssertTrue(foregroundTask?.isTaskEnabled == true, "Evaluation foreground task should be enabled even after failed init")
 
-            let backgroundTask = client.taskScheduler?.backgroundSchedulers
-                .compactMap({ $0 as? EvaluationBackgroundTask }).first
-            XCTAssertTrue(backgroundTask?.isTaskEnabled == true, "Evaluation background task should be enabled after init")
+                let backgroundTask = client.taskScheduler?.backgroundSchedulers
+                    .compactMap({ $0 as? EvaluationBackgroundTask }).first
+                XCTAssertTrue(backgroundTask?.isTaskEnabled == true, "Evaluation background task should be enabled even after failed init")
+                postInitExpectation.fulfill()
+            }
         }
 
-        wait(for: [expectation], timeout: 1.5)
-        XCTAssertGreaterThanOrEqual(fetchCount, 2, "Task should remain enabled and execute multiple times")
-
+        wait(for: [networkReqExpectation, postInitExpectation], timeout: 15)
         client.destroy()
     }
 
     // MARK: - Test 4: Tasks Enabled Even After Init Failure
 
     func testTasksEnabledAfterFailedInit() {
-        let expectation = self.expectation(description: "Tasks enabled after failed init")
-        expectation.expectedFulfillmentCount = 2 // Failed init + one successful poller execution
-        expectation.assertForOverFulfill = false
+        let networkReqExpectation = self.expectation(description: "Total network request should be 2")
+        networkReqExpectation.expectedFulfillmentCount = 2 // Failed init + one successful poller execution
+        networkReqExpectation.assertForOverFulfill = true
+
+        let postInitExpectation = self.expectation(description: "Should check poller enable after init")
+        postInitExpectation.expectedFulfillmentCount = 2 // Callback from performInitialFetch + finish checking enabled state
+        postInitExpectation.assertForOverFulfill = true
 
         var fetchCount = 0
         let config = BKTConfig.mock(
@@ -263,7 +275,7 @@ final class EvaluationTaskEnabledTests: XCTestCase {
                         featureTag: "feature"
                     )))
                 }
-                expectation.fulfill()
+                networkReqExpectation.fulfill()
             })
         )
 
@@ -274,16 +286,20 @@ final class EvaluationTaskEnabledTests: XCTestCase {
         // no manual taskScheduler?.enableEvaluationTask() needed
         client.performInitialFetch(timeoutMillis: 5000) { e in
             XCTAssertNotNil(e, "First request should fail")
-            let foregroundTask = client.taskScheduler?.foregroundSchedulers
-                .compactMap({ $0 as? EvaluationForegroundTask }).first
-            XCTAssertTrue(foregroundTask?.isTaskEnabled == true, "Evaluation foreground task should be enabled even after failed init")
+            postInitExpectation.fulfill()
+            client.execute {
+                let foregroundTask = client.taskScheduler?.foregroundSchedulers
+                    .compactMap({ $0 as? EvaluationForegroundTask }).first
+                XCTAssertTrue(foregroundTask?.isTaskEnabled == true, "Evaluation foreground task should be enabled even after failed init")
 
-            let backgroundTask = client.taskScheduler?.backgroundSchedulers
-                .compactMap({ $0 as? EvaluationBackgroundTask }).first
-            XCTAssertTrue(backgroundTask?.isTaskEnabled == true, "Evaluation background task should be enabled even after failed init")
+                let backgroundTask = client.taskScheduler?.backgroundSchedulers
+                    .compactMap({ $0 as? EvaluationBackgroundTask }).first
+                XCTAssertTrue(backgroundTask?.isTaskEnabled == true, "Evaluation background task should be enabled even after failed init")
+                postInitExpectation.fulfill()
+            }
         }
 
-        wait(for: [expectation], timeout: 1.5)
+        wait(for: [networkReqExpectation, postInitExpectation], timeout: 15)
         XCTAssertGreaterThanOrEqual(fetchCount, 2, "Task should be enabled even after init failure")
 
         client.destroy()
