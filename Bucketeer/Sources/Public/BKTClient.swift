@@ -72,10 +72,13 @@ public class BKTClient {
             self?.refreshCache()
             self?.fetchEvaluations(timeoutMillis: timeoutMillis) { [weak self] error in
                 completion?(error)
-                // Enable evaluation task after initial fetch completes (success or failure).
-                // This prevents the background poller from cancelling the initialization request.
-                // enableEvaluationTask() is thread-safe (NSLock-protected inside each task),
-                // so it is safe to call from this completion regardless of which queue it runs on.
+                // NOTE: enableEvaluationTask() is intentionally called *after* invoking `completion`.
+                // The poller runs on the SDK's internal dispatch queue, while `completion` is
+                // dispatched on the main queue. If enableEvaluationTask() were called before
+                // `completion`, there would be a race condition where the poller could start
+                // a new evaluation fetch before the caller has been notified that initialization
+                // finished. Calling it after `completion` eliminates this race condition.
+                // enableEvaluationTask() is thread-safe (NSLock-protected inside each task).
                 self?.taskScheduler?.enableEvaluationTask()
             }
         }
