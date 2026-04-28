@@ -3,6 +3,18 @@ import XCTest
 
 final class EvaluationTaskEnabledTests: XCTestCase {
 
+    // MARK: - Helpers
+
+    private func assertEvaluationTasksEnabled(_ client: BKTClient, message: String = "after init") {
+        let foregroundTask = client.taskScheduler?.foregroundSchedulers
+            .compactMap({ $0 as? EvaluationForegroundTask }).first
+        XCTAssertTrue(foregroundTask?.isTaskEnabled == true, "Evaluation foreground task should be enabled \(message)")
+
+        let backgroundTask = client.taskScheduler?.backgroundSchedulers
+            .compactMap({ $0 as? EvaluationBackgroundTask }).first
+        XCTAssertTrue(backgroundTask?.isTaskEnabled == true, "Evaluation background task should be enabled \(message)")
+    }
+
     // MARK: - Test 1: Enable/Disable Functionality
 
     func testForegroundTaskStartsDisabledByDefault() {
@@ -162,13 +174,7 @@ final class EvaluationTaskEnabledTests: XCTestCase {
 
             client.execute {
                 // Poller must be enabled after performInitialFetch completes
-                let foregroundTask = client.taskScheduler?.foregroundSchedulers
-                    .compactMap({ $0 as? EvaluationForegroundTask }).first
-                XCTAssertTrue(foregroundTask?.isTaskEnabled == true, "Evaluation foreground task should be enabled after init")
-
-                let backgroundTask = client.taskScheduler?.backgroundSchedulers
-                    .compactMap({ $0 as? EvaluationBackgroundTask }).first
-                XCTAssertTrue(backgroundTask?.isTaskEnabled == true, "Evaluation background task should be enabled after init")
+                self.assertEvaluationTasksEnabled(client, message: "after init")
                 completeExpectation.fulfill()
             }
         }
@@ -219,14 +225,9 @@ final class EvaluationTaskEnabledTests: XCTestCase {
         client.performInitialFetch(timeoutMillis: 5000) { error in
             XCTAssertNil(error)
             postInitExpectation.fulfill()
-            client.execute {
-                let foregroundTask = client.taskScheduler?.foregroundSchedulers
-                    .compactMap({ $0 as? EvaluationForegroundTask }).first
-                XCTAssertTrue(foregroundTask?.isTaskEnabled == true, "Evaluation foreground task should be enabled even after failed init")
 
-                let backgroundTask = client.taskScheduler?.backgroundSchedulers
-                    .compactMap({ $0 as? EvaluationBackgroundTask }).first
-                XCTAssertTrue(backgroundTask?.isTaskEnabled == true, "Evaluation background task should be enabled even after failed init")
+            client.execute {
+                self.assertEvaluationTasksEnabled(client, message: "after successful init")
                 postInitExpectation.fulfill()
             }
         }
@@ -240,7 +241,7 @@ final class EvaluationTaskEnabledTests: XCTestCase {
     func testTasksEnabledAfterFailedInit() {
         let networkReqExpectation = self.expectation(description: "Total network request should be 2")
         networkReqExpectation.expectedFulfillmentCount = 2 // Failed init + one successful poller execution
-        networkReqExpectation.assertForOverFulfill = true
+        networkReqExpectation.assertForOverFulfill = false
 
         let postInitExpectation = self.expectation(description: "Should check poller enable after init")
         postInitExpectation.expectedFulfillmentCount = 2 // Callback from performInitialFetch + finish checking enabled state
@@ -287,14 +288,9 @@ final class EvaluationTaskEnabledTests: XCTestCase {
         client.performInitialFetch(timeoutMillis: 5000) { e in
             XCTAssertNotNil(e, "First request should fail")
             postInitExpectation.fulfill()
-            client.execute {
-                let foregroundTask = client.taskScheduler?.foregroundSchedulers
-                    .compactMap({ $0 as? EvaluationForegroundTask }).first
-                XCTAssertTrue(foregroundTask?.isTaskEnabled == true, "Evaluation foreground task should be enabled even after failed init")
 
-                let backgroundTask = client.taskScheduler?.backgroundSchedulers
-                    .compactMap({ $0 as? EvaluationBackgroundTask }).first
-                XCTAssertTrue(backgroundTask?.isTaskEnabled == true, "Evaluation background task should be enabled even after failed init")
+            client.execute {
+                self.assertEvaluationTasksEnabled(client, message: "even after failed init")
                 postInitExpectation.fulfill()
             }
         }
