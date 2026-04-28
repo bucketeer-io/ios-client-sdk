@@ -68,8 +68,6 @@ final class EvaluationForegroundTask: ScheduledTask {
         let pollingInterval = component.config.pollingInterval
 
         guard isTaskEnabled else {
-            // if the task is not enabled, we don't want to fetch evaluations and
-            // we reset the retry count and reschedule it to use the default polling interval configured in the BKTConfig
             component.config.logger?.debug(message: "[EvaluationForegroundTask] Task not enabled, skipping")
             return
         }
