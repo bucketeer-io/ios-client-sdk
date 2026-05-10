@@ -23,7 +23,7 @@ class ApiClientLatencyTests: XCTestCase {
     /// most of the time on modern hardware; with `Date()` it must always
     /// pass because the underlying clock is sub-microsecond.
     func testTimeIntervalSinceIsStrictlyPositiveForFastWork() {
-        var failingIndex: Int? = nil
+        var failingIndex: Int?
         var failingValue: TimeInterval = 0
         for i in 0..<1_000 {
             let start = Date()
