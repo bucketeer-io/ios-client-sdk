@@ -222,10 +222,13 @@ class ApiClientLatencyTests: XCTestCase {
                         userAttributesUpdated: false
                     )
                 ) { result in
-                    if case .success(let response) = result {
+                    switch result {
+                    case .success(let response):
                         lock.lock()
                         observed.append(response.seconds)
                         lock.unlock()
+                    case .failure(let error, _):
+                        XCTFail("unexpected failure: \(error)")
                     }
                     expectation.fulfill()
                 }
