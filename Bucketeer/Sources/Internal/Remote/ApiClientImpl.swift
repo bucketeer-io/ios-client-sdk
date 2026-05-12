@@ -144,6 +144,7 @@ final class ApiClientImpl: ApiClient {
     ///   - path: The API endpoint path to append to the base URL
     ///   - timeoutMillis: Request timeout in milliseconds
     ///   - encoder: JSON encoder for the request body (default: JSONEncoder())
+    ///   - onAttemptStart: Optional callback invoked at the start of every network attempt (initial and retries).
     ///   - completion: Callback with the result of the request
     ///
     /// - Retry Behavior:
