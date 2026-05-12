@@ -817,17 +817,7 @@ class ApiClientRetriableTests: XCTestCase {
         let path = ApiPaths.getEvaluations.rawValue
         let mockDispatchQueue = DispatchQueue(label: "test.queue.tc1")
 
-        var session = MockSession(
-            configuration: .default,
-            data: mockResponse,
-            response: HTTPURLResponse(
-                url: apiEndpointURL.appendingPathComponent(path),
-                statusCode: 200,
-                httpVersion: nil,
-                headerFields: nil
-            ),
-            error: nil
-        )
+        var session = MockSession(configuration: .default)
         session.responseProvider = { _, _ in
             return MockResponseData(
                 data: mockResponse,
@@ -851,8 +841,10 @@ class ApiClientRetriableTests: XCTestCase {
             logger: nil
         )
 
-        let expectation = XCTestExpectation(description: "onAttemptStart called once on first-attempt success")
-        var callCount = 0
+        let completionExpectation = XCTestExpectation(description: "completion called once")
+        let attemptExpectation = XCTestExpectation(description: "onAttemptStart called once")
+        attemptExpectation.expectedFulfillmentCount = 1
+        attemptExpectation.assertForOverFulfill = true
 
         mockDispatchQueue.async {
             let requestId = UUID()
@@ -862,20 +854,20 @@ class ApiClientRetriableTests: XCTestCase {
                 requestBody: MockRequestBody(),
                 path: path,
                 timeoutMillis: 100,
-                onAttemptStart: { callCount += 1 },
+                onAttemptStart: { attemptExpectation.fulfill() },
                 completion: { (result: Result<(MockResponse, URLResponse), Error>) in
                     switch result {
                     case .success:
-                        XCTAssertEqual(callCount, 1, "onAttemptStart should be called exactly once")
+                        break
                     case .failure(let error):
                         XCTFail("should not fail: \(error)")
                     }
-                    expectation.fulfill()
+                    completionExpectation.fulfill()
                 }
             )
         }
 
-        wait(for: [expectation], timeout: 2)
+        wait(for: [completionExpectation, attemptExpectation], timeout: 2)
     }
 
     // callback fires once per attempt — 499 then 200 (2 calls total)
@@ -885,17 +877,7 @@ class ApiClientRetriableTests: XCTestCase {
         let path = ApiPaths.getEvaluations.rawValue
         let mockDispatchQueue = DispatchQueue(label: "test.queue.tc2")
 
-        var session = MockSession(
-            configuration: .default,
-            data: Data("".utf8),
-            response: HTTPURLResponse(
-                url: apiEndpointURL.appendingPathComponent(path),
-                statusCode: 499,
-                httpVersion: nil,
-                headerFields: nil
-            ),
-            error: nil
-        )
+        var session = MockSession(configuration: .default)
         session.responseProvider = { _, count in
             let statusCode = count == 1 ? 499 : 200
             let data = count == 1 ? Data("".utf8) : mockResponse
@@ -921,8 +903,10 @@ class ApiClientRetriableTests: XCTestCase {
             logger: nil
         )
 
-        let expectation = XCTestExpectation(description: "onAttemptStart called twice for 499 then 200")
-        var callCount = 0
+        let completionExpectation = XCTestExpectation(description: "completion called once")
+        let attemptExpectation = XCTestExpectation(description: "onAttemptStart called once per attempt")
+        attemptExpectation.expectedFulfillmentCount = 2
+        attemptExpectation.assertForOverFulfill = true
 
         mockDispatchQueue.async {
             let requestId = UUID()
@@ -932,21 +916,20 @@ class ApiClientRetriableTests: XCTestCase {
                 requestBody: MockRequestBody(),
                 path: path,
                 timeoutMillis: 100,
-                onAttemptStart: { callCount += 1 },
+                onAttemptStart: { attemptExpectation.fulfill() },
                 completion: { (result: Result<(MockResponse, URLResponse), Error>) in
                     switch result {
                     case .success:
-                        XCTAssertEqual(callCount, 2, "onAttemptStart should be called once per attempt")
                         XCTAssertEqual(session.requestCount(), 2, "Should attempt exactly 2 times")
                     case .failure(let error):
                         XCTFail("should not fail: \(error)")
                     }
-                    expectation.fulfill()
+                    completionExpectation.fulfill()
                 }
             )
         }
 
-        wait(for: [expectation], timeout: 5)
+        wait(for: [completionExpectation, attemptExpectation], timeout: 5)
     }
 
     // callback fires once per attempt — 499, 499, then 200 (3 calls total)
@@ -956,17 +939,7 @@ class ApiClientRetriableTests: XCTestCase {
         let path = ApiPaths.getEvaluations.rawValue
         let mockDispatchQueue = DispatchQueue(label: "test.queue.tc3")
 
-        var session = MockSession(
-            configuration: .default,
-            data: Data("".utf8),
-            response: HTTPURLResponse(
-                url: apiEndpointURL.appendingPathComponent(path),
-                statusCode: 499,
-                httpVersion: nil,
-                headerFields: nil
-            ),
-            error: nil
-        )
+        var session = MockSession(configuration: .default)
         session.responseProvider = { _, count in
             let statusCode = count < 3 ? 499 : 200
             let data = count < 3 ? Data("".utf8) : mockResponse
@@ -992,8 +965,10 @@ class ApiClientRetriableTests: XCTestCase {
             logger: nil
         )
 
-        let expectation = XCTestExpectation(description: "onAttemptStart called three times for 499, 499, then 200")
-        var callCount = 0
+        let completionExpectation = XCTestExpectation(description: "completion called once")
+        let attemptExpectation = XCTestExpectation(description: "onAttemptStart called once per attempt")
+        attemptExpectation.expectedFulfillmentCount = 3
+        attemptExpectation.assertForOverFulfill = true
 
         mockDispatchQueue.async {
             let requestId = UUID()
@@ -1003,21 +978,20 @@ class ApiClientRetriableTests: XCTestCase {
                 requestBody: MockRequestBody(),
                 path: path,
                 timeoutMillis: 100,
-                onAttemptStart: { callCount += 1 },
+                onAttemptStart: { attemptExpectation.fulfill() },
                 completion: { (result: Result<(MockResponse, URLResponse), Error>) in
                     switch result {
                     case .success:
-                        XCTAssertEqual(callCount, 3, "onAttemptStart should be called once per attempt")
                         XCTAssertEqual(session.requestCount(), 3, "Should attempt exactly 3 times")
                     case .failure(let error):
                         XCTFail("should not fail: \(error)")
                     }
-                    expectation.fulfill()
+                    completionExpectation.fulfill()
                 }
             )
         }
 
-        wait(for: [expectation], timeout: 8)
+        wait(for: [completionExpectation, attemptExpectation], timeout: 8)
     }
 
     // omitting onAttemptStart (default nil) does not crash or alter normal behaviour
@@ -1027,17 +1001,7 @@ class ApiClientRetriableTests: XCTestCase {
         let path = ApiPaths.registerEvents.rawValue
         let mockDispatchQueue = DispatchQueue(label: "test.queue.tc4")
 
-        var session = MockSession(
-            configuration: .default,
-            data: mockResponse,
-            response: HTTPURLResponse(
-                url: apiEndpointURL.appendingPathComponent(path),
-                statusCode: 200,
-                httpVersion: nil,
-                headerFields: nil
-            ),
-            error: nil
-        )
+        var session = MockSession(configuration: .default)
         session.responseProvider = { _, _ in
             return MockResponseData(
                 data: mockResponse,
@@ -1093,17 +1057,7 @@ class ApiClientRetriableTests: XCTestCase {
         let path = ApiPaths.getEvaluations.rawValue
         let mockDispatchQueue = DispatchQueue(label: "test.queue.tc5")
 
-        var session = MockSession(
-            configuration: .default,
-            data: Data("".utf8),
-            response: HTTPURLResponse(
-                url: apiEndpointURL.appendingPathComponent(path),
-                statusCode: 499,
-                httpVersion: nil,
-                headerFields: nil
-            ),
-            error: nil
-        )
+        var session = MockSession(configuration: .default)
         session.responseProvider = { _, _ in
             return MockResponseData(
                 data: Data("".utf8),
@@ -1128,8 +1082,11 @@ class ApiClientRetriableTests: XCTestCase {
             logger: nil
         )
 
-        let expectation = XCTestExpectation(description: "onAttemptStart not called for cancelled retry")
-        var callCount = 0
+        let completionExpectation = XCTestExpectation(description: "completion called once after cancellation")
+        // assertForOverFulfill catches any extra onAttemptStart calls (e.g. a retry that should be cancelled)
+        let attemptExpectation = XCTestExpectation(description: "onAttemptStart called only for initial attempt")
+        attemptExpectation.expectedFulfillmentCount = 1
+        attemptExpectation.assertForOverFulfill = true
 
         mockDispatchQueue.async {
             let requestId = UUID()
@@ -1139,7 +1096,7 @@ class ApiClientRetriableTests: XCTestCase {
                 requestBody: MockRequestBody(),
                 path: path,
                 timeoutMillis: 100,
-                onAttemptStart: { callCount += 1 },
+                onAttemptStart: { attemptExpectation.fulfill() },
                 completion: { (result: Result<(MockResponse, URLResponse), Error>) in
                     switch result {
                     case .success:
@@ -1151,11 +1108,8 @@ class ApiClientRetriableTests: XCTestCase {
                             return
                         }
                         XCTAssertEqual(message, "Request cancelled by newer execution")
-                        // Only the initial attempt should have fired onAttemptStart;
-                        // the retry was cancelled before the callback was reached.
-                        XCTAssertEqual(callCount, 1, "onAttemptStart must not be called for a cancelled retry")
                     }
-                    expectation.fulfill()
+                    completionExpectation.fulfill()
                 }
             )
         }
@@ -1166,7 +1120,7 @@ class ApiClientRetriableTests: XCTestCase {
             api.setEvaluationsRequestId(UUID())
         }
 
-        wait(for: [expectation], timeout: 5)
+        wait(for: [completionExpectation, attemptExpectation], timeout: 5)
     }
 }
 // swiftlint:enable type_body_length file_length

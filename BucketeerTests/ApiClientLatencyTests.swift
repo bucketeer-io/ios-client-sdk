@@ -264,17 +264,7 @@ class ApiClientLatencyTests: XCTestCase {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let mockDispatchQueue = DispatchQueue(label: "test.queue.latency.retry1")
 
-        var session = MockSession(
-            configuration: .default,
-            data: Data("".utf8),
-            response: HTTPURLResponse(
-                url: apiEndpointURL.appendingPathComponent(ApiPaths.getEvaluations.rawValue),
-                statusCode: 499,
-                httpVersion: nil,
-                headerFields: nil
-            ),
-            error: nil
-        )
+        var session = MockSession(configuration: .default)
         session.responseProvider = { _, count in
             let statusCode = count == 1 ? 499 : 200
             let data = count == 1 ? Data("".utf8) : successData
@@ -351,17 +341,7 @@ class ApiClientLatencyTests: XCTestCase {
         let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
         let mockDispatchQueue = DispatchQueue(label: "test.queue.latency.retry2")
 
-        var session = MockSession(
-            configuration: .default,
-            data: Data("".utf8),
-            response: HTTPURLResponse(
-                url: apiEndpointURL.appendingPathComponent(ApiPaths.getEvaluations.rawValue),
-                statusCode: 499,
-                httpVersion: nil,
-                headerFields: nil
-            ),
-            error: nil
-        )
+        var session = MockSession(configuration: .default)
         session.responseProvider = { _, count in
             let statusCode = count < 3 ? 499 : 200
             let data = count < 3 ? Data("".utf8) : successData
