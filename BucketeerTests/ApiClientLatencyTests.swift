@@ -1,6 +1,7 @@
 import XCTest
 @testable import Bucketeer
 
+// swiftlint:disable type_body_length
 /// Regression tests for the "duration is nil and latencySecond is 0" backend
 /// warning, applied to the iOS SDK.
 ///
@@ -243,4 +244,181 @@ class ApiClientLatencyTests: XCTestCase {
             "expected at least one fast mock response to measure between 0 and 1ms; observed: \(observed)"
         )
     }
+
+    // MARK: - Latency correctness with retries
+
+    // seconds reflects only the final attempt after one 499 retry (1 s backoff excluded)
+    func testGetEvaluationsLatencyReflectsOnlyFinalAttemptAfterOneRetry() throws {
+        let userEvaluationsId = "user_evaluation_retry1"
+        let successResponse = GetEvaluationsResponse(
+            evaluations: .init(
+                id: userEvaluationsId,
+                evaluations: [.mock1],
+                createdAt: "1",
+                forceUpdate: false,
+                archivedFeatureIds: []
+            ),
+            userEvaluationsId: userEvaluationsId
+        )
+        let successData = try JSONEncoder().encode(successResponse)
+        let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
+        let mockDispatchQueue = DispatchQueue(label: "test.queue.latency.retry1")
+
+        var session = MockSession(
+            configuration: .default,
+            data: Data("".utf8),
+            response: HTTPURLResponse(
+                url: apiEndpointURL.appendingPathComponent(ApiPaths.getEvaluations.rawValue),
+                statusCode: 499,
+                httpVersion: nil,
+                headerFields: nil
+            ),
+            error: nil
+        )
+        session.responseProvider = { _, count in
+            let statusCode = count == 1 ? 499 : 200
+            let data = count == 1 ? Data("".utf8) : successData
+            return MockResponseData(
+                data: data,
+                response: HTTPURLResponse(
+                    url: apiEndpointURL.appendingPathComponent(ApiPaths.getEvaluations.rawValue),
+                    statusCode: statusCode,
+                    httpVersion: nil,
+                    headerFields: nil
+                ),
+                error: nil
+            )
+        }
+
+        let api = ApiClientImpl(
+            apiEndpoint: apiEndpointURL,
+            apiKey: "x:api-key",
+            featureTag: "tag1",
+            sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: "1.2.3"),
+            session: session,
+            retrier: Retrier(queue: mockDispatchQueue),
+            logger: nil
+        )
+
+        let expectation = XCTestExpectation(description: "latency excludes 1 s backoff after one retry")
+        let totalStart = Date()
+
+        mockDispatchQueue.async {
+            api.getEvaluations(
+                user: .mock1,
+                userEvaluationsId: userEvaluationsId,
+                condition: UserEvaluationCondition(
+                    evaluatedAt: "0",
+                    userAttributesUpdated: false
+                )
+            ) { result in
+                switch result {
+                case .success(let response):
+                    let totalElapsed = Date().timeIntervalSince(totalStart)
+                    XCTAssertGreaterThan(response.seconds, 0)
+                    XCTAssertTrue(response.seconds.isFinite)
+                    // totalElapsed >= 1.0 s due to backoff; seconds should only measure the
+                    // final attempt (sub-ms). A gap of > 0.8 s is a robust safety margin.
+                    XCTAssertLessThan(
+                        response.seconds,
+                        totalElapsed - 0.8,
+                        "seconds (\(response.seconds)) should exclude the ~1 s backoff; totalElapsed = \(totalElapsed)"
+                    )
+                case .failure(let error, _):
+                    XCTFail("unexpected failure: \(error)")
+                }
+                expectation.fulfill()
+            }
+        }
+
+        wait(for: [expectation], timeout: 5)
+    }
+
+    // seconds reflects only the final attempt after two 499 retries (1 s + 2 s backoff excluded)
+    func testGetEvaluationsLatencyReflectsOnlyFinalAttemptAfterTwoRetries() throws {
+        let userEvaluationsId = "user_evaluation_retry2"
+        let successResponse = GetEvaluationsResponse(
+            evaluations: .init(
+                id: userEvaluationsId,
+                evaluations: [.mock1],
+                createdAt: "1",
+                forceUpdate: false,
+                archivedFeatureIds: []
+            ),
+            userEvaluationsId: userEvaluationsId
+        )
+        let successData = try JSONEncoder().encode(successResponse)
+        let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
+        let mockDispatchQueue = DispatchQueue(label: "test.queue.latency.retry2")
+
+        var session = MockSession(
+            configuration: .default,
+            data: Data("".utf8),
+            response: HTTPURLResponse(
+                url: apiEndpointURL.appendingPathComponent(ApiPaths.getEvaluations.rawValue),
+                statusCode: 499,
+                httpVersion: nil,
+                headerFields: nil
+            ),
+            error: nil
+        )
+        session.responseProvider = { _, count in
+            let statusCode = count < 3 ? 499 : 200
+            let data = count < 3 ? Data("".utf8) : successData
+            return MockResponseData(
+                data: data,
+                response: HTTPURLResponse(
+                    url: apiEndpointURL.appendingPathComponent(ApiPaths.getEvaluations.rawValue),
+                    statusCode: statusCode,
+                    httpVersion: nil,
+                    headerFields: nil
+                ),
+                error: nil
+            )
+        }
+
+        let api = ApiClientImpl(
+            apiEndpoint: apiEndpointURL,
+            apiKey: "x:api-key",
+            featureTag: "tag1",
+            sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: "1.2.3"),
+            session: session,
+            retrier: Retrier(queue: mockDispatchQueue),
+            logger: nil
+        )
+
+        let expectation = XCTestExpectation(description: "latency excludes 1 s + 2 s backoff after two retries")
+        let totalStart = Date()
+
+        mockDispatchQueue.async {
+            api.getEvaluations(
+                user: .mock1,
+                userEvaluationsId: userEvaluationsId,
+                condition: UserEvaluationCondition(
+                    evaluatedAt: "0",
+                    userAttributesUpdated: false
+                )
+            ) { result in
+                switch result {
+                case .success(let response):
+                    let totalElapsed = Date().timeIntervalSince(totalStart)
+                    XCTAssertGreaterThan(response.seconds, 0)
+                    XCTAssertTrue(response.seconds.isFinite)
+                    // totalElapsed >= 3.0 s due to 1 s + 2 s backoff; seconds should only measure
+                    // the final attempt (sub-ms). A gap of > 2.5 s is a robust safety margin.
+                    XCTAssertLessThan(
+                        response.seconds,
+                        totalElapsed - 2.5,
+                        "seconds (\(response.seconds)) should exclude the ~3 s total backoff; totalElapsed = \(totalElapsed)"
+                    )
+                case .failure(let error, _):
+                    XCTFail("unexpected failure: \(error)")
+                }
+                expectation.fulfill()
+            }
+        }
+
+        wait(for: [expectation], timeout: 10)
+    }
 }
+// swiftlint:enable type_body_length
