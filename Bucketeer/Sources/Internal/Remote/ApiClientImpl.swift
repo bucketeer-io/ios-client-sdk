@@ -53,7 +53,7 @@ final class ApiClientImpl: ApiClient {
         timeoutMillis: Int64?,
         condition: UserEvaluationCondition,
         completion: ((GetEvaluationsResult) -> Void)?) {
-        let startAt = Date()
+        var startAt = Date()
         let requestBody = GetEvaluationsRequestBody(
             tag: self.featureTag,
             user: user,
@@ -76,6 +76,7 @@ final class ApiClientImpl: ApiClient {
             requestBody: requestBody,
             path: ApiPaths.getEvaluations.rawValue,
             timeoutMillis: timeoutMillisValue,
+            onAttemptStart: { startAt = Date() },
             completion: { (result: Result<(GetEvaluationsResponse, URLResponse), Error>) in
                 switch result {
                 case .success((var response, let urlResponse)):
@@ -143,6 +144,7 @@ final class ApiClientImpl: ApiClient {
     ///   - path: The API endpoint path to append to the base URL
     ///   - timeoutMillis: Request timeout in milliseconds
     ///   - encoder: JSON encoder for the request body (default: JSONEncoder())
+    ///   - onAttemptStart: Optional callback invoked at the start of every network attempt (initial and retries).
     ///   - completion: Callback with the result of the request
     ///
     /// - Retry Behavior:
@@ -159,6 +161,7 @@ final class ApiClientImpl: ApiClient {
         path: String,
         timeoutMillis: Int64,
         encoder: JSONEncoder = JSONEncoder(),
+        onAttemptStart: (() -> Void)? = nil,
         completion: ((Result<(Response, URLResponse), Error>) -> Void)?) {
             // weak self - we don't want to retain ApiClientImpl in the retrier task closure
             // if ApiClientImpl is deallocated, the task will not be executed
@@ -186,6 +189,8 @@ final class ApiClientImpl: ApiClient {
                         ))
                         return
                     }
+
+                    onAttemptStart?()
 
                     self?.sendInternal(
                         requestBody: requestBody,

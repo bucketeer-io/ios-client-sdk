@@ -807,5 +807,320 @@ class ApiClientRetriableTests: XCTestCase {
 
         wait(for: [expectation], timeout: 5)
     }
+
+    // MARK: - onAttemptStart callback tests
+
+    // callback fires exactly once when the first attempt succeeds
+    func testOnAttemptStartCalledOnceWhenFirstAttemptSucceeds() throws {
+        let mockResponse = try JSONEncoder().encode(MockResponse())
+        let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
+        let path = ApiPaths.getEvaluations.rawValue
+        let mockDispatchQueue = DispatchQueue(label: "test.queue.tc1")
+
+        var session = MockSession(configuration: .default)
+        session.responseProvider = { _, _ in
+            return MockResponseData(
+                data: mockResponse,
+                response: HTTPURLResponse(
+                    url: apiEndpointURL.appendingPathComponent(path),
+                    statusCode: 200,
+                    httpVersion: nil,
+                    headerFields: nil
+                ),
+                error: nil
+            )
+        }
+
+        let api = ApiClientImpl(
+            apiEndpoint: apiEndpointURL,
+            apiKey: "x:api-key",
+            featureTag: "tag1",
+            sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
+            session: session,
+            retrier: Retrier(queue: mockDispatchQueue),
+            logger: nil
+        )
+
+        let completionExpectation = XCTestExpectation(description: "completion called once")
+        let attemptExpectation = XCTestExpectation(description: "onAttemptStart called once")
+        attemptExpectation.expectedFulfillmentCount = 1
+        attemptExpectation.assertForOverFulfill = true
+
+        mockDispatchQueue.async {
+            let requestId = UUID()
+            api.setEvaluationsRequestId(requestId)
+            api.send(
+                requestId: requestId,
+                requestBody: MockRequestBody(),
+                path: path,
+                timeoutMillis: 100,
+                onAttemptStart: { attemptExpectation.fulfill() },
+                completion: { (result: Result<(MockResponse, URLResponse), Error>) in
+                    switch result {
+                    case .success:
+                        break
+                    case .failure(let error):
+                        XCTFail("should not fail: \(error)")
+                    }
+                    completionExpectation.fulfill()
+                }
+            )
+        }
+
+        wait(for: [completionExpectation, attemptExpectation], timeout: 2)
+    }
+
+    // callback fires once per attempt — 499 then 200 (2 calls total)
+    func testOnAttemptStartCalledOncePerAttemptWith499ThenSuccess() throws {
+        let mockResponse = try JSONEncoder().encode(MockResponse())
+        let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
+        let path = ApiPaths.getEvaluations.rawValue
+        let mockDispatchQueue = DispatchQueue(label: "test.queue.tc2")
+
+        var session = MockSession(configuration: .default)
+        session.responseProvider = { _, count in
+            let statusCode = count == 1 ? 499 : 200
+            let data = count == 1 ? Data("".utf8) : mockResponse
+            return MockResponseData(
+                data: data,
+                response: HTTPURLResponse(
+                    url: apiEndpointURL.appendingPathComponent(path),
+                    statusCode: statusCode,
+                    httpVersion: nil,
+                    headerFields: nil
+                ),
+                error: nil
+            )
+        }
+
+        let api = ApiClientImpl(
+            apiEndpoint: apiEndpointURL,
+            apiKey: "x:api-key",
+            featureTag: "tag1",
+            sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
+            session: session,
+            retrier: Retrier(queue: mockDispatchQueue),
+            logger: nil
+        )
+
+        let completionExpectation = XCTestExpectation(description: "completion called once")
+        let attemptExpectation = XCTestExpectation(description: "onAttemptStart called once per attempt")
+        attemptExpectation.expectedFulfillmentCount = 2
+        attemptExpectation.assertForOverFulfill = true
+
+        mockDispatchQueue.async {
+            let requestId = UUID()
+            api.setEvaluationsRequestId(requestId)
+            api.send(
+                requestId: requestId,
+                requestBody: MockRequestBody(),
+                path: path,
+                timeoutMillis: 100,
+                onAttemptStart: { attemptExpectation.fulfill() },
+                completion: { (result: Result<(MockResponse, URLResponse), Error>) in
+                    switch result {
+                    case .success:
+                        XCTAssertEqual(session.requestCount(), 2, "Should attempt exactly 2 times")
+                    case .failure(let error):
+                        XCTFail("should not fail: \(error)")
+                    }
+                    completionExpectation.fulfill()
+                }
+            )
+        }
+
+        wait(for: [completionExpectation, attemptExpectation], timeout: 5)
+    }
+
+    // callback fires once per attempt — 499, 499, then 200 (3 calls total)
+    func testOnAttemptStartCalledOncePerAttemptWithMultipleRetries() throws {
+        let mockResponse = try JSONEncoder().encode(MockResponse())
+        let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
+        let path = ApiPaths.getEvaluations.rawValue
+        let mockDispatchQueue = DispatchQueue(label: "test.queue.tc3")
+
+        var session = MockSession(configuration: .default)
+        session.responseProvider = { _, count in
+            let statusCode = count < 3 ? 499 : 200
+            let data = count < 3 ? Data("".utf8) : mockResponse
+            return MockResponseData(
+                data: data,
+                response: HTTPURLResponse(
+                    url: apiEndpointURL.appendingPathComponent(path),
+                    statusCode: statusCode,
+                    httpVersion: nil,
+                    headerFields: nil
+                ),
+                error: nil
+            )
+        }
+
+        let api = ApiClientImpl(
+            apiEndpoint: apiEndpointURL,
+            apiKey: "x:api-key",
+            featureTag: "tag1",
+            sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
+            session: session,
+            retrier: Retrier(queue: mockDispatchQueue),
+            logger: nil
+        )
+
+        let completionExpectation = XCTestExpectation(description: "completion called once")
+        let attemptExpectation = XCTestExpectation(description: "onAttemptStart called once per attempt")
+        attemptExpectation.expectedFulfillmentCount = 3
+        attemptExpectation.assertForOverFulfill = true
+
+        mockDispatchQueue.async {
+            let requestId = UUID()
+            api.setEvaluationsRequestId(requestId)
+            api.send(
+                requestId: requestId,
+                requestBody: MockRequestBody(),
+                path: path,
+                timeoutMillis: 100,
+                onAttemptStart: { attemptExpectation.fulfill() },
+                completion: { (result: Result<(MockResponse, URLResponse), Error>) in
+                    switch result {
+                    case .success:
+                        XCTAssertEqual(session.requestCount(), 3, "Should attempt exactly 3 times")
+                    case .failure(let error):
+                        XCTFail("should not fail: \(error)")
+                    }
+                    completionExpectation.fulfill()
+                }
+            )
+        }
+
+        wait(for: [completionExpectation, attemptExpectation], timeout: 8)
+    }
+
+    // omitting onAttemptStart (default nil) does not crash or alter normal behaviour
+    func testSendWorksNormallyWhenOnAttemptStartIsNil() throws {
+        let mockResponse = try JSONEncoder().encode(MockResponse())
+        let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
+        let path = ApiPaths.registerEvents.rawValue
+        let mockDispatchQueue = DispatchQueue(label: "test.queue.tc4")
+
+        var session = MockSession(configuration: .default)
+        session.responseProvider = { _, _ in
+            return MockResponseData(
+                data: mockResponse,
+                response: HTTPURLResponse(
+                    url: apiEndpointURL.appendingPathComponent(path),
+                    statusCode: 200,
+                    httpVersion: nil,
+                    headerFields: nil
+                ),
+                error: nil
+            )
+        }
+
+        let api = ApiClientImpl(
+            apiEndpoint: apiEndpointURL,
+            apiKey: "x:api-key",
+            featureTag: "tag1",
+            sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
+            session: session,
+            retrier: Retrier(queue: mockDispatchQueue),
+            logger: nil
+        )
+
+        let expectation = XCTestExpectation(description: "send works normally without onAttemptStart")
+
+        mockDispatchQueue.async {
+            let requestId = UUID()
+            api.setRegisterEventsRequestId(requestId)
+            // No onAttemptStart passed — uses default nil
+            api.send(
+                requestId: requestId,
+                requestBody: MockRequestBody(),
+                path: path,
+                timeoutMillis: 100
+            ) { (result: Result<(MockResponse, URLResponse), Error>) in
+                switch result {
+                case .success((let response, _)):
+                    XCTAssertEqual(response.value, "response")
+                    XCTAssertEqual(session.requestCount(), 1, "Should only attempt once")
+                case .failure(let error):
+                    XCTFail("should not fail: \(error)")
+                }
+                expectation.fulfill()
+            }
+        }
+
+        wait(for: [expectation], timeout: 2)
+    }
+
+    // onAttemptStart is NOT called for a retry that is cancelled by a newer request ID
+    func testOnAttemptStartNotCalledWhenRequestCancelledByNewerExecution() throws {
+        let apiEndpointURL = URL(string: "https://test.bucketeer.io")!
+        let path = ApiPaths.getEvaluations.rawValue
+        let mockDispatchQueue = DispatchQueue(label: "test.queue.tc5")
+
+        var session = MockSession(configuration: .default)
+        session.responseProvider = { _, _ in
+            return MockResponseData(
+                data: Data("".utf8),
+                response: HTTPURLResponse(
+                    url: apiEndpointURL.appendingPathComponent(path),
+                    statusCode: 499,
+                    httpVersion: nil,
+                    headerFields: nil
+                ),
+                error: nil
+            )
+        }
+
+        let api = ApiClientImpl(
+            apiEndpoint: apiEndpointURL,
+            apiKey: "x:api-key",
+            featureTag: "tag1",
+            sdkInfo: SDKInfo(sourceId: .ios, sdkVersion: Version.current),
+            defaultRequestTimeoutMillis: 200,
+            session: session,
+            retrier: Retrier(queue: mockDispatchQueue),
+            logger: nil
+        )
+
+        let completionExpectation = XCTestExpectation(description: "completion called once after cancellation")
+        // assertForOverFulfill catches any extra onAttemptStart calls (e.g. a retry that should be cancelled)
+        let attemptExpectation = XCTestExpectation(description: "onAttemptStart called only for initial attempt")
+        attemptExpectation.expectedFulfillmentCount = 1
+        attemptExpectation.assertForOverFulfill = true
+
+        mockDispatchQueue.async {
+            let requestId = UUID()
+            api.setEvaluationsRequestId(requestId)
+            api.send(
+                requestId: requestId,
+                requestBody: MockRequestBody(),
+                path: path,
+                timeoutMillis: 100,
+                onAttemptStart: { attemptExpectation.fulfill() },
+                completion: { (result: Result<(MockResponse, URLResponse), Error>) in
+                    switch result {
+                    case .success:
+                        XCTFail("should not succeed")
+                    case .failure(let error):
+                        guard let bktError = error as? BKTError,
+                              case .illegalState(let message) = bktError else {
+                            XCTFail("expected BKTError.illegalState, got: \(error)")
+                            return
+                        }
+                        XCTAssertEqual(message, "Request cancelled by newer execution")
+                    }
+                    completionExpectation.fulfill()
+                }
+            )
+        }
+
+        // The first attempt fires and returns 499. Backoff takes ~1 s before the retry.
+        // Update the request ID after 0.1 s so the retry sees a mismatch and cancels.
+        mockDispatchQueue.asyncAfter(deadline: .now() + 0.1) {
+            api.setEvaluationsRequestId(UUID())
+        }
+
+        wait(for: [completionExpectation, attemptExpectation], timeout: 5)
+    }
 }
 // swiftlint:enable type_body_length file_length
