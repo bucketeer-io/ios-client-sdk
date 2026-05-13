@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.1](https://github.com/bucketeer-io/ios-client-sdk/compare/v2.3.0...v2.3.1) (2026-05-13)
+
+
+### Bug Fixes
+
+* latency metrics should reflect only the most recent (final) network request attempt ([#122](https://github.com/bucketeer-io/ios-client-sdk/issues/122)) ([7b5fd12](https://github.com/bucketeer-io/ios-client-sdk/commit/7b5fd123e6599b34fd1e5f7b05ddd54f8431d6a4))
+
 ## [2.3.0](https://github.com/bucketeer-io/ios-client-sdk/compare/v2.2.1...v2.3.0) (2026-04-28)
 
 
