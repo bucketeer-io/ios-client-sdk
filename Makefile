@@ -109,6 +109,10 @@ generate-project-file:
 create-xcframework-zip:
 	./hack/create-xcframework.sh --zip
 
+.PHONY: create-xcframework-scipio
+create-xcframework-scipio:
+	./hack/create-xcframework-scipio.sh --run
+
 .PHONY: sort-proj
 sort-proj:
 	./hack/sort-Xcode-project-file $(APP_NAME).xcodeproj

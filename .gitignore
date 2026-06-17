@@ -9,6 +9,9 @@ DerivedData/
 # save directory to frameworks at "create_xcframework" run
 FrameworkBuild/
 
+# Scipio XCFramework output (verification build, not published)
+XCFrameworks/
+
 ## Various settings
 *.pbxuser
 !default.pbxuser

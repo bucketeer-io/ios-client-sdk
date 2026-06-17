@@ -1,0 +1,53 @@
+name: Verify XCFramework (Scipio)
+
+# Xcode 26.2 (Swift 6.1) is required for Scipio; Xcode 16.2 did not work with it.
+# Uses a separate Mint cache key (mint-packages-plus-scipio-*) so it does not
+# interfere with the cache used by other workflows.
+
+on:
+  workflow_dispatch:
+  push:
+    paths-ignore:
+      - '*.md'
+      - '.github/**'
+    branches:
+      - main
+
+env:
+  XCODE_VERSION: '26.2'
+
+jobs:
+  scipio-xcframework:
+    runs-on: macos-15-xlarge
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+
+      - name: Select Xcode version
+        run: sudo xcode-select -s '/Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer'
+
+      - name: Cache Mint packages
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: |
+            ~/.mint
+            ~/Library/Caches/Mint
+            ~/Library/Developer/Xcode/DerivedData
+            ~/.swiftpm
+          key: ${{ runner.os }}-mint-packages-plus-scipio-${{ hashFiles('**/Mintfile') }}-v1
+          restore-keys: |
+            ${{ runner.os }}-mint-packages-plus-scipio-${{ hashFiles('**/Mintfile') }}-
+            ${{ runner.os }}-mint-packages-plus-scipio-
+
+      - name: Setup Mint
+        uses: irgaly/setup-mint@a109d74bd0d8f27bc2b921853461ffd17cf6bd89 # v1.8.0
+        with:
+          bootstrap: true
+          bootstrap-link: true
+          use-cache: true
+          cache-prefix: "mint-plus-scipio-setup-v1"
+          clean: true
+
+      - name: Build XCFramework with Scipio
+        env:
+          CI: true
+        run: make create-xcframework-scipio
