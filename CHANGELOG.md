@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.2](https://github.com/bucketeer-io/ios-client-sdk/compare/v2.3.1...v2.3.2) (2026-06-18)
+
+
+### Bug Fixes
+
+* build failure when using scipio to build the sdk as an xcframework ([#125](https://github.com/bucketeer-io/ios-client-sdk/issues/125)) ([309d426](https://github.com/bucketeer-io/ios-client-sdk/commit/309d42666a520286df0e64e2bd93a0e9e2d1c4fb))
+
 ## [2.3.1](https://github.com/bucketeer-io/ios-client-sdk/compare/v2.3.0...v2.3.1) (2026-05-13)
 
 
