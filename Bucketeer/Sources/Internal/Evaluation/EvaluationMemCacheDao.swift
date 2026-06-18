@@ -1,3 +1,5 @@
+import Foundation
+
 protocol KeyValueCache {
     associatedtype DataCacheType
     func set(key: String, value: DataCacheType)

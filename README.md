@@ -107,6 +107,26 @@ Run E2E Tests
 make e2e-without-building
 ```
 
+### Export XCFramework
+
+There are two ways to build and export the XCFramework.
+
+**Option 1 — via Xcode archive (default)**
+
+Uses the standard `xcodebuild` archive approach.
+
+```sh
+make create-xcframework-zip
+```
+
+**Option 2 — via [Scipio](https://github.com/giginet/Scipio)**
+
+Requires Xcode 26.2+ (Swift 6.1). Uses Scipio to build the XCFramework directly from the Swift package.
+
+```sh
+make create-xcframework-scipio
+```
+
 ## Example App
 
 To run the example app.

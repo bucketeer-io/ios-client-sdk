@@ -1,3 +1,5 @@
+import Foundation
+
 final class EvaluationStorageImpl: EvaluationStorage {
 
     var currentEvaluationsId: String {
