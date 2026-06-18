@@ -12,6 +12,12 @@ on:
       - '.github/**'
     branches:
       - main
+  pull_request:
+    paths-ignore:
+      - '*.md'
+      - '.github/**'
+      - Bucketeer/Sources/Internal/Utils/Version.swift
+      - Bucketeer.podspec
 
 env:
   XCODE_VERSION: '26.2'
