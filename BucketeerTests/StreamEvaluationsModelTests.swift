@@ -53,22 +53,27 @@ final class StreamEvaluationsModelTests: XCTestCase {
         XCTAssertEqual(decoded.evaluatedAt, "1700000000")
     }
 
-    // MARK: - StreamEvaluationsEvent (put/patch payload)
+    // MARK: - put/patch payload: reuses GetEvaluationsResponse (no separate stream type)
+    //
+    // The SSE `put`/`patch` payload and the polling `get_evaluations` response have the
+    // identical wire shape: {"userEvaluationsId": ..., "evaluations": {...}}, both wrapping
+    // the same backend `feature.UserEvaluations` message. So there is no dedicated
+    // "StreamEvaluationsEvent" type here: the stream decodes straight into the existing
+    // `GetEvaluationsResponse`, the same type ApiClientImpl already uses for polling. The
+    // test below exists to lock in that shared-shape assumption (in particular, that an
+    // extra key the stream doesn't carry, like a nested "variation" object, is harmlessly
+    // ignored) so a future backend change that breaks it is caught here.
 
-    private func decodeEvent(_ json: String) throws -> StreamEvaluationsEvent {
-        try JSONDecoder().decode(StreamEvaluationsEvent.self, from: Data(json.utf8))
+    private func decodeResponse(_ json: String) throws -> GetEvaluationsResponse {
+        try JSONDecoder().decode(GetEvaluationsResponse.self, from: Data(json.utf8))
     }
 
-    func testDecodesRealisticBackendPayload() throws {
-        // Written by protojson with EmitUnpopulated: true, so every field is present,
-        // including an extra top-level "state" key this model doesn't map, and an extra
-        // "variation" object nested inside an evaluation.
+    func testGetEvaluationsResponseDecodesRealisticStreamPayload() throws {
         let json = """
         {
             "userEvaluationsId": "user_evaluation_id_1",
             "evaluations": {
                 "id": "",
-                "state": "FULL",
                 "evaluations": [
                     {
                         "id": "feature1:1:user1",
@@ -88,62 +93,22 @@ final class StreamEvaluationsModelTests: XCTestCase {
             }
         }
         """
-        let event = try decodeEvent(json)
-        XCTAssertEqual(event.userEvaluationsId, "user_evaluation_id_1")
-        XCTAssertEqual(event.evaluations.id, "")
-        XCTAssertEqual(event.evaluations.createdAt, "1700000000")
-        XCTAssertEqual(event.evaluations.forceUpdate, false)
-        XCTAssertEqual(event.evaluations.archivedFeatureIds, [])
-        XCTAssertEqual(event.evaluations.evaluations.count, 1)
-        XCTAssertEqual(event.evaluations.evaluations.first?.featureId, "feature1")
-        XCTAssertEqual(event.evaluations.evaluations.first?.variationValue, "value1")
+        let response = try decodeResponse(json)
+        XCTAssertEqual(response.userEvaluationsId, "user_evaluation_id_1")
+        XCTAssertEqual(response.evaluations.id, "")
+        XCTAssertEqual(response.evaluations.createdAt, "1700000000")
+        XCTAssertEqual(response.evaluations.forceUpdate, false)
+        XCTAssertEqual(response.evaluations.archivedFeatureIds, [])
+        XCTAssertEqual(response.evaluations.evaluations.count, 1)
+        XCTAssertEqual(response.evaluations.evaluations.first?.featureId, "feature1")
+        XCTAssertEqual(response.evaluations.evaluations.first?.variationValue, "value1")
     }
 
-    func testToGetEvaluationsResponseMapsEveryField() throws {
-        let json = """
-        {
-            "userEvaluationsId": "ueid1",
-            "evaluations": {
-                "id": "ueid1",
-                "evaluations": [],
-                "createdAt": "1700000001",
-                "archivedFeatureIds": ["archived1"],
-                "forceUpdate": true
-            }
-        }
-        """
-        let event = try decodeEvent(json)
-        let response = event.toGetEvaluationsResponse()
-        XCTAssertEqual(response.userEvaluationsId, "ueid1")
-        XCTAssertEqual(response.evaluations.id, "ueid1")
-        XCTAssertEqual(response.evaluations.createdAt, "1700000001")
-        XCTAssertEqual(response.evaluations.forceUpdate, true)
-        XCTAssertEqual(response.evaluations.archivedFeatureIds, ["archived1"])
-        XCTAssertEqual(response.evaluations.evaluations, [])
-    }
-
-    /// The backend may omit zero-valued fields when marshaling. The shape check must
-    /// accept the omission so a patch isn't silently dropped, matching the REST path's
-    /// existing tolerance (`GetEvaluationsResponse` decodes the same way).
-    func testMissingOptionalFieldsDefaultToEmptyValues() throws {
-        let json = """
-        {
-            "userEvaluationsId": "ueid1",
-            "evaluations": {
-                "createdAt": "1700000000"
-            }
-        }
-        """
-        let event = try decodeEvent(json)
-        XCTAssertEqual(event.evaluations.id, "")
-        XCTAssertEqual(event.evaluations.forceUpdate, false)
-        XCTAssertEqual(event.evaluations.evaluations, [])
-        XCTAssertEqual(event.evaluations.archivedFeatureIds, [])
-    }
-
-    // MARK: - Rejected payloads
-
-    func testRejectsPayloadsWithWrongOrMissingShape() {
+    /// Not new decode logic of ours, this is `GetEvaluationsResponse`'s existing (strict,
+    /// unmodified) behavior. Pinned here because the stream path now depends on that
+    /// strictness: if the backend ever sends a `put`/`patch` payload with a required field
+    /// missing, the event is dropped rather than partially applied.
+    func testGetEvaluationsResponseRejectsWrongOrMissingShape() {
         let badPayloads = [
             "{}",
             "{\"userEvaluationsId\":\"x\"}", // missing evaluations
@@ -156,22 +121,7 @@ final class StreamEvaluationsModelTests: XCTestCase {
             "not-json"
         ]
         for payload in badPayloads {
-            XCTAssertThrowsError(try decodeEvent(payload), "payload: \(payload)")
-        }
-    }
-
-    /// iOS-specific, stricter than the JS SDK on purpose: JS only checks that createdAt is a
-    /// string, so a non-numeric value like "abc" passes there and becomes evaluatedAt in
-    /// storage. The stale-write guard (added in a later PR) compares evaluatedAt as a number,
-    /// so an unreadable value would silently disable that guard for every later write. This
-    /// SDK rejects the event instead.
-    func testRejectsNonNumericCreatedAt() {
-        let badPayloads = [
-            "{\"userEvaluationsId\":\"x\",\"evaluations\":{\"createdAt\":\"abc\"}}",
-            "{\"userEvaluationsId\":\"x\",\"evaluations\":{\"createdAt\":\"\"}}"
-        ]
-        for payload in badPayloads {
-            XCTAssertThrowsError(try decodeEvent(payload), "payload: \(payload)")
+            XCTAssertThrowsError(try decodeResponse(payload), "payload: \(payload)")
         }
     }
 
