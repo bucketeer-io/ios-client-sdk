@@ -58,6 +58,20 @@ final class StreamBackoffTests: XCTestCase {
         XCTAssertEqual(lastDelay, 30_000)
     }
 
+    /// A max delay of `Int64.max` must not crash. `Double(Int64.max)` rounds up to 2^63, which no
+    /// longer fits in an `Int64`, so the delay must never be allowed to grow that far.
+    func testHugeMaxDelayNeverCrashesAndKeepsGrowing() {
+        var backoff = StreamBackoff(initialDelayMillis: 1_000, maxDelayMillis: Int64.max, random: { 0 })
+
+        var previousDelay: Int64 = 0
+        for _ in 0..<200 {
+            let delay = backoff.nextDelayMillis()
+            XCTAssertGreaterThanOrEqual(delay, previousDelay)
+            previousDelay = delay
+        }
+        XCTAssertGreaterThan(previousDelay, 30_000)
+    }
+
     /// initialDelayMillis: 0 must not produce `0 * infinity = NaN` once the exponent grows large,
     /// which would crash on the `Int64(NaN)` conversion.
     func testZeroInitialDelayNeverCrashesAndProducesNoDelay() {
