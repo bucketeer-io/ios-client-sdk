@@ -108,6 +108,12 @@ final class StreamEvaluationsModelTests: XCTestCase {
     /// unmodified) behavior. Pinned here because the stream path now depends on that
     /// strictness: if the backend ever sends a `put`/`patch` payload with a required field
     /// missing, the event is dropped rather than partially applied.
+    ///
+    /// The strictness is intentional, not a gap: the backend never omits zero-valued fields
+    /// (`forceUpdate: false`, `[]`, `""`), because it marshals every stream event with
+    /// `protojson.MarshalOptions{EmitUnpopulated: true}`, so no lenient decoder is needed.
+    /// - marshal options: https://github.com/bucketeer-io/bucketeer/blob/900853e2cb1fbdfa026974d89fc3cbdcb21789d0/pkg/api/stream/evaluations.go#L55
+    /// - applied to every event: https://github.com/bucketeer-io/bucketeer/blob/900853e2cb1fbdfa026974d89fc3cbdcb21789d0/pkg/api/stream/evaluations.go#L254
     func testGetEvaluationsResponseRejectsWrongOrMissingShape() {
         let badPayloads = [
             "{}",
