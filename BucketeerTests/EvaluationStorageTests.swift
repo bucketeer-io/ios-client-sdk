@@ -94,7 +94,8 @@ final class EvaluationStorageTests: XCTestCase {
             evaluationMemCacheDao: EvaluationMemCacheDao(),
             evaluationUserDefaultsDao: mockUserDefsDao
         )
-        try storage.deleteAllAndInsert(evaluationId:"evaluationId_1", evaluations: [.mock1, .mock2], evaluatedAt: "1024")
+        let result = try storage.deleteAllAndInsert(evaluationId:"evaluationId_1", evaluations: [.mock1, .mock2], evaluatedAt: "1024")
+        XCTAssertTrue(result, "a non-stale write must land")
         let expected = try storage.get()
         XCTAssertEqual(expected, [.mock1, .mock2])
         XCTAssertEqual(storage.evaluatedAt, "1024", "should save last evaluatedAt")
