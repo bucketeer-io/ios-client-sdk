@@ -28,6 +28,15 @@ final class EvaluationStorageImpl: EvaluationStorage {
     private let evaluationSQLDao: EvaluationSQLDao
     private let evaluationMemCacheDao: EvaluationMemCacheDao
     private let evaluationUserDefaultsDao: EvaluationUserDefaultsDao
+    /// Serializes the read-then-write in `deleteAllAndInsert` and `update`.
+    ///
+    /// The staleness guard reads the stored `evaluatedAt` and then writes. Without this
+    /// lock, two writers could both read the same stored value, both pass the guard, and
+    /// the older one could commit last: the exact rewind the guard exists to prevent.
+    /// Callers are supposed to be on the SDK queue, but that is only a doc comment today,
+    /// so this makes the guard hold even if that contract is ever violated. Deliberately a
+    /// separate lock from `setUserAttributesUpdatedLock`, which guards unrelated state.
+    private let writeLock = NSLock()
     private let setUserAttributesUpdatedLock = NSLock()
     /// Version counter used as an in-memory transaction id for attribute updates.
     /// Protected by `setUserAttributesUpdatedLock`.
@@ -50,9 +59,30 @@ final class EvaluationStorageImpl: EvaluationStorage {
         evaluationMemCacheDao.get(key: userId) ?? []
     }
 
-    /// Deletes all evaluations and inserts new evaluations in storage.
-    /// - Note: Caller must ensure this is called from the SDK queue. Not thread-safe
-    func deleteAllAndInsert(
+    /// `true` when `evaluatedAt` is strictly older than what is already stored.
+    ///
+    /// Guards the race where a slow poll response lands after fresher streamed data and
+    /// rewinds the cache. Strictly older only: an equal `evaluatedAt` still applies,
+    /// because two payloads computed in the same clock tick are not stale relative to
+    /// each other, and dropping an equal-timestamp write would be a worse failure than
+    /// the race this guards against.
+    ///
+    /// If either side is not a readable number, the write is allowed. That keeps today's
+    /// polling behavior for a response carrying an empty `createdAt`, and fails toward
+    /// writing rather than toward silent data loss. The streaming path rejects an
+    /// unreadable timestamp one layer up, in
+    /// `EvaluationInteractorImpl.applyStreamedEvaluations(_:shouldNotify:)`.
+    private func isStale(incoming evaluatedAt: String) -> Bool {
+        guard let incoming = Int64(evaluatedAt),
+              let stored = Int64(evaluationUserDefaultsDao.evaluatedAt) else {
+            return false
+        }
+        return incoming < stored
+    }
+
+    /// Unguarded write. Callers must already hold `writeLock` and must have checked
+    /// `isStale(incoming:)`. Never call this from outside this type.
+    private func performWrite(
         evaluationId: String,
         evaluations: [Evaluation],
         evaluatedAt: String) throws {
@@ -67,36 +97,50 @@ final class EvaluationStorageImpl: EvaluationStorage {
         evaluationMemCacheDao.set(key: userId, value: evaluations)
     }
 
+    /// Deletes all evaluations and inserts new evaluations in storage.
+    /// - Note: Caller must ensure this is called from the SDK queue.
+    @discardableResult func deleteAllAndInsert(
+        evaluationId: String,
+        evaluations: [Evaluation],
+        evaluatedAt: String) throws -> Bool {
+        try writeLock.withLock {
+            guard !isStale(incoming: evaluatedAt) else { return false }
+            try performWrite(evaluationId: evaluationId, evaluations: evaluations, evaluatedAt: evaluatedAt)
+            return true
+        }
+    }
+
     /// Updates evaluations in storage.
-    /// - Note: Caller must ensure this is called from the SDK queue. Not thread-safe for concurrent writes.
+    /// - Note: Caller must ensure this is called from the SDK queue.
     func update(
         evaluationId: String ,
         evaluations: [Evaluation],
         archivedFeatureIds: [String],
         evaluatedAt: String) throws -> Bool {
-        // 1. Get current data in db
-        var currentEvaluationsByFeatureId = try evaluationSQLDao.get(userId: userId)
-            .reduce([String:Evaluation]()) { (input, evaluation) -> [String:Evaluation] in
-                var output = input
-                output[evaluation.featureId] = evaluation
-                return output
+        try writeLock.withLock {
+            guard !isStale(incoming: evaluatedAt) else { return false }
+            // 1. Get current data in db
+            var currentEvaluationsByFeatureId = try evaluationSQLDao.get(userId: userId)
+                .reduce([String:Evaluation]()) { (input, evaluation) -> [String:Evaluation] in
+                    var output = input
+                    output[evaluation.featureId] = evaluation
+                    return output
+                }
+            // 2. Update evaluation with new data
+            for evaluation in evaluations {
+                currentEvaluationsByFeatureId[evaluation.featureId] = evaluation
             }
-        // 2. Update evaluation with new data
-        for evaluation in evaluations {
-            currentEvaluationsByFeatureId[evaluation.featureId] = evaluation
+            // 3. Filter active
+            let currentEvaluations = currentEvaluationsByFeatureId.values.filter { evaluation in
+                !archivedFeatureIds.contains(evaluation.featureId)
+            }
+            // 4. Save to database
+            try performWrite(
+                evaluationId: evaluationId ,
+                evaluations: Array(currentEvaluations),
+                evaluatedAt: evaluatedAt)
+            return evaluations.count > 0 || archivedFeatureIds.count > 0
         }
-        // 3. Filter active
-        let currentEvaluations = currentEvaluationsByFeatureId.values.filter { evaluation in
-            !archivedFeatureIds.contains(evaluation.featureId)
-        }.map { item in
-            item
-        }
-        // 4. Save to database
-        try deleteAllAndInsert(
-            evaluationId: evaluationId ,
-            evaluations: currentEvaluations,
-            evaluatedAt: evaluatedAt)
-        return evaluations.count > 0 || archivedFeatureIds.count > 0
     }
 
     // getBy will return the data from the cache to speed up the response time
