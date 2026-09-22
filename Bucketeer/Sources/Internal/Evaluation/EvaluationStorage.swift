@@ -3,12 +3,22 @@ import Foundation
 protocol EvaluationStorage {
     func getBy(featureId: String) -> Evaluation?
     func get() throws -> [Evaluation]
-    // force update
-    func deleteAllAndInsert(
+
+    /// Deletes everything currently stored and inserts `evaluations` (a full snapshot,
+    /// used for `forceUpdate`).
+    /// - Returns: `false` if the write was skipped because `evaluatedAt` is strictly
+    ///   older than what is already stored, `true` otherwise. `true` means the write
+    ///   landed, not that anything changed: a snapshot that empties the cache still
+    ///   returns `true`, and callers must still notify listeners in that case.
+    @discardableResult func deleteAllAndInsert(
         evaluationId: String,
         evaluations: [Evaluation],
-        evaluatedAt: String) throws
-    // upsert
+        evaluatedAt: String) throws -> Bool
+
+    /// Merges `evaluations` into what is stored and removes `archivedFeatureIds`.
+    /// - Returns: `false` if the write was skipped because `evaluatedAt` is strictly
+    ///   older than what is already stored, or if the write landed but nothing
+    ///   changed. `true` only when the write landed and something changed.
     @discardableResult func update(
         evaluationId: String,
         evaluations: [Evaluation],

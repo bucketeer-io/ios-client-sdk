@@ -146,6 +146,112 @@ final class EvaluationStorageImplConcurrencyTests: XCTestCase {
         // 9. Verify Final State
         XCTAssertEqual(storage.getBy(featureId: newEval.featureId)?.id, newEval.id, "Cache should be finally updated after write completes")
     }
+
+    // Deterministic two-writer test for the staleness guard's `writeLock`: a writer
+    // whose payload is older than what a concurrent writer is about to commit must not
+    // be able to commit AFTER that concurrent writer, even though its own staleness
+    // check would have passed against the value stored before the race began.
+    func testWriteLockPreventsOlderPayloadFromCommittingAfterNewerOne() throws {
+        let db = try SQLite(path: path, logger: nil)
+
+        // 1. Setup Wrapper around Real DAO
+        let blockingSQLDao = BlockingRealSQLDao(db: db)
+
+        // Use Real Cache
+        let memCacheDao = EvaluationMemCacheDao()
+
+        // Use Real UserDefaults with a specific suite
+        let userDefaults = UserDefaults(suiteName: "EvaluationStorageImplConcurrencyTests.TwoWriters")!
+        userDefaults.removePersistentDomain(forName: "EvaluationStorageImplConcurrencyTests.TwoWriters")
+        let userDefaultsDao = EvaluationUserDefaultDaoImpl(defaults: userDefaults)
+
+        // Use mock user ID from MockEvaluations
+        let userId = User.mock1.id
+        let storage = EvaluationStorageImpl(
+            userId: userId,
+            evaluationDao: blockingSQLDao,
+            evaluationMemCacheDao: memCacheDao,
+            evaluationUserDefaultsDao: userDefaultsDao
+        )
+
+        // 2. Seed a baseline both writers below start out newer than.
+        try storage.deleteAllAndInsert(evaluationId: "init_id", evaluations: [], evaluatedAt: "100")
+
+        // 3. Expectations
+        let newerTransactionStarted = expectation(description: "newer writer entered its transaction")
+        let newerFinishedExpectation = expectation(description: "newer writer finished")
+        let olderReturnedExpectation = expectation(description: "older writer's call returned")
+        let continueNewerWriteExpectation = XCTestExpectation(description: "signal to let the newer writer finish")
+
+        // Configure Wrapper to pause inside the transaction, holding writeLock.
+        blockingSQLDao.onStartTransaction = {
+            newerTransactionStarted.fulfill()
+        }
+        blockingSQLDao.continueWriteExpectation = continueNewerWriteExpectation
+
+        let newerQueue = DispatchQueue(label: "io.bucketeer.write.newer")
+        let olderQueue = DispatchQueue(label: "io.bucketeer.write.older")
+
+        // 4. Start the newer writer (Queue A). It acquires writeLock, starts its
+        // transaction, and then BLOCKS inside the wrapper, still holding the lock.
+        var newerResult: Bool?
+        newerQueue.async {
+            newerResult = try? storage.deleteAllAndInsert(
+                evaluationId: "newer_id",
+                evaluations: [.mock1],
+                evaluatedAt: "200"
+            )
+            newerFinishedExpectation.fulfill()
+        }
+
+        // Wait for the newer writer to acquire the lock and enter its transaction.
+        wait(for: [newerTransactionStarted], timeout: 2.0)
+
+        // 5. Start the older writer (Queue B) concurrently. Its payload (150) is newer
+        // than the seeded baseline (100), so an unguarded check at this point would
+        // wrongly let it through. `olderHasReturnedLock` guards `olderResult`/
+        // `olderHasReturned` for the step-6 check below, which deliberately does NOT
+        // wait on `olderReturnedExpectation` (an expectation can only be waited on
+        // once, and it is waited on for real in step 7).
+        var olderResult: Bool?
+        var olderHasReturned = false
+        let olderHasReturnedLock = NSLock()
+        olderQueue.async {
+            let result = try? storage.deleteAllAndInsert(
+                evaluationId: "older_id",
+                evaluations: [.mock2],
+                evaluatedAt: "150"
+            )
+            olderHasReturnedLock.withLock {
+                olderResult = result
+                olderHasReturned = true
+            }
+            olderReturnedExpectation.fulfill()
+        }
+
+        // 6. Verify the older writer is still blocked on writeLock: it must not have
+        // returned yet. This is the assertion that proves the lock, not scheduling
+        // luck, is what serializes the two writers.
+        Thread.sleep(forTimeInterval: 0.3)
+        let returnedEarly = olderHasReturnedLock.withLock { olderHasReturned }
+        XCTAssertFalse(returnedEarly, "the older writer must block on writeLock while the newer writer's transaction is in flight")
+
+        // 7. Finish the newer write, then let the older writer proceed.
+        continueNewerWriteExpectation.fulfill()
+        wait(for: [newerFinishedExpectation, olderReturnedExpectation], timeout: 2.0)
+
+        // 8. Verify Final State: the newer write landed, and the older write was
+        // rejected once it re-checked against the newer, now-committed evaluatedAt -
+        // it must not have rewound storage back to "150".
+        XCTAssertEqual(newerResult, true)
+        XCTAssertEqual(
+            olderHasReturnedLock.withLock { olderResult },
+            false,
+            "the older payload must be rejected once it re-checks against the newer, now-committed evaluatedAt"
+        )
+        XCTAssertEqual(storage.evaluatedAt, "200", "the newer write must not be rewound by the older payload")
+        XCTAssertEqual(storage.currentEvaluationsId, "newer_id")
+    }
 }
 
 /// A wrapper around the real EvaluationSQLDaoImpl that allows pausing inside a transaction
