@@ -9,7 +9,7 @@ struct MockEvaluationInteractor: EvaluationInteractor {
     var fetchHandler: FetchHandler?
     var applyStreamedEvaluationsHandler: ApplyStreamedEvaluationsHandler?
     var currentEvaluationsId: String = ""
-    var evaluatedAt: String = "0"
+    var cachedEvaluationsState = CachedEvaluationsState(userEvaluationsId: "", evaluatedAt: "0")
     var userAttributesState: UserAttributesState = UserAttributesState(version: 0, isUpdated: false)
 
     func fetch(user: User, timeoutMillis: Int64?, completion: ((GetEvaluationsResult) -> Void)?) {

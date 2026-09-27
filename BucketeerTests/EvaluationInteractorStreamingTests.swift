@@ -204,6 +204,20 @@ final class EvaluationInteractorStreamingTests: XCTestCase {
         wait(for: [notifyExpectation], timeout: 0.3)
     }
 
+    func testCachedEvaluationsStateReflectsStorage() {
+        let storage = MockEvaluationStorage(userId: User.mock1.id)
+        let interactor = makeInteractor(storage: storage)
+
+        XCTAssertEqual(interactor.cachedEvaluationsState.userEvaluationsId, "")
+        XCTAssertEqual(interactor.cachedEvaluationsState.evaluatedAt, "0")
+
+        storage.currentEvaluationsId = "user_evaluations_id_1"
+        storage.evaluatedAt = "1234567890"
+
+        XCTAssertEqual(interactor.cachedEvaluationsState.userEvaluationsId, "user_evaluations_id_1")
+        XCTAssertEqual(interactor.cachedEvaluationsState.evaluatedAt, "1234567890")
+    }
+
     func testFetchForceUpdateDoesNotNotifyWhenWriteIsStale() {
         let completionExpectation = XCTestExpectation(description: "completion still receives success")
         let notifyExpectation = XCTestExpectation(description: "listener must not fire")
