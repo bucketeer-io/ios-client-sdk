@@ -16,9 +16,11 @@ protocol EvaluationStorage {
         evaluatedAt: String) throws -> Bool
 
     /// Merges `evaluations` into what is stored and removes `archivedFeatureIds`.
-    /// - Returns: `false` if the write was skipped because `evaluatedAt` is strictly
-    ///   older than what is already stored, or if the write landed but nothing
-    ///   changed. `true` only when the write landed and something changed.
+    /// - Returns: `false` if the write was skipped because `evaluatedAt` is strictly older
+    ///   than what is already stored, or if both `evaluations` and `archivedFeatureIds` are
+    ///   empty. `true` means "this patch carried content worth notifying about", not that
+    ///   stored values differ: an evaluation identical to the stored one, or an archived ID
+    ///   that is not stored, still returns `true`.
     @discardableResult func update(
         evaluationId: String,
         evaluations: [Evaluation],

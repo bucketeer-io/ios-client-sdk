@@ -183,9 +183,11 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
 
     /// Writes `response` to storage. Shared by `fetch` (polling) and
     /// `applyStreamedEvaluations` (streaming).
-    /// - Returns: `true` when the write landed and changed something. A write the storage
-    ///   staleness guard skipped returns `false`, and callers must not notify listeners
-    ///   in that case.
+    /// - Returns: `true` when the write landed and the payload is worth notifying listeners
+    ///   about. This is not change detection: a force update returns `true` for any landed
+    ///   snapshot, and the upsert branch returns `true` for any nonempty payload, even if the
+    ///   values match what is already stored. A write the storage staleness guard skipped
+    ///   returns `false`, and callers must not notify listeners in that case.
     private func writeEvaluations(_ response: GetEvaluationsResponse) throws -> Bool {
         let userEvaluations = response.evaluations
         // https://github.com/bucketeer-io/android-client-sdk/issues/69
