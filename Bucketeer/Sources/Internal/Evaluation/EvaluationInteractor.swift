@@ -10,8 +10,7 @@ protocol EvaluationInteractor {
     func removeUpdateListener(key: String)
     func clearUpdateListeners()
 
-    var currentEvaluationsId: String { get }
-    var evaluatedAt: String { get }
+    var cachedEvaluationsState: CachedEvaluationsState { get }
     var userAttributesState: UserAttributesState { get }
 
     @discardableResult func clearUserAttributesUpdated(state: UserAttributesState) -> Bool
@@ -42,6 +41,18 @@ extension EvaluationInteractor {
     }
 }
 
+/// The evaluations currently cached, identified so the backend can reply with a `patch`
+/// instead of a full `put` when the stream opens or reopens.
+///
+/// Not to be confused with `UserEvaluationCondition`, which is the polling request's wire
+/// type (`evaluatedAt` + `userAttributesUpdated`) and is a different shape.
+struct CachedEvaluationsState {
+    /// Empty string before anything has been cached.
+    let userEvaluationsId: String
+    /// "0" before anything has been cached.
+    let evaluatedAt: String
+}
+
 final class EvaluationInteractorImpl: EvaluationInteractor {
 
     private let apiClient: ApiClient
@@ -68,8 +79,11 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
         return evaluationStorage.currentEvaluationsId
     }
 
-    var evaluatedAt: String {
-        return evaluationStorage.evaluatedAt
+    var cachedEvaluationsState: CachedEvaluationsState {
+        CachedEvaluationsState(
+            userEvaluationsId: evaluationStorage.currentEvaluationsId,
+            evaluatedAt: evaluationStorage.evaluatedAt
+        )
     }
 
     var userAttributesState: UserAttributesState {
