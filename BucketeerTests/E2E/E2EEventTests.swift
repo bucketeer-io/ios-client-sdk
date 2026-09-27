@@ -111,7 +111,12 @@ final class E2EEventTests: XCTestCase {
             try await withCheckedThrowingContinuation({ continuation in
                 client.execute {
                     do {
-                        try component.dataModule.evaluationStorage.deleteAllAndInsert(evaluationId: "evaluationId", evaluations: [], evaluatedAt: "0")
+                        // Reuse the stored evaluatedAt rather than "0": the init fetch has
+                        // already stored a server timestamp, and the storage staleness guard
+                        // skips a write that is strictly older than what is stored. An equal
+                        // value still applies, so this clears the cache as intended.
+                        let storage = component.dataModule.evaluationStorage
+                        try storage.deleteAllAndInsert(evaluationId: "evaluationId", evaluations: [], evaluatedAt: storage.evaluatedAt)
                         continuation.resume(returning: ())
                     } catch {
                         continuation.resume(throwing: error)
