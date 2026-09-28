@@ -1,31 +1,46 @@
 import Foundation
 
+/// Outcome of an `EvaluationStorage` write.
+///
+/// "Skipped" and "saved" must stay distinguishable: a poll clears the
+/// user-attributes-updated flag only when its reply was saved, because a skipped reply may
+/// have been the re-evaluation that flag asked for.
+enum EvaluationWriteResult: Equatable {
+    /// The write was skipped because `evaluatedAt` is strictly older than what is stored.
+    /// Nothing changed.
+    case skippedStale
+    /// The write was saved. `shouldNotify` says whether listeners should hear about it.
+    /// This is not change detection: see each write method for when it is `true`.
+    case landed(shouldNotify: Bool)
+}
+
 protocol EvaluationStorage {
     func getBy(featureId: String) -> Evaluation?
     func get() throws -> [Evaluation]
 
     /// Deletes everything currently stored and inserts `evaluations` (a full snapshot,
     /// used for `forceUpdate`).
-    /// - Returns: `false` if the write was skipped because `evaluatedAt` is strictly
-    ///   older than what is already stored, `true` otherwise. `true` means the write
-    ///   landed, not that anything changed: a snapshot that empties the cache still
-    ///   returns `true`, and callers must still notify listeners in that case.
+    /// - Returns: `.skippedStale` if `evaluatedAt` is strictly older than what is already
+    ///   stored, otherwise `.landed(shouldNotify: true)`. A snapshot that empties the cache
+    ///   still returns `.landed(shouldNotify: true)`, and callers must still notify
+    ///   listeners in that case.
     @discardableResult func deleteAllAndInsert(
         evaluationId: String,
         evaluations: [Evaluation],
-        evaluatedAt: String) throws -> Bool
+        evaluatedAt: String) throws -> EvaluationWriteResult
 
     /// Merges `evaluations` into what is stored and removes `archivedFeatureIds`.
-    /// - Returns: `false` if the write was skipped because `evaluatedAt` is strictly older
-    ///   than what is already stored, or if both `evaluations` and `archivedFeatureIds` are
-    ///   empty. `true` means "this patch carried content worth notifying about", not that
-    ///   stored values differ: an evaluation identical to the stored one, or an archived ID
-    ///   that is not stored, still returns `true`.
+    /// - Returns: `.skippedStale` if `evaluatedAt` is strictly older than what is already
+    ///   stored. Otherwise `.landed(shouldNotify:)`, with `true` when either
+    ///   `evaluations` or `archivedFeatureIds` is nonempty. That means "this patch carried
+    ///   content worth notifying about", not that stored values differ: an evaluation
+    ///   identical to the stored one, or an archived ID that is not stored, still gives
+    ///   `true`.
     @discardableResult func update(
         evaluationId: String,
         evaluations: [Evaluation],
         archivedFeatureIds: [String],
-        evaluatedAt: String) throws -> Bool
+        evaluatedAt: String) throws -> EvaluationWriteResult
     func refreshCache() throws
 
     var currentEvaluationsId: String { get }

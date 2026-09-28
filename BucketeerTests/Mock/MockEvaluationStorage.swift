@@ -80,24 +80,25 @@ final class MockEvaluationStorage: EvaluationStorage {
 
     func deleteAllAndInsert(
         evaluationId: String,
-        evaluations: [Bucketeer.Evaluation], evaluatedAt: String) throws -> Bool {
-        if isStaleWriteHandler?(evaluatedAt) == true { return false }
+        evaluations: [Bucketeer.Evaluation], evaluatedAt: String) throws -> EvaluationWriteResult {
+        if isStaleWriteHandler?(evaluatedAt) == true { return .skippedStale }
         try deleteAllAndInsertHandler?(evaluations)
         // Mock save evaluatedAt
         evaluationUserDefaultsDao.evaluatedAt = evaluatedAt
         evaluationUserDefaultsDao.currentEvaluationsId = evaluationId
-        return true
+        return .landed(shouldNotify: true)
     }
 
+    /// `updateHandler` returns the `shouldNotify` value of a write that landed.
     func update(
         evaluationId: String,
-        evaluations: [Evaluation], archivedFeatureIds: [String], evaluatedAt: String) throws -> Bool {
-        if isStaleWriteHandler?(evaluatedAt) == true { return false }
-        let result = try updateHandler?(evaluations, archivedFeatureIds, evaluatedAt) ?? false
+        evaluations: [Evaluation], archivedFeatureIds: [String], evaluatedAt: String) throws -> EvaluationWriteResult {
+        if isStaleWriteHandler?(evaluatedAt) == true { return .skippedStale }
+        let shouldNotify = try updateHandler?(evaluations, archivedFeatureIds, evaluatedAt) ?? false
         // Mock save evaluatedAt
         evaluationUserDefaultsDao.evaluatedAt = evaluatedAt
         evaluationUserDefaultsDao.currentEvaluationsId = evaluationId
-        return result
+        return .landed(shouldNotify: shouldNotify)
     }
 
     func getBy(featureId: String) -> Evaluation? {

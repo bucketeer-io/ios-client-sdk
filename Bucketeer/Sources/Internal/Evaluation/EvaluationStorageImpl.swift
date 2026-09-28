@@ -102,11 +102,11 @@ final class EvaluationStorageImpl: EvaluationStorage {
     @discardableResult func deleteAllAndInsert(
         evaluationId: String,
         evaluations: [Evaluation],
-        evaluatedAt: String) throws -> Bool {
+        evaluatedAt: String) throws -> EvaluationWriteResult {
         try writeLock.withLock {
-            guard !isStale(incoming: evaluatedAt) else { return false }
+            guard !isStale(incoming: evaluatedAt) else { return .skippedStale }
             try performWrite(evaluationId: evaluationId, evaluations: evaluations, evaluatedAt: evaluatedAt)
-            return true
+            return .landed(shouldNotify: true)
         }
     }
 
@@ -116,9 +116,9 @@ final class EvaluationStorageImpl: EvaluationStorage {
         evaluationId: String ,
         evaluations: [Evaluation],
         archivedFeatureIds: [String],
-        evaluatedAt: String) throws -> Bool {
+        evaluatedAt: String) throws -> EvaluationWriteResult {
         try writeLock.withLock {
-            guard !isStale(incoming: evaluatedAt) else { return false }
+            guard !isStale(incoming: evaluatedAt) else { return .skippedStale }
             // 1. Get current data in db
             var currentEvaluationsByFeatureId = try evaluationSQLDao.get(userId: userId)
                 .reduce([String:Evaluation]()) { (input, evaluation) -> [String:Evaluation] in
@@ -139,7 +139,7 @@ final class EvaluationStorageImpl: EvaluationStorage {
                 evaluationId: evaluationId ,
                 evaluations: Array(currentEvaluations),
                 evaluatedAt: evaluatedAt)
-            return evaluations.count > 0 || archivedFeatureIds.count > 0
+            return .landed(shouldNotify: evaluations.count > 0 || archivedFeatureIds.count > 0)
         }
     }
 
