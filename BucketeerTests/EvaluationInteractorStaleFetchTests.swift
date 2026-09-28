@@ -129,9 +129,9 @@ final class EvaluationInteractorStaleFetchTests: XCTestCase {
     /// that the staleness guard skips must not clear the flag.
     ///
     /// A request with the flag on is expected to get a full snapshot back (the JS SDK's
-    /// notes say so), so this is the most likely shape of the skipped reply. For this reply type, `deleteAllAndInsert`
-    /// reports a skip as `false`, and `fetch` today clears the flag regardless of that
-    /// result.
+    /// notes say so), so this is the most likely shape of the skipped reply. For this reply
+    /// type, `deleteAllAndInsert` reports the skip as `.skippedStale`, and `fetch` must keep
+    /// the flag on in that case instead of clearing it.
     ///
     /// Setup: storage holds data stamped "1690798100". The app changes attributes (flag
     /// on), then polls. The reply is stamped "1690798021", which is older.
@@ -161,10 +161,10 @@ final class EvaluationInteractorStaleFetchTests: XCTestCase {
     /// Issue: the same as the full-snapshot test, for a diff reply (`forceUpdate: false`,
     /// written by `update`).
     ///
-    /// This branch needs its own test because `update` returns `false` in two situations:
-    /// "skipped as stale" and "saved, but the reply was empty". Only the first must keep
-    /// the flag on. A fix that only covers `deleteAllAndInsert`, or that cannot tell those
-    /// two situations apart, fails here.
+    /// This branch needs its own test because `update` has two outcomes that both mean "no
+    /// listener callback": `.skippedStale` and `.landed(shouldNotify: false)` (saved, but
+    /// the reply was empty). Only the first must keep the flag on. A fix that only covers
+    /// `deleteAllAndInsert`, or that treats those two outcomes the same, fails here.
     ///
     /// Setup: storage holds data stamped "1690798100". The app changes attributes (flag
     /// on), then polls. The diff reply is stamped "1690798021", which is older.
