@@ -194,7 +194,7 @@ final class EvaluationStorageImplConcurrencyTests: XCTestCase {
 
         // 4. Start the newer writer (Queue A). It acquires writeLock, starts its
         // transaction, and then BLOCKS inside the wrapper, still holding the lock.
-        var newerResult: Bool?
+        var newerResult: EvaluationWriteResult?
         newerQueue.async {
             newerResult = try? storage.deleteAllAndInsert(
                 evaluationId: "newer_id",
@@ -213,7 +213,7 @@ final class EvaluationStorageImplConcurrencyTests: XCTestCase {
         // `olderHasReturned` for the step-6 check below, which deliberately does NOT
         // wait on `olderReturnedExpectation` (an expectation can only be waited on
         // once, and it is waited on for real in step 7).
-        var olderResult: Bool?
+        var olderResult: EvaluationWriteResult?
         var olderHasReturned = false
         let olderHasReturnedLock = NSLock()
         olderQueue.async {
@@ -243,10 +243,10 @@ final class EvaluationStorageImplConcurrencyTests: XCTestCase {
         // 8. Verify Final State: the newer write landed, and the older write was
         // rejected once it re-checked against the newer, now-committed evaluatedAt -
         // it must not have rewound storage back to "150".
-        XCTAssertEqual(newerResult, true)
+        XCTAssertEqual(newerResult, .landed(shouldNotify: true))
         XCTAssertEqual(
             olderHasReturnedLock.withLock { olderResult },
-            false,
+            .skippedStale,
             "the older payload must be rejected once it re-checks against the newer, now-committed evaluatedAt"
         )
         XCTAssertEqual(storage.evaluatedAt, "200", "the newer write must not be rewound by the older payload")

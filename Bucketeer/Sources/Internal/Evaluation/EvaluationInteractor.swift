@@ -123,20 +123,27 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
 
                 // Ordering carries two invariants (ported from the JS SDK's fetch()):
                 // - Write BEFORE clear: the response to a `userAttributesUpdated: true`
-                //   request carries the re-evaluation that flag asked for, so a failed
-                //   write must skip the clear entirely (see the `catch` below) - the flag
-                //   survives and the next poll retries.
+                //   request carries the re-evaluation that flag asked for, so a write that
+                //   did not land must skip the clear entirely - the flag survives and the
+                //   next poll retries. That covers a failed write (see the `catch` below)
+                //   and a write the staleness guard skipped (see the `guard` below).
                 // - Clear BEFORE notify: a listener that triggers a nested fetch must
                 //   observe the flag already cleared, or the nested call re-sends
                 //   `userAttributesUpdated: true` and gets back a redundant snapshot.
                 // Streamed data must never clear the flag - only this, the polling path,
                 // does. See `applyStreamedEvaluations(_:shouldNotify:)`.
-                let shouldNotifyListener: Bool
+                let writeResult: EvaluationWriteResult
                 do {
-                    shouldNotifyListener = try self?.writeEvaluations(response) ?? false
+                    writeResult = try self?.writeEvaluations(response) ?? .skippedStale
                 } catch let error {
                     logger?.error(error)
                     completion?(.failure(error: .init(error: error), featureTag: featureTag))
+                    return
+                }
+
+                guard case .landed(let shouldNotifyListener) = writeResult else {
+                    logger?.debug(message: "Poll reply skipped as stale, keeping userAttributesUpdated")
+                    completion?(result)
                     return
                 }
 
@@ -169,26 +176,23 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
             return
         }
 
-        let shouldNotifyListener: Bool
+        let writeResult: EvaluationWriteResult
         do {
-            shouldNotifyListener = try writeEvaluations(response)
+            writeResult = try writeEvaluations(response)
         } catch let error {
             logger?.error(error)
             return
         }
 
-        guard shouldNotifyListener else { return }
+        guard writeResult == .landed(shouldNotify: true) else { return }
         notifyListeners(shouldNotify: shouldNotify)
     }
 
     /// Writes `response` to storage. Shared by `fetch` (polling) and
     /// `applyStreamedEvaluations` (streaming).
-    /// - Returns: `true` when the write landed and the payload is worth notifying listeners
-    ///   about. This is not change detection: a force update returns `true` for any landed
-    ///   snapshot, and the upsert branch returns `true` for any nonempty payload, even if the
-    ///   values match what is already stored. A write the storage staleness guard skipped
-    ///   returns `false`, and callers must not notify listeners in that case.
-    private func writeEvaluations(_ response: GetEvaluationsResponse) throws -> Bool {
+    /// - Returns: The storage outcome. See `EvaluationWriteResult`: callers must not
+    ///   notify listeners, or clear the user-attributes-updated flag, on `.skippedStale`.
+    private func writeEvaluations(_ response: GetEvaluationsResponse) throws -> EvaluationWriteResult {
         let userEvaluations = response.evaluations
         // https://github.com/bucketeer-io/android-client-sdk/issues/69
         // forceUpdate: a boolean that tells the SDK to delete all the current data and save the latest evaluations from the response

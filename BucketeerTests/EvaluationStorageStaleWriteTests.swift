@@ -41,7 +41,7 @@ final class EvaluationStorageStaleWriteTests: XCTestCase {
             evaluations: [.mock1],
             evaluatedAt: "1023")
 
-        XCTAssertFalse(result, "a strictly older evaluatedAt must be rejected")
+        XCTAssertEqual(result, .skippedStale, "a strictly older evaluatedAt must be rejected")
         XCTAssertEqual(storage.evaluatedAt, "1024", "stored evaluatedAt must be untouched")
         XCTAssertEqual(storage.currentEvaluationsId, "", "stored id must be untouched")
         XCTAssertEqual(try storage.get(), [], "cache must be untouched")
@@ -66,7 +66,7 @@ final class EvaluationStorageStaleWriteTests: XCTestCase {
             evaluations: [.mock1],
             evaluatedAt: "1024")
 
-        XCTAssertTrue(result, "an equal evaluatedAt must still apply: same-tick writes are not stale relative to each other")
+        XCTAssertEqual(result, .landed(shouldNotify: true), "an equal evaluatedAt must still apply: same-tick writes are not stale relative to each other")
         XCTAssertEqual(storage.currentEvaluationsId, "evaluations_id_2")
         wait(for: [expectation], timeout: 0.1)
     }
@@ -92,7 +92,7 @@ final class EvaluationStorageStaleWriteTests: XCTestCase {
             archivedFeatureIds: [],
             evaluatedAt: "1023")
 
-        XCTAssertFalse(result, "a strictly older evaluatedAt must be rejected")
+        XCTAssertEqual(result, .skippedStale, "a strictly older evaluatedAt must be rejected")
         XCTAssertEqual(storage.evaluatedAt, "1024")
         XCTAssertEqual(storage.currentEvaluationsId, "")
         // The guard must short-circuit BEFORE update()'s own read-current-rows step, so
@@ -115,7 +115,7 @@ final class EvaluationStorageStaleWriteTests: XCTestCase {
             archivedFeatureIds: [],
             evaluatedAt: "1024")
 
-        XCTAssertTrue(result)
+        XCTAssertEqual(result, .landed(shouldNotify: true))
         XCTAssertEqual(storage.currentEvaluationsId, "evaluations_id_2")
         XCTAssertEqual(storage.evaluatedAt, "1024")
     }
@@ -131,7 +131,7 @@ final class EvaluationStorageStaleWriteTests: XCTestCase {
         let result = try storage.deleteAllAndInsert(
             evaluationId: "id_1", evaluations: [.mock1], evaluatedAt: "5")
 
-        XCTAssertTrue(result)
+        XCTAssertEqual(result, .landed(shouldNotify: true))
         XCTAssertEqual(storage.evaluatedAt, "5")
     }
 
@@ -146,11 +146,11 @@ final class EvaluationStorageStaleWriteTests: XCTestCase {
         let result = try storage.deleteAllAndInsert(
             evaluationId: "id_1", evaluations: [.mock1], evaluatedAt: "")
 
-        XCTAssertTrue(result, "an unreadable incoming evaluatedAt must not be treated as stale")
+        XCTAssertEqual(result, .landed(shouldNotify: true), "an unreadable incoming evaluatedAt must not be treated as stale")
         XCTAssertEqual(storage.evaluatedAt, "")
     }
 
-    func testDeleteAllAndInsertReturnsTrueWhenClearingCache() throws {
+    func testDeleteAllAndInsertLandsAndNotifiesWhenClearingCache() throws {
         let sqlDao = MockEvaluationSQLDao(
             getHandler: { _ in [] },
             startTransactionHandler: { try $0() }
@@ -159,6 +159,6 @@ final class EvaluationStorageStaleWriteTests: XCTestCase {
 
         let result = try storage.deleteAllAndInsert(evaluationId: "id_1", evaluations: [], evaluatedAt: "2048")
 
-        XCTAssertTrue(result, "a non-stale write that empties the cache still landed and must return true")
+        XCTAssertEqual(result, .landed(shouldNotify: true), "a non-stale write that empties the cache still landed and must still notify")
     }
 }
