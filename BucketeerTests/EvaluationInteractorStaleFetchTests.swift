@@ -28,7 +28,7 @@ import XCTest
 /// the skip decision. `MockApiClient` replies synchronously, so every check can run
 /// straight after `fetch`.
 ///
-/// A separate file from `EvaluationInteractorTests`, which is already close to up
+/// A separate file from `EvaluationInteractorTests`, which is already close to
 /// SwiftLint's `file_length` limit under `swiftlint --strict`.
 @available(iOS 13, *)
 final class EvaluationInteractorStaleFetchTests: XCTestCase {
