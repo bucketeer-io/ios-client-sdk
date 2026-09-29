@@ -124,9 +124,15 @@ final class E2EBKTClientForceUpdateTests: XCTestCase {
             )
 
             let randomUserEvaluationId = "322764191351370263"
+            // Reuse the stored evaluatedAt rather than "1": the init fetch above has already
+            // stored a server timestamp (asserted non-"0" at the top of this block), and the
+            // storage staleness guard skips a write that is strictly older than what is
+            // stored. An equal value still applies, so the fake data below still lands.
+            // Deliberately not a far-future value, which would instead block the fetch that
+            // runs after the feature tag changes - the force update this test is verifying.
             try evaluationStorage.update(
                 evaluationId: randomUserEvaluationId,
-                evaluations: [tobeDeletedEvaluation], archivedFeatureIds: [], evaluatedAt: "1")
+                evaluations: [tobeDeletedEvaluation], archivedFeatureIds: [], evaluatedAt: evaluationStorage.evaluatedAt)
             let currentEvaluationsWithFakeData = try evaluationStorage.get()
             XCTAssertEqual(currentEvaluationsWithFakeData.count, currentEvaluations.count + 1)
             XCTAssertEqual(currentEvaluationsWithFakeData.contains(tobeDeletedEvaluation), true)
