@@ -4,7 +4,9 @@ import Foundation
 /// never reuse it. Set the callbacks and listeners first, then call `open`.
 ///
 /// Not thread-safe: call every method, and set every callback, on the serial SDK queue.
-/// Callbacks are delivered on that same queue. None are delivered after `close()`.
+/// Callbacks are delivered on that same queue. None are delivered after `close()`, except, as in
+/// JS, the remaining events of a chunk whose own callback called `close()`. `StreamConnection`
+/// ignores callbacks from a closed event source anyway.
 protocol EventSource: AnyObject {
     /// The server answered with a 2xx status.
     var onOpen: (() -> Void)? { get set }
