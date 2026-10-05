@@ -143,4 +143,107 @@ final class EvaluationForegroundTaskTests: XCTestCase {
 
         wait(for: [expectation], timeout: 0.1)
     }
+
+    // The streaming fallback needs fresh evaluations as soon as the stream drops, not one
+    // full pollingInterval later.
+    func testStartImmediatelyFetchesRightAwayThenKeepsPolling() {
+        let firstFetch = expectation(description: "first fetch")
+        let secondFetch = expectation(description: "second fetch")
+        let recorder = FetchTimeRecorder(expectations: [firstFetch, secondFetch])
+        let task = makeTask(pollingInterval: 1000, recorder: recorder)
+        defer { task.stop() }
+
+        task.enable()
+        let startedAt = Date()
+        task.start(immediately: true)
+
+        wait(for: [firstFetch], timeout: 0.5)
+        wait(for: [secondFetch], timeout: 3)
+        let times = recorder.times.map { $0.timeIntervalSince(startedAt) }
+        XCTAssertLessThan(times[0], 0.5, "the first fetch must not wait for the polling interval")
+        XCTAssertGreaterThanOrEqual(times[1], 0.9, "the second fetch must come from the poller, one interval later")
+    }
+
+    func testStartWithoutImmediatelyWaitsForTheInterval() {
+        let noEarlyFetch = expectation(description: "no fetch before the interval")
+        noEarlyFetch.isInverted = true
+        let recorder = FetchTimeRecorder(expectations: [noEarlyFetch])
+        let task = makeTask(pollingInterval: 1000, recorder: recorder)
+        defer { task.stop() }
+
+        task.enable()
+        task.start(immediately: false)
+
+        wait(for: [noEarlyFetch], timeout: 0.5)
+        let firstTick = expectation(description: "fetch on the first tick")
+        recorder.expectNext([firstTick])
+        wait(for: [firstTick], timeout: 3)
+    }
+
+    // iOS only: the streaming fallback starts after the initial fetch, so it is created
+    // already enabled instead of waiting for TaskScheduler.enableEvaluationTask().
+    func testCreatedEnabledFetchesWithoutEnable() {
+        let firstTick = expectation(description: "fetch on the first tick")
+        let recorder = FetchTimeRecorder(expectations: [firstTick])
+        let task = makeTask(pollingInterval: 1000, recorder: recorder, enabled: true)
+        defer { task.stop() }
+
+        task.start()
+
+        wait(for: [firstTick], timeout: 3)
+    }
+
+    private func makeTask(pollingInterval: Int64,
+                          recorder: FetchTimeRecorder,
+                          enabled: Bool = false) -> EvaluationForegroundTask {
+        let evaluationInteractor = MockEvaluationInteractor(
+            fetchHandler: { _, _, completion in
+                recorder.record()
+                completion?(.success(.init(
+                    evaluations: .mock1,
+                    userEvaluationsId: "user_evaluation",
+                    seconds: 1,
+                    sizeByte: 2,
+                    featureTag: "featureTag1"
+                )))
+            }
+        )
+        let component = MockComponent(
+            config: BKTConfig.mock(pollingInterval: pollingInterval),
+            evaluationInteractor: evaluationInteractor,
+            eventInteractor: MockEventInteractor()
+        )
+        return EvaluationForegroundTask(
+            component: component,
+            queue: DispatchQueue(label: "io.bucketeer.test.EvaluationForegroundTask"),
+            enabled: enabled
+        )
+    }
+}
+
+// Records when each fetch happens and fulfills one expectation per fetch, in order.
+// Fetches run on the task's queue, the test reads on the main thread, so it is locked.
+private final class FetchTimeRecorder {
+    private let lock = NSLock()
+    private var pending: [XCTestExpectation]
+    private var _times: [Date] = []
+
+    init(expectations: [XCTestExpectation]) {
+        self.pending = expectations
+    }
+
+    var times: [Date] { lock.withLock { _times } }
+
+    // Replaces what the next fetches fulfill, dropping anything not fulfilled yet.
+    func expectNext(_ expectations: [XCTestExpectation]) {
+        lock.withLock { pending = expectations }
+    }
+
+    func record() {
+        let next: XCTestExpectation? = lock.withLock {
+            _times.append(Date())
+            return pending.isEmpty ? nil : pending.removeFirst()
+        }
+        next?.fulfill()
+    }
 }
