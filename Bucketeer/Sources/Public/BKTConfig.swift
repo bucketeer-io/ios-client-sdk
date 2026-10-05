@@ -12,6 +12,7 @@ public struct BKTConfig {
     let sdkVersion: String
     let appVersion: String
     let logger: BKTLogger?
+    let enableStreaming: Bool
 
     public class Builder {
         private(set) var apiKey: String?
@@ -25,6 +26,7 @@ public struct BKTConfig {
         private(set) var logger: BKTLogger?
         private(set) var wrapperSdkVersion: String?
         private(set) var wrapperSdkSourceId: Int?
+        private(set) var enableStreaming: Bool?
 
         public init() {}
 
@@ -97,6 +99,13 @@ public struct BKTConfig {
 
         public func build() throws -> BKTConfig {
             return try BKTConfig.init(with: self)
+        }
+
+        // Receives evaluation updates over a server-sent events stream instead of polling.
+        // Falls back to polling while the stream is unavailable. Default: false.
+        public func with(enableStreaming: Bool) -> Builder {
+            self.enableStreaming = enableStreaming
+            return self
         }
     }
 }
@@ -187,6 +196,7 @@ extension BKTConfig {
         self.sdkVersion = resolvedSdkVersion
         self.appVersion = appVersion
         self.logger = logger
+        self.enableStreaming = builder.enableStreaming ?? false
     }
 
     func toSDKInfo() -> SDKInfo {
