@@ -26,5 +26,11 @@ public struct Constant {
         static let RESET_INTERVAL_MILLIS: Int64 = 60_000
         // URLSession idle timeout. Longer than the watchdog so our own timer fires first.
         static let REQUEST_TIMEOUT_SECONDS: TimeInterval = 90
+        // Appended to apiEndpoint, the same way ApiClientImpl builds the get_evaluations URL.
+        static let STREAM_EVALUATIONS_PATH = "v1/gateway/stream_evaluations"
+        // After a non-terminal failure, how long to poll before trying the stream again.
+        static let RECOVERY_INTERVAL_MILLIS: Int64 = 300_000
+        // Merges a burst of user attribute updates into one stream reconnect.
+        static let RECONNECT_DEBOUNCE_MILLIS: Int64 = 200
     }
 }
