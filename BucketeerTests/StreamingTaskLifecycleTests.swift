@@ -259,6 +259,11 @@ final class StreamingTaskLifecycleTests: XCTestCase {
         h.reconnect()
         h.openLatest()
         h.stop()
+        // start() with the task already enabled opens the stream itself (in the order above,
+        // enable() did). This is the call TaskScheduler makes on every foreground; the real
+        // foreground path is checked in TaskSchedulerStreamingTests
+        // (testBackgroundThenForegroundOpensANewStream).
+        h.start()
 
         let recorded = lock.withLock { calls }
         XCTAssertEqual(Set(recorded.map { $0.name }), [
