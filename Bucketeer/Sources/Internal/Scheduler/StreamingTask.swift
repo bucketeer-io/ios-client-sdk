@@ -36,6 +36,8 @@ final class StreamingTask: ScheduledTask {
     /// Set on a terminal failure (bad API key, streaming unsupported). Never reset: only destroy +
     /// initialize brings streaming back, as in JS.
     private var terminalFailure = false
+    /// The merged reconnect waiting to run, see `onUserAttributesUpdated()`.
+    private var pendingReconnect: DispatchWorkItem?
 
     /// - Parameters:
     ///   - component: The per-client services the task reads: config, user and the evaluation
@@ -75,10 +77,13 @@ final class StreamingTask: ScheduledTask {
             self.connection?.stop()
             self.connection = nil
             self.stopFallback()
+            self.pendingReconnect?.cancel()
+            self.pendingReconnect = nil
         }
     }
 
-    /// Called when the user attributes change, so the stream sends the new ones.
+    /// Reconnects now so the stream sends the new user attributes. Called after the 200ms merge in
+    /// `onUserAttributesUpdated()`.
     func reconnect() {
         queue.async { [weak self] in
             guard let self, self.isRunning, self.isEnabled else { return }
@@ -93,6 +98,22 @@ final class StreamingTask: ScheduledTask {
                 // until onOpen proves the new stream works, so there is no gap.
                 self.openStream()
             }
+        }
+    }
+
+    /// Called by `TaskScheduler` when the user attributes change. A burst of calls (several
+    /// attributes set at login) becomes one `reconnect()`, 200ms after the last call. JS keeps
+    /// this merge in its TaskScheduler with a plain setTimeout; here it uses the task's own
+    /// scheduler, the only timer tests can control, so the task owns it.
+    func onUserAttributesUpdated() {
+        queue.async { [weak self] in
+            guard let self, self.isRunning else { return }
+            self.pendingReconnect?.cancel()
+            let work = DispatchWorkItem { [weak self] in
+                self?.reconnect()
+            }
+            self.pendingReconnect = work
+            self.dependencies.scheduler.schedule(afterMillis: Constant.Streaming.RECONNECT_DEBOUNCE_MILLIS, work)
         }
     }
 

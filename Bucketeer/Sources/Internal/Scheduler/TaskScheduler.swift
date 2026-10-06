@@ -5,7 +5,9 @@ final class TaskScheduler {
     let dispatchQueue: DispatchQueue
 
     private(set) lazy var foregroundSchedulers: [ScheduledTask] = [
-        EvaluationForegroundTask(component: component, queue: dispatchQueue),
+        component.config.enableStreaming
+            ? StreamingTask(component: component, dependencies: streamingTaskDependencies)
+            : EvaluationForegroundTask(component: component, queue: dispatchQueue),
         EventForegroundTask(component: component, queue: dispatchQueue)
     ]
 
@@ -30,9 +32,15 @@ final class TaskScheduler {
         }
     }
 
-    init(component: Component, dispatchQueue: DispatchQueue) {
+    /// - Parameter streamingTaskDependencies: For tests. Default: `StreamingTaskDependenciesImpl` on
+    ///   `dispatchQueue`. Only used when `config.enableStreaming` is true.
+    init(component: Component,
+         dispatchQueue: DispatchQueue,
+         streamingTaskDependencies: StreamingTaskDependencies? = nil) {
         self.component = component
         self.dispatchQueue = dispatchQueue
+        self.streamingTaskDependencies = streamingTaskDependencies
+            ?? StreamingTaskDependenciesImpl(component: component, queue: dispatchQueue)
 
         onForeground()
         if #available(iOS 13.0, tvOS 13.0, *) {
@@ -107,5 +115,22 @@ final class TaskScheduler {
                 .first?
                 .enable()
         }
+        streamingTask?.enable()
+    }
+
+    // MARK: - Streaming
+
+    /// Only handed to `StreamingTask` when it is built (and read by tests). `TaskScheduler` itself
+    /// never uses the stream's queue, timers or connections.
+    let streamingTaskDependencies: StreamingTaskDependencies
+
+    private var streamingTask: StreamingTask? {
+        foregroundSchedulers.compactMap { $0 as? StreamingTask }.first
+    }
+
+    /// Called by `BKTClient.updateUserAttributes`. Only passes the event on: `StreamingTask` decides
+    /// what to do (merge a burst, then reconnect). No-op when polling. Safe to call from any thread.
+    func onUserAttributesUpdated() {
+        streamingTask?.onUserAttributesUpdated()
     }
 }
