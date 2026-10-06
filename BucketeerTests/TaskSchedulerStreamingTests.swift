@@ -118,7 +118,9 @@ final class TaskSchedulerStreamingTests: XCTestCase {
     // MARK: - App lifecycle (iOS only)
 
     // The reuse trap, through the real notifications: the same StreamingTask comes back on
-    // foreground, and it must open a new stream instead of reusing the closed one.
+    // foreground, and it must open a new stream instead of reusing the closed one. The
+    // notifications arrive on the main thread, so this also checks that the foreground open
+    // (the request build) runs on the SDK queue.
     func testBackgroundThenForegroundOpensANewStream() {
         _ = makeStreamingSchedulerWithAnOpenStream()
 
@@ -126,12 +128,49 @@ final class TaskSchedulerStreamingTests: XCTestCase {
         drain()
         XCTAssertEqual(sources.first?.closed, true)
 
+        let queueKey = DispatchSpecificKey<Void>()
+        dependencies.queue.setSpecific(key: queueKey, value: ())
+        let lock = NSLock()
+        var calls: [(name: String, onQueue: Bool)] = []
+        interactor.onCall = { name in
+            let onQueue = DispatchQueue.getSpecific(key: queueKey) != nil
+            lock.withLock { calls.append((name, onQueue)) }
+        }
+        XCTAssertTrue(Thread.isMainThread)
         postLifecycle(foreground: true)
         drain()
 
         XCTAssertEqual(sources.count, 2)
         XCTAssertEqual(sources.last?.closed, false)
         XCTAssertNotNil(sources.last?.openedRequest)
+        let recorded = lock.withLock { calls }
+        XCTAssertTrue(recorded.contains { $0.name == "userAttributesState" }, "the request was built")
+        XCTAssertEqual(recorded.filter { !$0.onQueue }.map { $0.name }, [])
+    }
+
+    // A sequence that is easy to get wrong: the user changes while the app is in the background.
+    // Nothing may open a stream in the background, and the foreground stream must carry the new
+    // attributes.
+    func testUserAttributesUpdatedWhileBackgroundedAreSentOnForeground() throws {
+        let scheduler = makeStreamingSchedulerWithAnOpenStream()
+        postLifecycle(foreground: false)
+        drain()
+
+        dependencies.queue.sync { scheduler.component.userHolder.updateAttributes { _ in ["plan": "premium"] } }
+        scheduler.onUserAttributesUpdated()
+        drain()
+        advance(1_000)
+        XCTAssertEqual(sources.count, 1, "no stream may open in the background")
+
+        postLifecycle(foreground: true)
+        drain()
+        advance(1_000)
+
+        XCTAssertEqual(sources.count, 2)
+        let body = try XCTUnwrap(dependencies.queue.sync { dependencies.sources.last?.openedRequest?.httpBody })
+        let json = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
+        let user = try XCTUnwrap(json["user"] as? [String: Any])
+        XCTAssertEqual(user["data"] as? [String: String], ["plan": "premium"])
     }
 
     // BKTClient.destroy() calls invalidate() and then drops the scheduler. The stream must be
