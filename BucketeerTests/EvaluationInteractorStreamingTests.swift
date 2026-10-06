@@ -2,7 +2,7 @@ import XCTest
 @testable import Bucketeer
 
 /// Covers `EvaluationInteractorImpl.applyStreamedEvaluations`, the entry point streamed
-/// (`put`/`patch`) evaluations will use once PR 4 wires up `StreamingTask`. It shares the
+/// (`put`/`patch`) evaluations go through, called by `StreamingTask`. It shares the
 /// `writeEvaluations` write path with `fetch`, so this file focuses on what is different
 /// about the streamed path: it never clears the user-attributes-updated flag, it respects
 /// `shouldNotify`, and it drops a payload whose `createdAt` cannot be read as a number.
