@@ -738,5 +738,33 @@ final class BKTClientTests: XCTestCase {
         }
         wait(for: [expectation], timeout: 0.1)
     }
+
+    // Port of the JS BKTClient.updateUserAttributes: with streaming on, the stream reconnects
+    // (after the 200ms merge) so the server evaluates the new attributes.
+    func testUpdateUserAttributesReconnectsTheStream() throws {
+        let dependencies = MockStreamingTaskDependencies()
+        let queue = dependencies.queue
+        let dataModule = MockDataModule(config: .mock(enableStreaming: true))
+        let client = BKTClient(dataModule: dataModule, dispatchQueue: queue)
+        client.taskScheduler = TaskScheduler(
+            component: client.component,
+            dispatchQueue: queue,
+            streamingTaskDependencies: dependencies
+        )
+        client.taskScheduler?.enableEvaluationTask()
+        queue.sync { dependencies.sources.last?.simulateOpen() }
+        XCTAssertEqual(queue.sync { dependencies.sources.count }, 1)
+
+        client.updateUserAttributes(attributes: ["plan": "premium"])
+        queue.sync { dependencies.mockScheduler.advance(byMillis: Constant.Streaming.RECONNECT_DEBOUNCE_MILLIS) }
+
+        let sources = queue.sync { dependencies.sources }
+        XCTAssertEqual(sources.count, 2)
+        let body = try XCTUnwrap(queue.sync { sources.last?.openedRequest?.httpBody })
+        let json = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
+        let user = try XCTUnwrap(json["user"] as? [String: Any])
+        XCTAssertEqual(user["data"] as? [String: String], ["plan": "premium"])
+        client.destroy()
+    }
 }
 // swiftlint:enable type_body_length file_length

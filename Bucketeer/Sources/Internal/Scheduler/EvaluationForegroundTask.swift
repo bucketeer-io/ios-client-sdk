@@ -23,11 +23,13 @@ final class EvaluationForegroundTask: ScheduledTask {
     init(component: Component,
          queue: DispatchQueue,
          retryPollingInterval: Int64 = Constant.RETRY_POLLING_INTERVAL,
-         maxRetryCount: Int = Constant.MAX_RETRY_COUNT) {
+         maxRetryCount: Int = Constant.MAX_RETRY_COUNT,
+         enabled: Bool = false) {
         self.component = component
         self.queue = queue
         self.retryPollingInterval = retryPollingInterval
         self.maxRetryCount = maxRetryCount
+        self._isTaskEnabled = enabled
     }
 
     /// Enables the task so the next poller tick will execute a fetch.
@@ -118,4 +120,22 @@ final class EvaluationForegroundTask: ScheduledTask {
             }
         }
     }
+
+    /// Same as `start()`, plus one fetch right away on `queue` when `immediately` is true,
+    /// so the streaming fallback does not leave evaluations stale for a full pollingInterval.
+    func start(immediately: Bool) {
+        start()
+        guard immediately else { return }
+        queue.async { [weak self] in
+            self?.fetchEvaluations()
+        }
+    }
 }
+
+/// The polling fallback that StreamingTask starts when the stream fails and stops once it reopens.
+protocol StreamingFallbackTask: AnyObject {
+    func start(immediately: Bool)
+    func stop()
+}
+
+extension EvaluationForegroundTask: StreamingFallbackTask {}

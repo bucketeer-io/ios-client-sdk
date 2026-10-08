@@ -9,7 +9,8 @@ extension BKTConfig {
         eventsMaxQueueSize: Int = Constant.DEFAULT_MAX_QUEUE_SIZE,
         pollingInterval: Int64 = Constant.DEFAULT_POLLING_INTERVAL_MILLIS,
         backgroundPollingInterval: Int64 = Constant.DEFAULT_BACKGROUND_POLLING_INTERVAL_MILLIS,
-        featureTag: String = "featureTag1") -> BKTConfig {
+        featureTag: String = "featureTag1",
+        enableStreaming: Bool = false) -> BKTConfig {
         // Direct init BKTConfig and bypass all validations
         // It could only happen with internal access
         return BKTConfig(
@@ -23,7 +24,8 @@ extension BKTConfig {
             sourceId: .ios,
             sdkVersion: "0.0.2",
             appVersion: "1.2.3",
-            logger: MockLogger()
+            logger: MockLogger(),
+            enableStreaming: enableStreaming
         )
     }
 }
