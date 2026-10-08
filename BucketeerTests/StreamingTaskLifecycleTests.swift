@@ -297,4 +297,22 @@ final class StreamingTaskLifecycleTests: XCTestCase {
         XCTAssertTrue(shouldNotify())
         XCTAssertTrue(task.isRunning)
     }
+
+    // iOS only: stop() marks the task stopped at once but closes the connection later, on the
+    // queue. A server "connected" reply already waiting in the queue still reaches onOpen, while
+    // the snapshot that answers the new attributes will never be applied. Clearing the flag then
+    // would stop the next poll from asking the server to re-evaluate. JS closes the connection
+    // inside stop(), so it can't get here.
+    func testAnOpenQueuedBeforeStopDoesNotClearTheFlag() {
+        h.setUserAttributesState(.init(version: 1, isUpdated: true))
+        h.startEnabled()
+        let blocker = h.blockQueue()
+        h.enqueueOnLatest { $0.simulateOpen() }
+
+        h.task.stop()
+        blocker.signal()
+        h.drain()
+
+        XCTAssertEqual(h.clearCalls, [])
+    }
 }

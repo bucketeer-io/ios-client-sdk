@@ -157,8 +157,12 @@ final class StreamingTask: ScheduledTask {
             onUnhandledMessage: { [weak self] data in self?.handleData(data) },
             callbacks: StreamConnectionCallbacks(
                 onOpen: { [weak self] in
-                    self?.stopFallback()
-                    self?.clearUserAttributesUpdated()
+                    // An open already waiting in the queue when stop() was called. Its snapshot
+                    // will never be applied, so it must not clear the attributes flag.
+                    // stop()'s cleanup stops the fallback.
+                    guard let self, self.isRunning else { return }
+                    self.stopFallback()
+                    self.clearUserAttributesUpdated()
                 },
                 onError: { [weak self] info in
                     self?.handleError(info)
