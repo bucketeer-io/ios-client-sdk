@@ -71,6 +71,7 @@ jobs:
         env:
           E2E_API_ENDPOINT: ${{ secrets.E2E_API_ENDPOINT }}
           E2E_API_KEY: ${{ secrets.E2E_API_KEY }}
+          E2E_PUBLIC_API_KEY: ${{ secrets.E2E_PUBLIC_API_KEY }}
         run: |
           # Run E2E tests with xcbeautify
           set -o pipefail && make e2e-without-building | xcbeautify --renderer github-actions
