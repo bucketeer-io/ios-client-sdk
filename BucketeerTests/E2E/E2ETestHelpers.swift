@@ -19,10 +19,13 @@ extension BKTConfig {
     static func e2e(
         featureTag: String = FEATURE_TAG,
         wrapperSdkSourceId: SourceID? = nil,
-        wrapperSdkVersion: String? = nil
+        wrapperSdkVersion: String? = nil,
+        enableStreaming: Bool = false,
+        // Replaces E2E_API_ENDPOINT, for example with a proxy server's address.
+        apiEndpoint: String? = nil
     ) throws -> BKTConfig {
         let apiKey = ProcessInfo.processInfo.environment["E2E_API_KEY"]!
-        let apiEndpoint = ProcessInfo.processInfo.environment["E2E_API_ENDPOINT"]!
+        let apiEndpoint = apiEndpoint ?? ProcessInfo.processInfo.environment["E2E_API_ENDPOINT"]!
 
         var builder = BKTConfig.Builder()
             .with(apiKey: apiKey)
@@ -30,6 +33,7 @@ extension BKTConfig {
             .with(featureTag: featureTag)
             .with(appVersion: "1.2.3")
             .with(logger: E2ELogger())
+            .with(enableStreaming: enableStreaming)
         if let wrapperSdkSourceId = wrapperSdkSourceId, let sdkVersion = wrapperSdkVersion {
             // Set only when using wrapper SDK
             builder = builder

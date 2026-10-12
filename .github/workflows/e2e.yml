@@ -12,6 +12,14 @@ jobs:
     uses: ./.github/workflows/generate-xcode-project.yml
 
   e2e:
+    # One E2E run at a time against the shared E2E backend: the streaming tests write a shared
+    # flag, and two runs at once can hide each other's values. Other runs wait their turn
+    # (queue: max keeps every waiting run instead of only the newest), and a running one is
+    # never cancelled. The group name is the same for every branch and trigger.
+    # https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency#example-queueing-multiple-pending-runs
+    concurrency:
+      group: ios-e2e-backend
+      queue: max
     # We must ensure the xcode project file is uploaded before proceeding
     needs: generate-xcode-project
     if: always()
@@ -71,6 +79,7 @@ jobs:
         env:
           E2E_API_ENDPOINT: ${{ secrets.E2E_API_ENDPOINT }}
           E2E_API_KEY: ${{ secrets.E2E_API_KEY }}
+          E2E_PUBLIC_API_KEY: ${{ secrets.E2E_PUBLIC_API_KEY }}
         run: |
           # Run E2E tests with xcbeautify
           set -o pipefail && make e2e-without-building | xcbeautify --renderer github-actions

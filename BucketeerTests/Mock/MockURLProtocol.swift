@@ -31,7 +31,14 @@ final class MockURLProtocol: URLProtocol {
         steps = []
         lastRequest = nil
         lastRequestBody = nil
+        stopLoadingLock.withLock { _stopLoadingCount = 0 }
     }
+
+    /// How many requests the client cancelled or finished. Written on URLSession's loading
+    /// threads, so it sits behind a lock.
+    static var stopLoadingCount: Int { stopLoadingLock.withLock { _stopLoadingCount } }
+    private static let stopLoadingLock = NSLock()
+    private static var _stopLoadingCount = 0
 
     override class func canInit(with request: URLRequest) -> Bool {
         return true
@@ -71,6 +78,7 @@ final class MockURLProtocol: URLProtocol {
     }
 
     override func stopLoading() {
+        Self.stopLoadingLock.withLock { Self._stopLoadingCount += 1 }
     }
 
     private static func readAll(_ stream: InputStream?) -> Data? {

@@ -35,6 +35,8 @@ schemes:
           variable: E2E_API_ENDPOINT
         - value: $(E2E_API_KEY)
           variable: E2E_API_KEY
+        - value: $(E2E_PUBLIC_API_KEY)
+          variable: E2E_PUBLIC_API_KEY
       targets:
         - BucketeerTests
   Example:
