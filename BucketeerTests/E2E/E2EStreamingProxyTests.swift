@@ -3,7 +3,7 @@ import XCTest
 @testable import Bucketeer
 
 /// Streaming E2E tests that can see the network. The SDK is pointed at a proxy server inside
-/// the test (`E2ERecordingProxy`) through the public `apiEndpoint` setting; the proxy forwards
+/// the test (`RecordingProxy`) through the public `apiEndpoint` setting; the proxy forwards
 /// to the real backend and records every request. That lets these tests check that values
 /// arrive over the stream, not through a REST fetch.
 ///
@@ -12,7 +12,7 @@ import XCTest
 /// proxy for that. See `BucketeerTests/E2E/README.md`.
 @available(iOS 13, *)
 final class E2EStreamingProxyTests: XCTestCase {
-    private var proxy: E2ERecordingProxy!
+    private var proxy: RecordingProxy!
 
     override func setUp() async throws {
         try await super.setUp()
@@ -21,7 +21,7 @@ final class E2EStreamingProxyTests: XCTestCase {
         try? FileManager.default.removeItem(at: .database)
 
         let endpoint = ProcessInfo.processInfo.environment["E2E_API_ENDPOINT"]!
-        proxy = try E2ERecordingProxy(upstream: URL(string: endpoint)!)
+        proxy = try RecordingProxy(upstream: URL(string: endpoint)!)
     }
 
     @MainActor

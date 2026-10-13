@@ -39,7 +39,7 @@ The SDK has no public way to observe its requests, and its network sessions are 
 
 ### The proxy server
 
-`E2ERecordingProxy` is a small HTTP server that the test starts on `127.0.0.1`. The SDK is pointed at it through the public `apiEndpoint` setting. The proxy forwards every request to the real backend, passes each reply back as it arrives (the stream piece by piece), and records each request's path and reply status.
+`RecordingProxy` is a small HTTP server that the test starts on `127.0.0.1`. The SDK is pointed at it through the public `apiEndpoint` setting. The proxy forwards every request to the real backend, passes each reply back as it arrives (the stream piece by piece), and records each request's path and reply status.
 
 This keeps the client exactly as an app gets it: it is created by the public `BKTClient.initialize`, and nothing inside it is replaced. Only its address changes.
 
@@ -48,7 +48,7 @@ Approaches not used, and why:
 - **Plugging a recorder into the SDK's internal network sessions**: the test would build the client itself and swap internal parts, so it would no longer test the client an app gets.
 - **Patching `URLSessionConfiguration.default` for the whole test process**: global, so it affects every other test in the run.
 
-The proxy has its own tests, `BucketeerTests/E2ERecordingProxyTests.swift`. They run in the unit suite with a scripted fake backend (`MockURLProtocol`), so they need no keys. The E2E tests never use the fake backend.
+The proxy has its own tests, `BucketeerTests/RecordingProxyTests.swift`. They run in the unit suite with a scripted fake backend (`MockURLProtocol`), so they need no keys. The E2E tests never use the fake backend.
 
 ### Two classes
 

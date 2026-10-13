@@ -1,14 +1,14 @@
 import Foundation
 import XCTest
 
-/// Tests for the proxy server the streaming E2E tests run through (`E2ERecordingProxy`).
+/// Tests for the proxy server the streaming E2E tests run through (`RecordingProxy`).
 ///
 /// They check the proxy itself, not the SDK, so they need no backend and no keys: the proxy
 /// forwards to `MockURLProtocol`, a scripted fake backend, and a plain `URLSession` plays the
 /// SDK's side over real loopback HTTP.
-final class E2ERecordingProxyTests: XCTestCase {
+final class RecordingProxyTests: XCTestCase {
     private let upstream = URL(string: "https://backend.test/v1")!
-    private var proxy: E2ERecordingProxy!
+    private var proxy: RecordingProxy!
     private var client: ProxyTestClient!
 
     override func setUpWithError() throws {
@@ -16,7 +16,7 @@ final class E2ERecordingProxyTests: XCTestCase {
         MockURLProtocol.reset()
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [MockURLProtocol.self]
-        proxy = try E2ERecordingProxy(upstream: upstream, configuration: configuration)
+        proxy = try RecordingProxy(upstream: upstream, configuration: configuration)
         client = ProxyTestClient()
     }
 

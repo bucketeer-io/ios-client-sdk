@@ -10,7 +10,7 @@ import Network
 /// One request per connection: every reply carries `Connection: close` and ends by closing the
 /// connection. Listener, connections and the forwarding session all run on one serial queue.
 /// Call `stop()` when done: the forwarding session keeps the proxy alive until then.
-final class E2ERecordingProxy: NSObject {
+final class RecordingProxy: NSObject {
     struct Record: Equatable {
         let method: String
         let path: String
@@ -22,7 +22,7 @@ final class E2ERecordingProxy: NSObject {
     private(set) var url: URL
 
     private let upstream: URL
-    private let queue = DispatchQueue(label: "io.bucketeer.test.e2eRecordingProxy")
+    private let queue = DispatchQueue(label: "io.bucketeer.test.recordingProxy")
     private let listener: NWListener
     private var session: URLSession!
     private var connections: [ObjectIdentifier: NWConnection] = [:]
@@ -237,7 +237,7 @@ final class E2ERecordingProxy: NSObject {
 
 // MARK: - Forwarding session (callbacks on `queue`)
 
-extension E2ERecordingProxy: URLSessionDataDelegate {
+extension RecordingProxy: URLSessionDataDelegate {
     func urlSession(_ session: URLSession,
                     dataTask: URLSessionDataTask,
                     didReceive response: URLResponse,
