@@ -54,6 +54,7 @@ final class E2EStreamingProxyTests: XCTestCase {
         let streamRequests = proxy.records.filter { $0.path.hasSuffix(Constant.Streaming.STREAM_EVALUATIONS_PATH) }
         XCTAssertEqual(streamRequests.count, 1, "expected one stream request; requests: \(proxy.records)")
         XCTAssertNil(streamRequests.first?.error)
+        XCTAssertEqual(streamRequests.first?.ended, false, "the stream ended right after opening; requests: \(proxy.records)")
     }
 
     @MainActor
@@ -182,11 +183,11 @@ final class E2EStreamingProxyTests: XCTestCase {
         try BKTUser.Builder().with(id: USER_ID).build()
     }
 
-    /// Stream requests the backend answered with 200 that have not failed since. A stream that
-    /// replied 200 and then broke does not count as open.
+    /// Stream requests the backend answered with 200 that are still open: not failed and not
+    /// ended. A stream that replied 200 and then broke, or ended normally, does not count.
     private var streamOpenCount: Int {
         proxy.records.filter {
-            $0.path.hasSuffix(Constant.Streaming.STREAM_EVALUATIONS_PATH) && $0.status == 200 && $0.error == nil
+            $0.path.hasSuffix(Constant.Streaming.STREAM_EVALUATIONS_PATH) && $0.status == 200 && $0.error == nil && !$0.ended
         }.count
     }
 }

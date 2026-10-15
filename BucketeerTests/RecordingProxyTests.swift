@@ -96,6 +96,21 @@ final class RecordingProxyTests: XCTestCase {
         XCTAssertEqual(proxy.count(of: "stream_evaluations"), 1)
     }
 
+    func testNormalEndOfAStreamIsRecordedAsEnded() {
+        MockURLProtocol.steps = [.response(status: 200), .data("a"), .finish]
+
+        let exchange = client.send(URLRequest(url: proxy.url.appendingPathComponent("stream")))
+        wait(for: [exchange.completed], timeout: 5)
+
+        // A normal end is not an error, but the stream is no longer open.
+        XCTAssertEqual(proxy.records.first?.status, 200)
+        XCTAssertNil(proxy.records.first?.error)
+        XCTAssertTrue(
+            waitUntil(timeout: 5) { self.proxy.records.first?.ended == true },
+            "a stream the backend ended normally is still recorded as open"
+        )
+    }
+
     func testBackendFailingMidStreamIsRecordedAndEndsTheClientReply() {
         MockURLProtocol.steps = [
             .response(status: 200),
@@ -130,6 +145,7 @@ final class RecordingProxyTests: XCTestCase {
 
         let exchange = client.send(URLRequest(url: proxy.url.appendingPathComponent("stream")))
         wait(for: [exchange.firstPiece], timeout: 5)
+        XCTAssertEqual(proxy.records.first?.ended, false, "an open stream is recorded as ended")
         // Compared with a start value, not 0: the counter is shared by the whole process, and a
         // late cancel from the previous test could still land after its reset.
         let cancelledBefore = MockURLProtocol.stopLoadingCount
@@ -139,6 +155,10 @@ final class RecordingProxyTests: XCTestCase {
         XCTAssertTrue(
             waitUntil(timeout: 5) { MockURLProtocol.stopLoadingCount == cancelledBefore + 1 },
             "the backend request was not cancelled after the client closed its connection"
+        )
+        XCTAssertTrue(
+            waitUntil(timeout: 5) { self.proxy.records.first?.ended == true },
+            "a stream the client closed is still recorded as open"
         )
     }
 
@@ -156,6 +176,7 @@ final class RecordingProxyTests: XCTestCase {
             waitUntil(timeout: 5) { MockURLProtocol.stopLoadingCount == cancelledBefore + 1 },
             "stop() did not cancel the backend request"
         )
+        XCTAssertEqual(proxy.records.first?.ended, true, "a stream stop() closed is still recorded as open")
 
         let late = client.send(URLRequest(url: proxy.url.appendingPathComponent("get_evaluations")))
         wait(for: [late.completed], timeout: 5)

@@ -16,6 +16,10 @@ final class RecordingProxy: NSObject {
         let path: String
         var status: Int?
         var error: String?
+        /// True once the exchange is over: the backend ended the reply (normally or with an
+        /// error), the client closed its connection, or the proxy stopped. A stream with status
+        /// 200 and no error can still be over.
+        var ended = false
     }
 
     /// The address to give the SDK: `http://127.0.0.1:<port>` plus the backend's path.
@@ -127,7 +131,10 @@ final class RecordingProxy: NSObject {
             guard !isStopped else { return }
             isStopped = true
             listener.cancel()
-            exchanges.values.forEach { $0.task.cancel() }
+            exchanges.values.forEach {
+                updateRecord(at: $0.recordIndex) { $0.ended = true }
+                $0.task.cancel()
+            }
             exchanges.removeAll()
             connections.values.forEach { $0.cancel() }
             connections.removeAll()
@@ -172,7 +179,7 @@ final class RecordingProxy: NSObject {
 
     private func forward(_ request: HTTPRequest, from connection: NWConnection) {
         let recordIndex = recordsLock.withLock { () -> Int in
-            _records.append(Record(method: request.method, path: request.path, status: nil, error: nil))
+            _records.append(Record(method: request.method, path: request.path))
             return _records.count - 1
         }
 
@@ -216,6 +223,7 @@ final class RecordingProxy: NSObject {
 
     private func endExchange(taskIdentifier: Int, cancelTask: Bool) {
         guard let exchange = exchanges.removeValue(forKey: taskIdentifier) else { return }
+        updateRecord(at: exchange.recordIndex) { $0.ended = true }
         if cancelTask {
             exchange.task.cancel()
         }
@@ -265,8 +273,9 @@ extension RecordingProxy: URLSessionDataDelegate {
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         // Gone already when the client closed first or `stop()` ran; nothing to record then.
         guard let exchange = exchanges.removeValue(forKey: task.taskIdentifier) else { return }
-        if let error {
-            updateRecord(at: exchange.recordIndex) { $0.error = error.localizedDescription }
+        updateRecord(at: exchange.recordIndex) { record in
+            record.error = error?.localizedDescription
+            record.ended = true
         }
         // Ends the reply: the client reads the body until the connection closes.
         exchange.connection.send(
