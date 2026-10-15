@@ -41,6 +41,8 @@ The SDK has no public way to observe its requests, and its network sessions are 
 
 `RecordingProxy` is a small HTTP server that the test starts on `127.0.0.1`. The SDK is pointed at it through the public `apiEndpoint` setting. The proxy forwards every request to the real backend, passes each reply back as it arrives (the stream piece by piece), and records each request's path and reply status.
 
+A stream counts as open only while its reply is 200, with no error, and has not ended. A stream the backend ended normally, or one the SDK closed to reconnect, no longer counts.
+
 This keeps the client exactly as an app gets it: it is created by the public `BKTClient.initialize`, and nothing inside it is replaced. Only its address changes.
 
 Approaches not used, and why:
@@ -76,3 +78,5 @@ Each wait has its own timeout and failure message (`E2EStreamingTimeout`): 20s f
 ### Shared state
 
 Every E2E test shares `UserDefaults.standard` and one SQLite file, so each class clears them in `setUp` and `tearDown`. The proxy class also starts a new proxy for each test and stops it after `BKTClient.destroy()`, so traffic from an old stream is never counted in the next test.
+
+The E2E backend is also shared between CI runs, and the streaming tests write a shared flag. An update listener reads the current value only when it is called, so two runs at once can hide each other's values. The `E2E tests` job therefore runs in one concurrency group (`ios-e2e-backend`) for every branch and trigger: one run at a time, every other run waits its turn, and none is cancelled.
