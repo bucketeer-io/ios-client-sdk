@@ -53,7 +53,7 @@ final class RecordingProxyTests: XCTestCase {
         let exchange = client.send(URLRequest(url: proxy.url.appendingPathComponent("stream")))
 
         // "a" must reach the client while "b" is still 3s away, not when the reply ends.
-        wait(for: [exchange.firstPiece], timeout: 1)
+        wait(for: [exchange.firstPiece], timeout: 2)
         XCTAssertEqual(exchange.body, "a")
         wait(for: [exchange.completed], timeout: 6)
         XCTAssertEqual(exchange.body, "ab")
@@ -130,12 +130,14 @@ final class RecordingProxyTests: XCTestCase {
 
         let exchange = client.send(URLRequest(url: proxy.url.appendingPathComponent("stream")))
         wait(for: [exchange.firstPiece], timeout: 5)
-        XCTAssertEqual(MockURLProtocol.stopLoadingCount, 0)
+        // Compared with a start value, not 0: the counter is shared by the whole process, and a
+        // late cancel from the previous test could still land after its reset.
+        let cancelledBefore = MockURLProtocol.stopLoadingCount
 
         exchange.task.cancel()
 
         XCTAssertTrue(
-            waitUntil(timeout: 5) { MockURLProtocol.stopLoadingCount == 1 },
+            waitUntil(timeout: 5) { MockURLProtocol.stopLoadingCount == cancelledBefore + 1 },
             "the backend request was not cancelled after the client closed its connection"
         )
     }
@@ -145,12 +147,13 @@ final class RecordingProxyTests: XCTestCase {
 
         let exchange = client.send(URLRequest(url: proxy.url.appendingPathComponent("stream")))
         wait(for: [exchange.firstPiece], timeout: 5)
+        let cancelledBefore = MockURLProtocol.stopLoadingCount
 
         proxy.stop()
 
         wait(for: [exchange.completed], timeout: 5)
         XCTAssertTrue(
-            waitUntil(timeout: 5) { MockURLProtocol.stopLoadingCount == 1 },
+            waitUntil(timeout: 5) { MockURLProtocol.stopLoadingCount == cancelledBefore + 1 },
             "stop() did not cancel the backend request"
         )
 

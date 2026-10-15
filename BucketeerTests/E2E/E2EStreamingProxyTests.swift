@@ -40,7 +40,7 @@ final class E2EStreamingProxyTests: XCTestCase {
         try await BKTClient.initialize(config: config(), user: user())
 
         // The stream opens once the init fetch has finished. Waiting for its reply, not only
-        // its request, means a 401, a 404 or an aborted stream never passes.
+        // its request, means a 401 or a 404 never passes.
         await assertEventually(timeout: E2EStreamingTimeout.streamOpen, "the stream did not open; requests: \(proxy.records)") {
             self.streamOpenCount >= 1
         }
@@ -48,6 +48,12 @@ final class E2EStreamingProxyTests: XCTestCase {
         // The init fetch is the only get_evaluations call. A second one would mean the stream
         // gave up and the polling fallback fetched instead.
         XCTAssertEqual(proxy.count(of: ApiPaths.getEvaluations.rawValue), 1)
+
+        // Exactly one stream request, and it has not failed. A stream that opened and then
+        // broke would show up here as a retry or an error.
+        let streamRequests = proxy.records.filter { $0.path.hasSuffix(Constant.Streaming.STREAM_EVALUATIONS_PATH) }
+        XCTAssertEqual(streamRequests.count, 1, "expected one stream request; requests: \(proxy.records)")
+        XCTAssertNil(streamRequests.first?.error)
     }
 
     @MainActor
@@ -71,6 +77,15 @@ final class E2EStreamingProxyTests: XCTestCase {
         // proxy, so it counts 0 or 1. A second call would mean the polling fallback filled the
         // cache instead of the stream.
         XCTAssertLessThanOrEqual(proxy.count(of: ApiPaths.getEvaluations.rawValue), 1)
+
+        // The count above also passes when the stream gave up and the fallback fetched once.
+        // Require a clean stream reply, and no REST fetch after the first stream request.
+        XCTAssertGreaterThanOrEqual(streamOpenCount, 1, "the stream never opened cleanly; requests: \(proxy.records)")
+        guard let firstStream = proxy.records.firstIndex(where: { $0.path.hasSuffix(Constant.Streaming.STREAM_EVALUATIONS_PATH) }) else {
+            return XCTFail("no stream request reached the proxy; requests: \(proxy.records)")
+        }
+        let fetchesAfterStream = proxy.records[firstStream...].filter { $0.path.hasSuffix(ApiPaths.getEvaluations.rawValue) }
+        XCTAssertTrue(fetchesAfterStream.isEmpty, "a REST fetch came after the stream request; requests: \(proxy.records)")
     }
 
     @MainActor
@@ -97,7 +112,12 @@ final class E2EStreamingProxyTests: XCTestCase {
         await assertEventually(timeout: E2EStreamingTimeout.value, "value-2 did not arrive; requests: \(proxy.records)") {
             client.stringVariation(featureId: FEATURE_ID_STRING, defaultValue: "") == "value-2"
         }
-        XCTAssertFalse(listener.observed.isEmpty, "the evaluation update listener was not called")
+        // The listener must see value-2 itself. A call for any other update, for example another
+        // run changing the shared flag, does not count. The listener runs on the main thread a
+        // moment after the value is stored, so wait for it.
+        await assertEventually(timeout: E2EStreamingTimeout.value, "the listener never saw value-2; observed: \(listener.observed)") {
+            listener.observed.contains("value-2")
+        }
         XCTAssertEqual(client.stringVariationDetails(featureId: FEATURE_ID_STRING, defaultValue: "").reason, .rule)
 
         // The init fetch is the only get_evaluations call. A second one would mean the new
@@ -162,8 +182,11 @@ final class E2EStreamingProxyTests: XCTestCase {
         try BKTUser.Builder().with(id: USER_ID).build()
     }
 
-    /// Stream requests the backend answered with 200.
+    /// Stream requests the backend answered with 200 that have not failed since. A stream that
+    /// replied 200 and then broke does not count as open.
     private var streamOpenCount: Int {
-        proxy.records.filter { $0.path.hasSuffix(Constant.Streaming.STREAM_EVALUATIONS_PATH) && $0.status == 200 }.count
+        proxy.records.filter {
+            $0.path.hasSuffix(Constant.Streaming.STREAM_EVALUATIONS_PATH) && $0.status == 200 && $0.error == nil
+        }.count
     }
 }

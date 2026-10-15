@@ -47,7 +47,12 @@ final class E2EStreamingDirectTests: XCTestCase {
         await assertEventually(timeout: E2EStreamingTimeout.value, "value-2 did not arrive") {
             client.stringVariation(featureId: FEATURE_ID_STRING, defaultValue: "") == "value-2"
         }
-        XCTAssertFalse(listener.observed.isEmpty, "the evaluation update listener was not called")
+        // The listener must see value-2 itself. A call for any other update, for example another
+        // run changing the shared flag, does not count. The listener runs on the main thread a
+        // moment after the value is stored, so wait for it.
+        await assertEventually(timeout: E2EStreamingTimeout.value, "the listener never saw value-2; observed: \(listener.observed)") {
+            listener.observed.contains("value-2")
+        }
         XCTAssertEqual(client.stringVariationDetails(featureId: FEATURE_ID_STRING, defaultValue: "").reason, .rule)
     }
 
