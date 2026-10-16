@@ -124,7 +124,7 @@ final class TaskSchedulerStreamingTests: XCTestCase {
     func testBackgroundThenForegroundOpensANewStream() {
         _ = makeStreamingSchedulerWithAnOpenStream()
 
-        postLifecycle(foreground: false)
+        leaveApp()
         drain()
         XCTAssertEqual(sources.first?.closed, true)
 
@@ -137,7 +137,7 @@ final class TaskSchedulerStreamingTests: XCTestCase {
             lock.withLock { calls.append((name, onQueue)) }
         }
         XCTAssertTrue(Thread.isMainThread)
-        postLifecycle(foreground: true)
+        returnToApp()
         drain()
 
         XCTAssertEqual(sources.count, 2)
@@ -153,7 +153,7 @@ final class TaskSchedulerStreamingTests: XCTestCase {
     // attributes.
     func testUserAttributesUpdatedWhileBackgroundedAreSentOnForeground() throws {
         let scheduler = makeStreamingSchedulerWithAnOpenStream()
-        postLifecycle(foreground: false)
+        leaveApp()
         drain()
 
         dependencies.queue.sync { scheduler.component.userHolder.updateAttributes { _ in ["plan": "premium"] } }
@@ -162,7 +162,7 @@ final class TaskSchedulerStreamingTests: XCTestCase {
         advance(1_000)
         XCTAssertEqual(sources.count, 1, "no stream may open in the background")
 
-        postLifecycle(foreground: true)
+        returnToApp()
         drain()
         advance(1_000)
 
@@ -188,15 +188,52 @@ final class TaskSchedulerStreamingTests: XCTestCase {
         XCTAssertEqual(dependencies.queue.sync { interactor.applied.count }, 0)
     }
 
+    // A short interruption (an alert, Control Center) is not a trip to the background: UIKit posts
+    // "will resign active" and "did become active" with no background step in between.
+    func testInterruptionKeepsTheStreamOpen() {
+        _ = makeStreamingSchedulerWithAnOpenStream()
+
+        postInterruption()
+        drain()
+
+        XCTAssertEqual(sources.count, 1, "no new stream")
+        XCTAssertEqual(sources.first?.closed, false, "the stream stays open")
+    }
+
+    func testOnlyARealBackgroundFlushesEventsWhenPolling() {
+        assertOnlyARealBackgroundFlushesEvents(enableStreaming: false)
+    }
+
+    func testOnlyARealBackgroundFlushesEventsWhenStreaming() {
+        assertOnlyARealBackgroundFlushesEvents(enableStreaming: true)
+    }
+
+    // "Did become active" alone is not a return to the app: only "will enter foreground" is.
+    func testOldForegroundEventDoesNotReopenTheStream() {
+        _ = makeStreamingSchedulerWithAnOpenStream()
+        leaveApp()
+        drain()
+        XCTAssertEqual(sources.first?.closed, true)
+
+        postBecomeActive()
+        drain()
+
+        XCTAssertEqual(sources.count, 1, "did become active alone opens nothing")
+    }
+
     // MARK: - Helpers
 
     private var sources: [MockEventSource] { dependencies.queue.sync { dependencies.sources } }
     private var pendingTimers: Int { dependencies.queue.sync { dependencies.mockScheduler.pendingCount } }
 
-    private func makeScheduler(enableStreaming: Bool) -> TaskScheduler {
+    private func makeScheduler(
+        enableStreaming: Bool,
+        eventInteractor: EventInteractor = MockEventInteractor()
+    ) -> TaskScheduler {
         let component = MockComponent(
             config: .mock(enableStreaming: enableStreaming),
-            evaluationInteractor: interactor
+            evaluationInteractor: interactor,
+            eventInteractor: eventInteractor
         )
         let scheduler = TaskScheduler(
             component: component,
@@ -224,17 +261,58 @@ final class TaskSchedulerStreamingTests: XCTestCase {
         dependencies.queue.sync { dependencies.mockScheduler.advance(byMillis: millis) }
     }
 
-    private func postLifecycle(foreground: Bool) {
+    private func assertOnlyARealBackgroundFlushesEvents(
+        enableStreaming: Bool,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        var forcedFlushes = 0
+        let events = MockEventInteractor(sendEventsHandler: { force, _ in
+            if force { forcedFlushes += 1 }
+        })
+        _ = makeScheduler(enableStreaming: enableStreaming, eventInteractor: events)
+
+        postInterruption()
+        drain()
+        XCTAssertEqual(dependencies.queue.sync { forcedFlushes }, 0, "an interruption does not flush", file: file, line: line)
+
+        leaveApp()
+        drain()
+        XCTAssertEqual(dependencies.queue.sync { forcedFlushes }, 1, "leaving the app flushes once", file: file, line: line)
+    }
+
+    // The order UIKit posts them in. An interruption has no background step. The old
+    // "active" events are posted too, so a test fails if the scheduler still listens to them.
+    private func postInterruption() {
+        postResignActive()
+        postBecomeActive()
+    }
+
+    private func leaveApp() {
+        postResignActive()
+        post(UIApplication.didEnterBackgroundNotification)
+    }
+
+    private func returnToApp() {
+        post(UIApplication.willEnterForegroundNotification)
+        postBecomeActive()
+    }
+
+    private func postResignActive() {
+        post(UIApplication.willResignActiveNotification)
         if #available(iOS 13.0, tvOS 13.0, *) {
-            NotificationCenter.default.post(
-                name: foreground ? UIScene.didActivateNotification : UIScene.willDeactivateNotification,
-                object: nil
-            )
-        } else {
-            NotificationCenter.default.post(
-                name: foreground ? UIApplication.didBecomeActiveNotification : UIApplication.willResignActiveNotification,
-                object: nil
-            )
+            post(UIScene.willDeactivateNotification)
         }
+    }
+
+    private func postBecomeActive() {
+        if #available(iOS 13.0, tvOS 13.0, *) {
+            post(UIScene.didActivateNotification)
+        }
+        post(UIApplication.didBecomeActiveNotification)
+    }
+
+    private func post(_ name: Notification.Name) {
+        NotificationCenter.default.post(name: name, object: nil)
     }
 }
