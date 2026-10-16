@@ -132,7 +132,20 @@ make create-xcframework-scipio
 To run the example app.
 
 You must execute the Makefile `make environment-setup` to set the **API_ENDPOINT** and the **API_KEY**.<br />
+It also writes **ENABLE_STREAMING** (`NO` by default, the same as the SDK) to `environment.xcconfig`.<br />
 You may need to generate [Xcode project file](https://github.com/bucketeer-io/ios-client-sdk?tab=readme-ov-file#generate-xcode-project-file).
+
+The example app uses the feature tag `ios`, the feature flag `ios_test_002` and the goal `ios_test_002`.<br />
+Before you run it, create a string feature flag `ios_test_002` with the feature tag `ios` in your Bucketeer console. Without it the app has no flag to show, and the walkthrough below shows nothing.
+
+### Try a real-time flag update (SSE)
+
+- In `environment.xcconfig`, set `ENABLE_STREAMING = YES`. You can also use the **Streaming** switch at the top of the first screen. Flipping it destroys the client and starts it again in the new mode.
+- Run the example app.
+- In the Bucketeer console, change the value of the feature flag `ios_test_002`.
+- Watch the label on the first screen and the Xcode console. The label changes and an `Evaluation updated. ios_test_002 = <value>` line is printed, pushed by SSE in about a second. With the switch off, the same change takes up to 60 seconds (the polling interval).
+
+If your `environment.xcconfig` was created before this key existed, add the `ENABLE_STREAMING` line yourself or run `make environment-setup` again. A missing value counts as `NO`.
 
 ## License
 

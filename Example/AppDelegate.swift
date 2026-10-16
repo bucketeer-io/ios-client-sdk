@@ -70,11 +70,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     private func makeConfigUsingBuilder() -> BKTConfig {
         let bundle = Bundle(for: type(of: self))
+        print("Initializing BKTClient with streaming \(StreamingMode.isOn ? "enabled" : "disabled")...")
         let builder = BKTConfig.Builder()
             .with(apiKey: bundle.infoDictionary?["API_KEY"] as! String)
             .with(apiEndpoint: bundle.infoDictionary?["API_ENDPOINT"] as! String)
             .with(featureTag: "ios")
-            .with(pollingInterval: 150_000)
+            .with(pollingInterval: 60_000)
+            .with(enableStreaming: StreamingMode.isOn)
             .with(appVersion: bundle.infoDictionary?["CFBundleShortVersionString"] as! String)
             .with(logger: AppLogger())
         
