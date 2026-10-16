@@ -6,6 +6,9 @@ class FirstViewController: UIViewController {
 
     @IBOutlet weak var messageLabel: UILabel!
 
+    private let streamingSwitch = UISwitch()
+    private var updateListenerKey: String?
+
     override func viewDidLoad() {
         super.viewDidLoad()
         do {
@@ -14,16 +17,23 @@ class FirstViewController: UIViewController {
             // We may have an error when we did not success initialize the client
             // Handle error
         }
+        setUpStreamingSwitch()
+        addUpdateListener()
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        let client = try? BKTClient.shared
-        messageLabel.text = client?.stringVariation(featureId: "ios_test_002", defaultValue: "not found...") ?? "not found..."
-
-        let colorCode = client?.stringVariation(featureId: "ios_test_003", defaultValue: "#999999") ?? "#999999"
-        view.backgroundColor = UIColor(hex: colorCode)
+        refreshFlagValues()
         
         requestPushNotificationPermission()
+    }
+
+    private func refreshFlagValues() {
+        let client = try? BKTClient.shared
+        messageLabel.text = client?.stringVariation(featureId: "ios_test_002", defaultValue: "default value") ?? "default value"
+        
+        let defaultWhiteColor = "FFFFFF"
+        let colorCode = client?.stringVariation(featureId: "ios_test_003", defaultValue: defaultWhiteColor) ?? defaultWhiteColor
+        view.backgroundColor = UIColor(hex: colorCode)
     }
     @IBAction func trackButtonAction(_ sender: Any) {
         let client = try? BKTClient.shared
@@ -31,6 +41,7 @@ class FirstViewController: UIViewController {
     }
     @IBAction func destroyClient(_ sender: Any) {
         try? BKTClient.destroy()
+        updateListenerKey = nil
     }
     
     @IBAction func initClient(_ sender: Any) {
@@ -43,9 +54,12 @@ class FirstViewController: UIViewController {
             try BKTClient.initialize(
                 config: self.makeConfigUsingBuilder(),
                 user: user
-            ) { error in
+            ) { [weak self] error in
                 if let error {
                     print(error)
+                }
+                DispatchQueue.main.async {
+                    self?.addUpdateListener()
                 }
             }
         } catch {
@@ -57,11 +71,13 @@ class FirstViewController: UIViewController {
 
     private func makeConfigUsingBuilder() -> BKTConfig {
         let bundle = Bundle(for: type(of: self))
+        print("Initializing BKTClient with streaming \(StreamingMode.isOn ? "enabled" : "disabled")...")
         let builder = BKTConfig.Builder()
             .with(apiKey: bundle.infoDictionary?["API_KEY"] as! String)
             .with(apiEndpoint: bundle.infoDictionary?["API_ENDPOINT"] as! String)
             .with(featureTag: "ios")
-            .with(pollingInterval: 150_000)
+            .with(pollingInterval: 60_000)
+            .with(enableStreaming: StreamingMode.isOn)
             .with(appVersion: bundle.infoDictionary?["CFBundleShortVersionString"] as! String)
             .with(logger: AppLogger())
 
@@ -73,6 +89,7 @@ class FirstViewController: UIViewController {
             do {
                 print("[Bucketeer] destroying ---------- ")
                 try BKTClient.destroy()
+                self.updateListenerKey = nil
                 
                 // create new user with new userId
                 let user = try! BKTUser.Builder()
@@ -89,6 +106,7 @@ class FirstViewController: UIViewController {
                         } else {
                             print("[Bucketeer] OK initialize ------------------")
                         }
+                        self.addUpdateListener()
                     }
                 }
             } catch {
@@ -148,6 +166,67 @@ class FirstViewController: UIViewController {
                 print("Subscribed to \(topic) topic")
             }
         }
+    }
+
+    private func setUpStreamingSwitch() {
+        let title = UILabel()
+        title.text = "Streaming"
+        streamingSwitch.isOn = StreamingMode.isOn
+        streamingSwitch.addTarget(self, action: #selector(streamingSwitchChanged), for: .valueChanged)
+
+        let stack = UIStackView(arrangedSubviews: [title, streamingSwitch])
+        stack.axis = .horizontal
+        stack.spacing = 8
+        stack.alignment = .center
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(stack)
+        NSLayoutConstraint.activate([
+            stack.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+            stack.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+        ])
+    }
+
+    // Destroys the client and starts it again, so the new mode applies to a fresh client.
+    @objc private func streamingSwitchChanged(_ sender: UISwitch) {
+        StreamingMode.isOn = sender.isOn
+        sender.isEnabled = false
+        let user = (try? BKTClient.shared.currentUser()) ?? (try! BKTUser.Builder()
+            .with(id: "user_001")
+            .with(attributes: [:])
+            .build())
+        do {
+            try BKTClient.destroy()
+            updateListenerKey = nil
+            try BKTClient.initialize(config: makeConfigUsingBuilder(), user: user) { [weak self] error in
+                DispatchQueue.main.async {
+                    if let error {
+                        print(error)
+                    }
+                    self?.addUpdateListener()
+                    self?.refreshFlagValues()
+                    sender.isEnabled = true
+                }
+            }
+        } catch {
+            print(error.localizedDescription)
+            sender.isEnabled = true
+        }
+    }
+
+    private func addUpdateListener() {
+        guard let client = try? BKTClient.shared else { return }
+        if let key = updateListenerKey {
+            client.removeEvaluationUpdateListener(key: key)
+        }
+        updateListenerKey = client.addEvaluationUpdateListener(listener: self)
+    }
+}
+
+extension FirstViewController: EvaluationUpdateListener {
+    // The SDK calls this on the main thread after the flag values change.
+    func onUpdate() {
+        refreshFlagValues()
+        print("Evaluation updated. ios_test_002 = \(messageLabel.text ?? "")")
     }
 }
 
