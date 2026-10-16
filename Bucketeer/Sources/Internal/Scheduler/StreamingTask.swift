@@ -120,7 +120,7 @@ final class StreamingTask: ScheduledTask {
     // MARK: - Private, on queue
 
     /// Opens the stream once per run. A second `start()` (TaskScheduler calls it in its init and
-    /// again on didActivate) or `enable()` finds the stream or the fallback already running.
+    /// again on willEnterForeground) or `enable()` finds the stream or the fallback already running.
     private func openIfReady() {
         guard isRunning, isEnabled, connection == nil, fallbackTask == nil else { return }
         if terminalFailure {

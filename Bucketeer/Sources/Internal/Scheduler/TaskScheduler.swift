@@ -43,33 +43,21 @@ final class TaskScheduler {
             ?? StreamingTaskDependenciesImpl(component: component, queue: dispatchQueue)
 
         onForeground()
-        if #available(iOS 13.0, tvOS 13.0, *) {
-            NotificationCenter.default.addObserver(
-                self,
-                selector: #selector(onForeground),
-                name: UIScene.didActivateNotification,
-                object: nil
-            )
-            NotificationCenter.default.addObserver(
-                self,
-                selector: #selector(onBackground),
-                name: UIScene.willDeactivateNotification,
-                object: nil
-            )
-        } else {
-            NotificationCenter.default.addObserver(
-                self,
-                selector: #selector(onForeground),
-                name: UIApplication.didBecomeActiveNotification,
-                object: nil
-            )
-            NotificationCenter.default.addObserver(
-                self,
-                selector: #selector(onBackground),
-                name: UIApplication.willResignActiveNotification,
-                object: nil
-            )
-        }
+        // Only a real trip to the background or back moves the SDK between its foreground and
+        // background work. "Will resign active" (and the scene "will deactivate") also fire for short
+        // interruptions such as system alerts, while the app stays on screen.
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(onForeground),
+            name: UIApplication.willEnterForegroundNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(onBackground),
+            name: UIApplication.didEnterBackgroundNotification,
+            object: nil
+        )
     }
 
     @objc private func onForeground() {
