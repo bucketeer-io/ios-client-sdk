@@ -365,5 +365,50 @@ final class BKTConfigTests: XCTestCase {
             }
         }
     }
+
+    // Marked deprecated only so it can call the deprecated init without a compiler warning.
+    @available(*, deprecated, message: "Covers the deprecated BKTConfig init")
+    func testEnableStreamingDefaultsToFalse() throws {
+        let builderConfig = try BKTConfig.Builder()
+            .with(apiKey: "api_key_value")
+            .with(apiEndpoint: "https://test.bucketeer.io")
+            .with(appVersion: "1.0.0")
+            .build()
+        XCTAssertFalse(builderConfig.enableStreaming)
+
+        let deprecatedInitConfig = try BKTConfig(
+            apiKey: "api_key_value",
+            apiEndpoint: "https://test.bucketeer.io",
+            featureTag: "featureTag",
+            appVersion: "1.0.0"
+        )
+        XCTAssertFalse(deprecatedInitConfig.enableStreaming)
+    }
+
+    func testEnableStreamingCanBeSetWithBuilder() throws {
+        let config = try BKTConfig.Builder()
+            .with(apiKey: "api_key_value")
+            .with(apiEndpoint: "https://test.bucketeer.io")
+            .with(appVersion: "1.0.0")
+            .with(enableStreaming: true)
+            .build()
+        XCTAssertTrue(config.enableStreaming)
+    }
+
+    func testStreamUrlIsBuiltUnderTheGatewayPath() throws {
+        let config = try BKTConfig.Builder()
+            .with(apiKey: "api_key_value")
+            .with(apiEndpoint: "https://test.bucketeer.io")
+            .with(appVersion: "1.0.0")
+            .build()
+        let url = config.apiEndpoint.appendingPathComponent(Constant.Streaming.STREAM_EVALUATIONS_PATH)
+        XCTAssertEqual(url.absoluteString, "https://test.bucketeer.io/v1/gateway/stream_evaluations")
+    }
+
+    func testStreamingTimingConstants() {
+        // Literals on purpose: a changed constant must fail here, not silently move both sides.
+        XCTAssertEqual(Constant.Streaming.RECOVERY_INTERVAL_MILLIS, 300_000)
+        XCTAssertEqual(Constant.Streaming.RECONNECT_DEBOUNCE_MILLIS, 200)
+    }
 }
 // swiftlint:enable type_body_length

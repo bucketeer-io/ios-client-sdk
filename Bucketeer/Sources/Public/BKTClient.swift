@@ -5,7 +5,8 @@ public class BKTClient {
     private static let concurrentQueue = DispatchQueue(label: "io.bucketeer.concurrentQueue")
     let component: Component
     let dispatchQueue: DispatchQueue
-    private(set) var taskScheduler: TaskScheduler?
+    // Settable for tests, so a test can give it streaming test dependencies.
+    var taskScheduler: TaskScheduler?
 
     init(dataModule: DataModule, dispatchQueue: DispatchQueue) {
         self.dispatchQueue = dispatchQueue
@@ -253,6 +254,7 @@ extension BKTClient {
             attributes
         }
         component.evaluationInteractor.setUserAttributesUpdated()
+        taskScheduler?.onUserAttributesUpdated()
     }
 
     public func fetchEvaluations(timeoutMillis: Int64? = nil, completion: ((BKTError?) -> Void)? = nil) {
