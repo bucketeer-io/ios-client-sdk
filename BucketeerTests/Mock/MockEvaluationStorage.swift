@@ -40,6 +40,10 @@ final class MockEvaluationStorage: EvaluationStorage {
     let getHandler: GetHandler?
     let updateHandler: UpdateHandler?
     let deleteAllAndInsertHandler: DeleteAllAndInsertHandler?
+    /// When set and it returns true, the mock treats the write as stale and skips it,
+    /// like `EvaluationStorageImpl`'s staleness guard, without duplicating that guard's
+    /// rule here. Lets interactor tests drive the rejected-write branch.
+    var isStaleWriteHandler: ((_ evaluatedAt: String) -> Bool)?
     let getByFeatureIdHandler: GetByFeatureIdHandler?
     let evaluationUserDefaultsDao = MockEvaluationUserDefaultsDao()
     let refreshCacheHandler: RefreshCacheHandler?
@@ -76,21 +80,25 @@ final class MockEvaluationStorage: EvaluationStorage {
 
     func deleteAllAndInsert(
         evaluationId: String,
-        evaluations: [Bucketeer.Evaluation], evaluatedAt: String) throws {
+        evaluations: [Bucketeer.Evaluation], evaluatedAt: String) throws -> EvaluationWriteResult {
+        if isStaleWriteHandler?(evaluatedAt) == true { return .skippedStale }
         try deleteAllAndInsertHandler?(evaluations)
         // Mock save evaluatedAt
         evaluationUserDefaultsDao.evaluatedAt = evaluatedAt
         evaluationUserDefaultsDao.currentEvaluationsId = evaluationId
+        return .landed(shouldNotify: true)
     }
 
+    /// `updateHandler` returns the `shouldNotify` value of a write that landed.
     func update(
         evaluationId: String,
-        evaluations: [Evaluation], archivedFeatureIds: [String], evaluatedAt: String) throws -> Bool {
-        let result = try updateHandler?(evaluations, archivedFeatureIds, evaluatedAt) ?? false
+        evaluations: [Evaluation], archivedFeatureIds: [String], evaluatedAt: String) throws -> EvaluationWriteResult {
+        if isStaleWriteHandler?(evaluatedAt) == true { return .skippedStale }
+        let shouldNotify = try updateHandler?(evaluations, archivedFeatureIds, evaluatedAt) ?? false
         // Mock save evaluatedAt
         evaluationUserDefaultsDao.evaluatedAt = evaluatedAt
         evaluationUserDefaultsDao.currentEvaluationsId = evaluationId
-        return result
+        return .landed(shouldNotify: shouldNotify)
     }
 
     func getBy(featureId: String) -> Evaluation? {
