@@ -20,9 +20,9 @@ struct SSEEvent: Equatable {
 struct SSEParser {
     static let DEFAULT_EVENT_NAME = "message"
 
-    private static let LF: UInt8 = 0x0A // "\n"
-    private static let CR: UInt8 = 0x0D // "\r"
-    private static let COLON: UInt8 = 0x3A // ":"
+    private static let LF = UInt8(ascii: "\n")
+    private static let CR = UInt8(ascii: "\r")
+    private static let COLON = UInt8(ascii: ":")
 
     /// Bytes of the current, not-yet-terminated line.
     private var lineBuffer = Data()

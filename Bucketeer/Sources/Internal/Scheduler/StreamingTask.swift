@@ -193,7 +193,7 @@ final class StreamingTask: ScheduledTask {
             userEvaluationsId: cached.userEvaluationsId,
             evaluatedAt: cached.evaluatedAt
         )
-        var request = URLRequest(url: config.apiEndpoint.appendingPathComponent(Constant.Streaming.STREAM_EVALUATIONS_PATH))
+        var request = URLRequest(url: config.apiEndpoint.appendingPathComponent(ApiPaths.streamEvaluations))
         request.httpMethod = "POST"
         request.allHTTPHeaderFields = [
             "Authorization": config.apiKey,

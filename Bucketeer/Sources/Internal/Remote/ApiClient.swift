@@ -3,6 +3,11 @@ import Foundation
 enum ApiPaths: String {
     case getEvaluations = "get_evaluations"
     case registerEvents = "register_events"
+    // A static constant on purpose, not a case. Every case is a request that ApiClientImpl sends
+    // and tracks by request id (see the exhaustive switch in ApiClientImpl.getLatestRequestId).
+    // The stream is opened by StreamingTask on its own URLSession and never goes through
+    // ApiClientImpl, so it has no request id to track. Kept here so all backend paths live in one place.
+    static let streamEvaluations = "v1/gateway/stream_evaluations"
 }
 
 protocol ApiClient {

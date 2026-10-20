@@ -401,7 +401,7 @@ final class BKTConfigTests: XCTestCase {
             .with(apiEndpoint: "https://test.bucketeer.io")
             .with(appVersion: "1.0.0")
             .build()
-        let url = config.apiEndpoint.appendingPathComponent(Constant.Streaming.STREAM_EVALUATIONS_PATH)
+        let url = config.apiEndpoint.appendingPathComponent(ApiPaths.streamEvaluations)
         XCTAssertEqual(url.absoluteString, "https://test.bucketeer.io/v1/gateway/stream_evaluations")
     }
 
