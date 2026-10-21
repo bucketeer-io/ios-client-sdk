@@ -86,10 +86,7 @@ final class StreamingTask: ScheduledTask {
     /// `onUserAttributesUpdated()`.
     func reconnect() {
         queue.async { [weak self] in
-            guard let self, self.isRunning, self.isEnabled else { return }
-            // The stream can't come back (bad API key, streaming unsupported). The fallback keeps
-            // polling on its own schedule, as polling mode does after updateUserAttributes().
-            guard !self.terminalFailure else { return }
+            guard let self, self.canReconnect else { return }
             if let connection = self.connection {
                 // The connection builds the request again, with the new attributes.
                 connection.reconnect()
@@ -107,7 +104,8 @@ final class StreamingTask: ScheduledTask {
     /// scheduler, the only timer tests can control, so the task owns it.
     func onUserAttributesUpdated() {
         queue.async { [weak self] in
-            guard let self, self.isRunning else { return }
+            // Same check as reconnect(), so no timer is armed for a reconnect that would do nothing.
+            guard let self, self.canReconnect else { return }
             self.pendingReconnect?.cancel()
             let work = DispatchWorkItem { [weak self] in
                 self?.reconnect()
@@ -118,6 +116,17 @@ final class StreamingTask: ScheduledTask {
     }
 
     // MARK: - Private, on queue
+
+    /// Whether a stream with the new user attributes may be opened now. Read on `queue` only:
+    /// `terminalFailure` has no lock.
+    /// - Not running or not enabled yet: the stream `start()` or `enable()` opens reads the latest
+    ///   attributes anyway.
+    /// - Terminal failure (bad API key, streaming unsupported): the stream can't come back. The
+    ///   fallback keeps polling on its own schedule, as polling mode does after
+    ///   updateUserAttributes().
+    private var canReconnect: Bool {
+        isRunning && isEnabled && !terminalFailure
+    }
 
     /// Opens the stream once per run. A second `start()` (TaskScheduler calls it in its init and
     /// again on didActivate) or `enable()` finds the stream or the fallback already running.
