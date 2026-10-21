@@ -39,6 +39,7 @@ TEST_WITHOUT_BUILDING=$(XCODEBUILD) $(BUILD_SETTINGS) $(OPTIONS) $(DESTINATION) 
 	-skip-testing:BucketeerTests/E2EEventWrapperSourceIdTests \
 	-skip-testing:BucketeerTests/E2EStreamingProxyTests \
 	-skip-testing:BucketeerTests/E2EStreamingDirectTests \
+	-skip-testing:BucketeerTests/E2ETaglessPollingProofTests \
 	test-without-building
 E2E_WITHOUT_BUILDING=$(XCODEBUILD) $(BUILD_SETTINGS) $(OPTIONS) $(DESTINATION) \
 	-configuration $(CONFIGURATION) \
@@ -49,6 +50,7 @@ E2E_WITHOUT_BUILDING=$(XCODEBUILD) $(BUILD_SETTINGS) $(OPTIONS) $(DESTINATION) \
 	-only-testing:BucketeerTests/E2EEventWrapperSourceIdTests \
 	-only-testing:BucketeerTests/E2EStreamingProxyTests \
 	-only-testing:BucketeerTests/E2EStreamingDirectTests \
+	-only-testing:BucketeerTests/E2ETaglessPollingProofTests \
 	test-without-building E2E_API_ENDPOINT=$(E2E_API_ENDPOINT) E2E_API_KEY=$(E2E_API_KEY) E2E_PUBLIC_API_KEY=$(E2E_PUBLIC_API_KEY)
 ALL_TEST_WITHOUT_BUILDING=$(XCODEBUILD) $(BUILD_SETTINGS) $(OPTIONS) $(DESTINATION) \
 	-configuration $(CONFIGURATION) \
