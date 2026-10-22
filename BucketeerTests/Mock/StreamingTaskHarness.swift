@@ -1,8 +1,7 @@
 import Foundation
 @testable import Bucketeer
 
-/// Records `start(immediately:)` and `stop()`, the iOS stand-in for the JS spies on
-/// `EvaluationTask.prototype.start/stop`. Called only on the task's queue.
+/// Records `start(immediately:)` and `stop()`. Called only on the task's queue.
 final class MockStreamingFallbackTask: StreamingFallbackTask {
     private(set) var startCalls: [Bool] = []
     private(set) var stopCount = 0
@@ -83,8 +82,7 @@ final class StreamingTaskTestInteractor: EvaluationInteractor {
 }
 
 /// The test `StreamingTaskDependencies`: a fake clock, a pinned backoff, and a record of every event source
-/// and fallback the task creates (like JS `FakeEventSource.instances`). Its lists are only touched
-/// on `queue`.
+/// and fallback the task creates. Its lists are only touched on `queue`.
 final class MockStreamingTaskDependencies: StreamingTaskDependencies {
     let queue = DispatchQueue(label: "io.bucketeer.test.StreamingTask")
     let mockScheduler = MockStreamScheduler()

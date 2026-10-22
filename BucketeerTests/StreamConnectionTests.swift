@@ -1,13 +1,11 @@
 import XCTest
 @testable import Bucketeer
 
-/// Lifecycle, error sorting and event delivery of `StreamConnection`, ported from the JS
-/// `StreamConnection.spec.ts` ("health model" suite). Timing rules (watchdog, give-up window,
-/// backoff reset) are in `StreamConnectionTimingTests`.
+/// Lifecycle, error sorting and event delivery of `StreamConnection`. Timing rules (watchdog,
+/// give-up window, backoff reset) are in `StreamConnectionTimingTests`.
 ///
-/// JS tests not ported:
-/// - "error with terminal: true from the EventSource": iOS has no `terminal` flag on
-///   `EventSource.onError`; the HTTP status is the only terminal signal.
+/// No test for a `terminal` flag on an error: `EventSource.onError` has none; the HTTP status is
+/// the only terminal signal.
 final class StreamConnectionTests: XCTestCase {
 
     func testStartOpensOneEventSourceWithTheBuiltRequest() throws {
@@ -22,7 +20,7 @@ final class StreamConnectionTests: XCTestCase {
         XCTAssertEqual(h.errors, [])
     }
 
-    /// JS: `requestBuilder` is "re-invoked on every (re)connect", so each attempt sends the
+    /// `requestBuilder` runs again on every connect and reconnect, so each attempt sends the
     /// latest user attributes and cache state.
     func testRequestBuilderRunsAgainOnEveryConnect() throws {
         let h = StreamConnectionHarness()
@@ -38,7 +36,7 @@ final class StreamConnectionTests: XCTestCase {
         XCTAssertEqual(h.builderCallCount, 3)
     }
 
-    /// JS: "open then event: onOpen called, data dispatched".
+    /// Open, then events: `onOpen` is called and the data reaches its handlers.
     func testOpenThenEventsReachTheirHandlers() throws {
         let h = StreamConnectionHarness()
         h.start()
@@ -60,7 +58,7 @@ final class StreamConnectionTests: XCTestCase {
         XCTAssertEqual(h.unhandled, ["{\"a\":1}"])
     }
 
-    /// JS source: "A 'message' key is ignored". That channel belongs to the connection itself.
+    /// A "message" key in the events map is ignored. That channel belongs to the connection itself.
     func testMessageKeyInEventsMapIsIgnored() throws {
         let h = StreamConnectionHarness(eventNames: ["put", "patch", "error", "message"])
         h.start()
@@ -73,7 +71,7 @@ final class StreamConnectionTests: XCTestCase {
         XCTAssertEqual(h.received, [])
     }
 
-    /// JS: "error with status %i gives up terminal, no retry".
+    /// An error with a terminal status gives up as terminal, with no retry.
     func testTerminalStatusGivesUpWithoutRetry() throws {
         for status in [401, 403] {
             let h = StreamConnectionHarness()
@@ -88,7 +86,7 @@ final class StreamConnectionTests: XCTestCase {
         }
     }
 
-    /// JS: "error with status %i gives up non-terminal immediately, no backoff retry".
+    /// An error with a non-recoverable status gives up (non-terminal) at once, with no backoff retry.
     func testNonRecoverableStatusGivesUpImmediatelyWithoutRetry() throws {
         for status in [400, 413, 422] {
             let h = StreamConnectionHarness()
@@ -103,7 +101,7 @@ final class StreamConnectionTests: XCTestCase {
         }
     }
 
-    /// JS: "error before first open with a recoverable status retries with backoff".
+    /// An error before the first open with a recoverable status retries with backoff.
     func testRecoverableErrorBeforeOpenRetriesWithBackoff() throws {
         for status in [nil, 408, 429, 499, 500, 503] as [Int?] {
             let h = StreamConnectionHarness()
@@ -118,7 +116,7 @@ final class StreamConnectionTests: XCTestCase {
         }
     }
 
-    /// JS: "transient error after open self-heals with backoff, onError NOT called".
+    /// A transient error after open heals itself with backoff; `onError` is NOT called.
     func testTransientErrorAfterOpenSelfHeals() throws {
         let h = StreamConnectionHarness()
         h.start()
@@ -132,7 +130,7 @@ final class StreamConnectionTests: XCTestCase {
         XCTAssertEqual(h.errors, [])
     }
 
-    /// JS: "reconnect() while a backoff retry is pending produces exactly one new connection".
+    /// `reconnect()` while a backoff retry is pending opens exactly one new connection.
     func testReconnectWhileRetryIsPendingOpensExactlyOneConnection() throws {
         let h = StreamConnectionHarness()
         h.start()
@@ -149,7 +147,7 @@ final class StreamConnectionTests: XCTestCase {
         XCTAssertFalse(h.sources[1].closed)
     }
 
-    /// JS source: `reconnect()` calls `this.backoff.reset()`.
+    /// `reconnect()` resets the backoff.
     func testReconnectResetsBackoff() throws {
         let h = StreamConnectionHarness()
         h.start()
@@ -170,7 +168,7 @@ final class StreamConnectionTests: XCTestCase {
         XCTAssertEqual(h.sources.count, 5, "retry after 1s, not 4s")
     }
 
-    /// JS source: `reconnect()` starts with `if (!this.active) return`.
+    /// `reconnect()` does nothing unless the connection is active: before `start()` or after `stop()`.
     func testReconnectIsIgnoredBeforeStartAndAfterStop() {
         let h = StreamConnectionHarness()
         h.connection.reconnect()
@@ -182,7 +180,7 @@ final class StreamConnectionTests: XCTestCase {
         XCTAssertEqual(h.sources.count, 1)
     }
 
-    /// JS: "events and errors from a stale (replaced) EventSource instance are ignored".
+    /// Events and errors from a stale (replaced) event source are ignored.
     func testCallbacksFromAReplacedEventSourceAreIgnored() throws {
         let h = StreamConnectionHarness()
         h.start()
@@ -208,7 +206,7 @@ final class StreamConnectionTests: XCTestCase {
         XCTAssertFalse(current.closed)
     }
 
-    /// JS: "stop() clears timers, closes the EventSource, and ignores later errors".
+    /// `stop()` cancels the timers, closes the event source, and ignores later errors.
     func testStopCancelsTimersClosesEventSourceAndIgnoresLateErrors() throws {
         let h = StreamConnectionHarness()
         h.start()
@@ -225,9 +223,8 @@ final class StreamConnectionTests: XCTestCase {
         XCTAssertEqual(h.errors, [])
     }
 
-    /// JS: "a synchronously-throwing eventSource constructor is routed to onError instead of
-    /// crashing". JS source comment: `openConnection()` also runs from a timer callback, so
-    /// the retry path (b) must be safe too.
+    /// A request build that throws is reported to `onError` (non-terminal) instead of crashing.
+    /// `openConnection()` also runs from a timer callback, so the retry path (b) must be safe too.
     func testThrowingRequestBuilderReportsNonTerminalErrorWithoutCrashing() throws {
         // (a) The first build throws.
         let alwaysThrows = StreamConnectionHarness(requestBuilder: { _ in

@@ -739,8 +739,8 @@ final class BKTClientTests: XCTestCase {
         wait(for: [expectation], timeout: 0.1)
     }
 
-    // Port of the JS BKTClient.updateUserAttributes: with streaming on, the stream reconnects
-    // (after the 200ms merge) so the server evaluates the new attributes.
+    // With streaming on, updateUserAttributes reconnects the stream (after the 200ms merge) so
+    // the server evaluates the new attributes.
     func testUpdateUserAttributesReconnectsTheStream() throws {
         let dependencies = MockStreamingTaskDependencies()
         let queue = dependencies.queue

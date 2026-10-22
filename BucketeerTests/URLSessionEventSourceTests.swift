@@ -1,14 +1,10 @@
 import XCTest
 @testable import Bucketeer
 
-/// `URLSessionEventSource` against a scripted server (`MockURLProtocol`), ported from the JS
-/// `FetchEventSource.spec.ts` where it applies.
+/// `URLSessionEventSource` against a scripted server (`MockURLProtocol`).
 ///
-/// JS tests not ported:
-/// - "missing response.body is terminal", "a body without getReader" and "the injected fetch is
-///   called receiver-free": JS runtime specifics with no URLSession equivalent.
-/// - "event: patch", "multi-line data", "CRLF framing", "CRLF split", "blank-line split" and
-///   "stream ending mid multi-byte character": parsing, already covered by `SSEParserTests`.
+/// Parsing cases ("event: patch", multi-line data, CRLF framing and splits, blank-line splits, a
+/// stream ending mid multi-byte character) are covered by `SSEParserTests`, not here.
 final class URLSessionEventSourceTests: XCTestCase {
     private var harnesses: [URLSessionEventSourceHarness] = []
 
@@ -40,7 +36,7 @@ final class URLSessionEventSourceTests: XCTestCase {
 
     // MARK: - Dispatching events
 
-    /// JS: "200 + data block: onopen fires and onmessage receives the data".
+    /// A 200 response with a data block: `onOpen` fires and `onMessage` receives the data.
     func testSuccessfulResponseOpensAndOnMessageReceivesData() {
         let h = run([.response(status: 200), .data("data: {\"a\":1}\n\n"), .finish])
 
@@ -49,7 +45,7 @@ final class URLSessionEventSourceTests: XCTestCase {
         XCTAssertEqual(h.read { $0.messages }, [SSEEvent(name: "message", data: "{\"a\":1}")])
     }
 
-    /// JS: "named event block goes to its listener, not onmessage".
+    /// A named event block goes to its listener, not `onMessage`.
     func testNamedEventGoesToItsListenerNotOnMessage() {
         let h = run([.response(status: 200), .data("event: put\ndata: {\"b\":2}\n\n"), .finish], listeners: ["put"])
 
@@ -57,29 +53,29 @@ final class URLSessionEventSourceTests: XCTestCase {
         XCTAssertEqual(h.read { $0.messages }, [])
     }
 
-    /// JS: "a named event with no registered listener is dropped, not delivered to onmessage".
+    /// A named event with no registered listener is dropped, not delivered to `onMessage`.
     func testNamedEventWithNoListenerIsDropped() {
         let h = run([.response(status: 200), .data("event: ping\ndata: {\"c\":3}\n\n"), .finish])
 
         XCTAssertEqual(h.read { $0.messages }, [])
     }
 
-    /// JS: "an explicit \"event: message\" block reaches onmessage".
+    /// An explicit "event: message" block reaches `onMessage`.
     func testExplicitMessageEventReachesOnMessage() {
         let h = run([.response(status: 200), .data("event: message\ndata: {\"m\":1}\n\n"), .finish])
 
         XCTAssertEqual(h.read { $0.messages }, [SSEEvent(name: "message", data: "{\"m\":1}")])
     }
 
-    /// JS: "an empty \"event:\" line falls back to the default message type".
+    /// An empty "event:" line falls back to the default message type.
     func testEmptyEventLineReachesOnMessage() {
         let h = run([.response(status: 200), .data("event:\ndata: {\"m\":2}\n\n"), .finish])
 
         XCTAssertEqual(h.read { $0.messages }, [SSEEvent(name: "message", data: "{\"m\":2}")])
     }
 
-    /// JS: "SSE comment fires a liveness tick but dispatches no data". `:` is the backend's
-    /// real heartbeat.
+    /// An SSE comment signals received bytes but delivers no event. `:` is the backend's real
+    /// heartbeat.
     func testCommentOnlyStreamSignalsBytesButNoEvent() {
         let h = run([.response(status: 200), .data(":\n\n"), .finish], listeners: ["put"])
 
@@ -88,8 +84,8 @@ final class URLSessionEventSourceTests: XCTestCase {
         XCTAssertEqual(h.read { $0.received }, [])
     }
 
-    /// JS: "a payload delivered in many small chunks ... parses identically". The full matrix
-    /// is in `SSEParserTests`.
+    /// A payload delivered in many small chunks arrives whole. The full matrix is in
+    /// `SSEParserTests`.
     func testEventSplitAcrossChunksArrivesWhole() {
         let h = run([.response(status: 200), .data("event: pu"), .data("t\ndata: {\"a\""), .data(":1}\n\n"), .finish],
                     listeners: ["put"])
@@ -97,8 +93,8 @@ final class URLSessionEventSourceTests: XCTestCase {
         XCTAssertEqual(h.read { $0.received }, [SSEEvent(name: "put", data: "{\"a\":1}")])
     }
 
-    /// iOS only. Proves that a named event with no data can't reach `StreamConnection`, which is
-    /// why the JS test "a named event with no data does not reset the watchdog" isn't ported.
+    /// Proves that a named event with no data can't reach `StreamConnection`, which is why no
+    /// `StreamConnection` test covers one.
     func testNamedEventWithNoDataNeverReachesItsListener() {
         let h = run([.response(status: 200), .data("event: error\n\n"), .data("event: put\ndata: {\"a\":1}\n\n"), .finish],
                     listeners: ["error", "put"])
@@ -110,8 +106,8 @@ final class URLSessionEventSourceTests: XCTestCase {
 
     // MARK: - Errors and closing
 
-    /// JS: "non-200 response reports onerror with the status". iOS also checks "only once": the
-    /// `.cancel` answer to a bad status makes URLSession report a second, cancelled completion.
+    /// A non-200 response reports `onError` with the status, only once: the `.cancel` answer to
+    /// a bad status makes URLSession report a second, cancelled completion.
     func testErrorStatusIsReportedOnceAndNeverOpens() {
         for status in [500, 401] {
             let h = makeHarness([.response(status: status)])
@@ -129,7 +125,7 @@ final class URLSessionEventSourceTests: XCTestCase {
         }
     }
 
-    /// JS: "a stream that errors mid-read reports onerror"; "network error (fetch rejects)".
+    /// A network failure mid-stream: the event already received is delivered, then `onError(nil)`.
     func testNetworkFailureAfterDataDeliversEventThenNilStatus() {
         let h = run([.response(status: 200), .data("event: put\ndata: {\"a\":1}\n\n"), .wait(milliseconds: 100),
                      .fail(URLError(.networkConnectionLost))],
@@ -139,14 +135,14 @@ final class URLSessionEventSourceTests: XCTestCase {
         XCTAssertEqual(h.read { $0.errors }, [nil])
     }
 
-    /// JS: "Natural end-of-stream reports a recoverable (empty) error".
+    /// The server closing the stream reports a recoverable (nil) error.
     func testServerClosingTheStreamReportsNilStatus() {
         let h = run([.response(status: 200), .data("data: x\n\n"), .finish])
 
         XCTAssertEqual(h.read { $0.errors }, [nil])
     }
 
-    /// JS: "close() aborts the request and swallows the AbortError".
+    /// `close()` cancels the request and swallows the cancellation error.
     func testCloseSuppressesTheCancellationError() {
         let h = makeHarness([.response(status: 200)])  // holds the stream open
         let noError = XCTestExpectation(description: "onError after close")
@@ -162,8 +158,8 @@ final class URLSessionEventSourceTests: XCTestCase {
         XCTAssertEqual(h.read { $0.errors }, [])
     }
 
-    /// iOS only. Proves `open()` never calls back before it returns, even when the request fails
-    /// at once. That is why `StreamConnection` can arm its watchdog after `open()`, as JS does.
+    /// Proves `open()` never calls back before it returns, even when the request fails at once.
+    /// That is why `StreamConnection` can arm its watchdog after `open()`.
     func testOpenNeverReportsAnErrorBeforeReturning() {
         let h = makeHarness([.fail(URLError(.cannotConnectToHost))])
         var errorsWhenOpenReturned = -1
@@ -179,8 +175,8 @@ final class URLSessionEventSourceTests: XCTestCase {
 
     // MARK: - Request, configuration, threading, memory
 
-    /// JS: "default headers are sent and caller headers win over them". Unlike JS, the method
-    /// is not defaulted to POST: a `URLRequest` starts as GET, so "not set" can't be detected.
+    /// Default headers are sent and caller headers win over them. The method is not defaulted to
+    /// POST: a `URLRequest` starts as GET, so "not set" can't be detected.
     func testDefaultHeadersAreSentAndCallerHeadersWin() throws {
         var request = URLSessionEventSourceHarness.request()
         request.httpMethod = "POST"

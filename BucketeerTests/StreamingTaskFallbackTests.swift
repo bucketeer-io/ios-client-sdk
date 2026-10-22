@@ -2,7 +2,7 @@ import XCTest
 @testable import Bucketeer
 
 /// `StreamingTask`: what happens when the stream gives up, the polling fallback, and the
-/// 5-minute recovery. Ported from the JS `test/internal/streaming/StreamingTask.spec.ts`.
+/// 5-minute recovery.
 ///
 /// 402 is used as "an unclassified 4xx": neither terminal nor recoverable, so the connection
 /// gives up on the first error, with no backoff retry.

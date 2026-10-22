@@ -3,8 +3,7 @@ import XCTest
 
 /// `StreamingTask`: `reconnect()`, the user-attributes-updated flag, and the iOS lifecycle
 /// (enable after the initial fetch, the same task reused across background/foreground, and
-/// the SDK queue). The reconnect and flag tests are ported from the JS
-/// `test/internal/streaming/StreamingTask.spec.ts`; the lifecycle ones are iOS only.
+/// the SDK queue).
 final class StreamingTaskLifecycleTests: XCTestCase {
     private var h: StreamingTaskHarness!
 
@@ -198,9 +197,9 @@ final class StreamingTaskLifecycleTests: XCTestCase {
         XCTAssertEqual(h.fallbackStarts, [true])
     }
 
-    // JS builds a new task each time, so its terminalFailure starts false. iOS reuses the task,
-    // so start() must not reset it: only destroy + initialize brings streaming back. Polling
-    // resumes on foreground the way polling mode does, without an immediate fetch.
+    // TaskScheduler reuses the task, so start() must not reset terminalFailure: only destroy +
+    // initialize brings streaming back. Polling resumes on foreground the way polling mode does,
+    // without an immediate fetch.
     func testTerminalFailureSurvivesStopAndStart() {
         h.startEnabled()
         h.failLatest(status: 401)
@@ -298,11 +297,10 @@ final class StreamingTaskLifecycleTests: XCTestCase {
         XCTAssertTrue(task.isRunning)
     }
 
-    // iOS only: stop() marks the task stopped at once but closes the connection later, on the
-    // queue. A server "connected" reply already waiting in the queue still reaches onOpen, while
-    // the snapshot that answers the new attributes will never be applied. Clearing the flag then
-    // would stop the next poll from asking the server to re-evaluate. JS closes the connection
-    // inside stop(), so it can't get here.
+    // stop() marks the task stopped at once but closes the connection later, on the queue. A
+    // server "connected" reply already waiting in the queue still reaches onOpen, while the
+    // snapshot that answers the new attributes will never be applied. Clearing the flag then
+    // would stop the next poll from asking the server to re-evaluate.
     func testAnOpenQueuedBeforeStopDoesNotClearTheFlag() {
         h.setUserAttributesState(.init(version: 1, isUpdated: true))
         h.startEnabled()

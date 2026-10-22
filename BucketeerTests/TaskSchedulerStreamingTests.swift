@@ -3,9 +3,7 @@ import UIKit
 @testable import Bucketeer
 
 /// `TaskScheduler` with streaming on: which task it runs, `enableEvaluationTask()`, user attribute
-/// updates (merged by `StreamingTask` into one reconnect after 200ms), and the app lifecycle. Ported from the JS
-/// `test/internal/scheduler/TaskScheduler.spec.ts` where JS has the same behavior; the lifecycle
-/// tests are iOS only (JS has no background/foreground step).
+/// updates (merged by `StreamingTask` into one reconnect after 200ms), and the app lifecycle.
 final class TaskSchedulerStreamingTests: XCTestCase {
     private var dependencies: MockStreamingTaskDependencies!
     private var interactor: StreamingTaskTestInteractor!

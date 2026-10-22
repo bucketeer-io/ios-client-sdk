@@ -46,8 +46,8 @@ final class StreamSchedulerTests: XCTestCase {
 
     // MARK: - MockStreamScheduler (the fake clock every StreamConnection test relies on)
 
-    /// Same meaning as JS `vi.advanceTimersByTime`: due work runs in time order (ties in
-    /// scheduling order), and inside each item "now" is that item's due time.
+    /// Due work runs in time order (ties in scheduling order), and inside each item "now" is
+    /// that item's due time.
     func testMockSchedulerRunsDueWorkInTimeOrder() {
         let scheduler = MockStreamScheduler()
         var ran: [String] = []
@@ -64,7 +64,7 @@ final class StreamSchedulerTests: XCTestCase {
         XCTAssertEqual(scheduler.pendingCount, 0)
     }
 
-    /// The "advance 999, then 1" steps the JS StreamConnection tests rely on.
+    /// The "advance 999, then 1" steps the `StreamConnection` tests rely on.
     func testMockSchedulerDoesNotRunWorkBeforeItIsDue() {
         let scheduler = MockStreamScheduler()
         var runCount = 0

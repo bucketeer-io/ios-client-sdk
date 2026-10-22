@@ -15,7 +15,7 @@ final class URLSessionEventSourceHarness {
     let logger = MockLogger()
     private(set) var source: URLSessionEventSource?
 
-    /// Fulfilled by the first `onError`, the same idea as JS `until(t.ended)`.
+    /// Fulfilled by the first `onError`.
     let ended = XCTestExpectation(description: "onError called")
     let opened = XCTestExpectation(description: "onOpen called")
 

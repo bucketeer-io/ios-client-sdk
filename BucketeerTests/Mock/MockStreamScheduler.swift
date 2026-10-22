@@ -1,7 +1,7 @@
 import Foundation
 @testable import Bucketeer
 
-/// A fake clock for the stream's timers, the iOS stand-in for JS `vi.useFakeTimers()`.
+/// A fake clock for the stream's timers.
 /// Nothing runs until the test calls `advance(byMillis:)`.
 final class MockStreamScheduler: StreamScheduler {
     private struct Item {
@@ -24,10 +24,10 @@ final class MockStreamScheduler: StreamScheduler {
         nextOrder += 1
     }
 
-    /// Same meaning as JS `vi.advanceTimersByTime`: runs every uncancelled item that is due at
-    /// or before the target time, earliest first (ties in scheduling order), with `nowMillis`
-    /// set to each item's due time while it runs. Work scheduled during the advance also runs
-    /// if it falls inside the window. Ends with `nowMillis` at the target.
+    /// Runs every uncancelled item that is due at or before the target time, earliest first (ties
+    /// in scheduling order), with `nowMillis` set to each item's due time while it runs. Work
+    /// scheduled during the advance also runs if it falls inside the window. Ends with
+    /// `nowMillis` at the target.
     func advance(byMillis millis: Int64) {
         let target = nowMillis + millis
         while let next = liveItems()

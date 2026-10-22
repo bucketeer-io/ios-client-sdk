@@ -1,19 +1,18 @@
 import XCTest
 @testable import Bucketeer
 
-/// Timing rules of `StreamConnection`, ported from the JS `StreamConnection.spec.ts`:
+/// Timing rules of `StreamConnection`:
 /// the 70s silence watchdog, the 120s unhealthy give-up window and the 60s backoff reset.
 /// "t=" in comments is fake time in seconds. Jitter is pinned to 0 by the harness.
 ///
-/// JS tests not ported:
-/// - "a named event with no data does not reset the watchdog": `SSEParser` never produces an
-///   event without data (`SSEParserTests.testBlockWithNoDataLineProducesNoEvent`), so this
-///   can't happen on iOS.
+/// No test for a named event with no data and the watchdog: `SSEParser` never produces an
+/// event without data (`SSEParserTests.testBlockWithNoDataLineProducesNoEvent`), so this can't
+/// happen.
 final class StreamConnectionTimingTests: XCTestCase {
 
     // MARK: - Watchdog (70s of silence)
 
-    /// JS: "open then event" (second half).
+    /// After the stream opens, 70s of silence makes the watchdog reconnect.
     func testWatchdogReconnectsAfter70SecondsOfSilence() throws {
         let h = StreamConnectionHarness()
         h.start()
@@ -27,7 +26,7 @@ final class StreamConnectionTimingTests: XCTestCase {
         XCTAssertEqual(h.errors, [])
     }
 
-    /// JS: "A bare liveness tick ... resets the watchdog".
+    /// Received bytes alone reset the watchdog.
     func testReceivedBytesResetTheWatchdog() throws {
         let h = StreamConnectionHarness()
         h.start()
@@ -42,7 +41,7 @@ final class StreamConnectionTimingTests: XCTestCase {
         XCTAssertEqual(h.sources.count, 2, "the watchdog was re-armed, not just cancelled")
     }
 
-    /// JS source: "named event WITH data → mark HEALTHY".
+    /// A named event with data marks the connection healthy, which resets the watchdog.
     func testNamedEventResetsTheWatchdog() throws {
         let h = StreamConnectionHarness()
         h.start()
@@ -54,7 +53,7 @@ final class StreamConnectionTimingTests: XCTestCase {
         XCTAssertEqual(h.sources.count, 1)
     }
 
-    /// JS: "liveness tracking works even with no events map and no onUnhandledMessage".
+    /// An unnamed message resets the watchdog even with no `onUnhandledMessage`.
     func testUnnamedMessageResetsTheWatchdogEvenWithoutOnUnhandledMessage() throws {
         let h = StreamConnectionHarness(recordsUnhandledMessages: false)
         h.start()
@@ -66,7 +65,7 @@ final class StreamConnectionTimingTests: XCTestCase {
         XCTAssertEqual(h.sources.count, 1)
     }
 
-    /// JS: same test as above, its heartbeat-only loop.
+    /// With no event names and no `onUnhandledMessage`, heartbeat bytes alone keep the connection alive.
     func testHeartbeatBytesAloneKeepTheConnectionAlive() throws {
         let h = StreamConnectionHarness(eventNames: [], recordsUnhandledMessages: false)
         h.start()
@@ -81,7 +80,7 @@ final class StreamConnectionTimingTests: XCTestCase {
         XCTAssertEqual(h.errors, [])
     }
 
-    /// JS: "healthy for 10 min then a single drop reconnects — does NOT give up".
+    /// After 10 healthy minutes, a single drop reconnects and does NOT give up.
     func testSingleDropAfterTenHealthyMinutesReconnects() throws {
         let h = StreamConnectionHarness()
         h.start()
@@ -100,7 +99,7 @@ final class StreamConnectionTimingTests: XCTestCase {
 
     // MARK: - Unhealthy window (give up after more than 120s)
 
-    /// JS: "unhealthy > 120s with no events in between gives up non-terminal".
+    /// Unhealthy for over 120s with no events in between gives up, non-terminal.
     func testUnhealthyForOver120SecondsGivesUpOnce() throws {
         let h = StreamConnectionHarness()
         h.start()
@@ -122,8 +121,7 @@ final class StreamConnectionTimingTests: XCTestCase {
         XCTAssertEqual(h.errors.count, 1)
     }
 
-    /// JS: "repeated recoverable pre-open errors eventually give up once the unhealthy window
-    /// elapses".
+    /// Repeated recoverable errors before open give up once the unhealthy window elapses.
     func testRepeatedPreOpenErrorsGiveUpAfter120Seconds() throws {
         let h = StreamConnectionHarness()
         h.start()
@@ -139,7 +137,7 @@ final class StreamConnectionTimingTests: XCTestCase {
         XCTAssertEqual(h.errors, [StreamConnectionErrorInfo(terminal: false)])
     }
 
-    /// JS: "an event received between drops restarts the unhealthy window".
+    /// An event received between drops restarts the unhealthy window.
     func testDataBetweenDropsRestartsTheUnhealthyWindow() throws {
         let h = StreamConnectionHarness()
         h.start()
@@ -163,7 +161,7 @@ final class StreamConnectionTimingTests: XCTestCase {
         XCTAssertEqual(h.errors, [StreamConnectionErrorInfo(terminal: false)])
     }
 
-    /// JS: "connect that hangs without ever opening gives up once the window elapses".
+    /// A connect that hangs without ever opening gives up once the window elapses.
     func testConnectThatNeverOpensGivesUpAfterTheWindow() {
         let h = StreamConnectionHarness()
         h.start()
@@ -182,7 +180,7 @@ final class StreamConnectionTimingTests: XCTestCase {
         XCTAssertEqual(h.sources.count, 3)
     }
 
-    /// JS: "external reconnect() must NOT reset the unhealthy give-up window".
+    /// An external `reconnect()` must NOT reset the unhealthy give-up window.
     func testExternalReconnectDoesNotResetTheUnhealthyWindow() throws {
         let h = StreamConnectionHarness()
         h.start()
@@ -204,7 +202,7 @@ final class StreamConnectionTimingTests: XCTestCase {
         XCTAssertEqual(h.errors, [StreamConnectionErrorInfo(terminal: false)])
     }
 
-    /// JS: "a reconnect whose connection recovers and delivers data clears the unhealthy window".
+    /// A reconnect whose connection recovers and delivers data clears the unhealthy window.
     func testRecoveredReconnectClearsTheUnhealthyWindow() throws {
         let h = StreamConnectionHarness()
         h.start()
@@ -238,7 +236,7 @@ final class StreamConnectionTimingTests: XCTestCase {
 
     // MARK: - Backoff reset (open for 60s)
 
-    /// JS: "a connection that stays open 60s resets the delay before its next drop".
+    /// A connection that stays open 60s resets the delay before its next drop.
     func testStableConnectionResetsBackoffBeforeTheNextDrop() throws {
         let h = StreamConnectionHarness()
         h.start()
@@ -260,7 +258,7 @@ final class StreamConnectionTimingTests: XCTestCase {
         XCTAssertEqual(h.sources.count, 4, "retry after 1s, not 4s")
     }
 
-    /// JS: "a connection that drops before 60s keeps escalating (flapping protection)".
+    /// A connection that drops before 60s keeps escalating (flapping protection).
     func testDropBefore60SecondsKeepsEscalating() throws {
         let h = StreamConnectionHarness()
         h.start()

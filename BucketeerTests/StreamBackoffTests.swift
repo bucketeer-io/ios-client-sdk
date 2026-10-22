@@ -44,7 +44,7 @@ final class StreamBackoffTests: XCTestCase {
         XCTAssertEqual(backoff.nextDelayMillis(), 1_000)
     }
 
-    // MARK: - iOS-specific: math safety (Swift crashes on overflow/NaN where JS would not)
+    // MARK: - Math safety (Swift crashes on overflow/NaN)
 
     /// A very long streak of failures must never crash: neither an integer overflow
     /// from naive doubling, nor a `Double` "not a number" result from an uncapped exponent.

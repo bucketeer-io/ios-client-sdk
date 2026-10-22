@@ -2,18 +2,15 @@ import XCTest
 @testable import Bucketeer
 
 /// `StreamingTask`: the request it sends and how it handles stream events.
-/// Ported from the JS `test/internal/streaming/StreamingTask.spec.ts`.
 ///
-/// Not ported, on purpose:
-/// - "without config.eventSource the built-in FetchEventSource is used" and "config.eventSource
-///   injected: the injected constructor is used": iOS has no injectable event source in the
+/// Not tested here, on purpose:
+/// - Picking the event source from the config: iOS has no injectable event source in the
 ///   config (URLSession works on every Apple platform). The factory is an internal init
 ///   parameter, which every test here uses.
-/// - "applyEvaluationsResponse rejecting does not surface as an unhandled rejection": a JS
-///   promise concern. `applyStreamedEvaluations` does not throw.
-/// - "a synchronously throwing eventSource constructor starts the polling fallback": the
-///   factory can't throw on iOS. A request build that throws is reported as a non-terminal
-///   error (`StreamConnectionTests`), and a non-terminal error starts the fallback
+/// - An unhandled error from applying evaluations: `applyStreamedEvaluations` does not throw.
+/// - A throwing event source factory starting the polling fallback: the factory can't throw on
+///   iOS. A request build that throws is reported as a non-terminal error
+///   (`StreamConnectionTests`), and a non-terminal error starts the fallback
 ///   (`StreamingTaskFallbackTests`).
 final class StreamingTaskTests: XCTestCase {
     private var h: StreamingTaskHarness!
@@ -113,8 +110,9 @@ final class StreamingTaskTests: XCTestCase {
         XCTAssertEqual(h.applied.first?.evaluations, .mock1)
     }
 
-    // Changed for iOS: JS applies this payload with forceUpdate = false. iOS decodes strictly
-    // because the backend always sends zero values (EmitUnpopulated: true, see StreamErrorEvent).
+    // A payload without forceUpdate is dropped, not applied with forceUpdate = false: decoding is
+    // strict because the backend always sends zero values (EmitUnpopulated: true, see
+    // StreamErrorEvent).
     func testPayloadMissingForceUpdateIsDropped() {
         h.startEnabled()
         h.openLatest()

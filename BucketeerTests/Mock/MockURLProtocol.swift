@@ -1,8 +1,7 @@
 import Foundation
 
 /// A scripted server for `URLSessionEventSource` tests. Apple's `URLProtocol` hook intercepts
-/// requests inside a real `URLSession`, so the real delegate code runs against these steps
-/// (the iOS stand-in for injecting a fake `fetch` in the JS tests).
+/// requests inside a real `URLSession`, so the real delegate code runs against these steps.
 ///
 /// The state is static, so tests that use it must not run in parallel with each other. XCTest
 /// runs them one at a time today (the Makefile doesn't enable parallel testing). Call `reset()`

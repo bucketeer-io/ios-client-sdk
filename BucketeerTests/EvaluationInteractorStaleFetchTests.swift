@@ -128,8 +128,8 @@ final class EvaluationInteractorStaleFetchTests: XCTestCase {
     /// Issue: a full-snapshot reply (`forceUpdate: true`, written by `deleteAllAndInsert`)
     /// that the staleness guard skips must not clear the flag.
     ///
-    /// A request with the flag on is expected to get a full snapshot back (the JS SDK's
-    /// notes say so), so this is the most likely shape of the skipped reply. For this reply
+    /// A request with the flag on is expected to get a full snapshot back, so this is the
+    /// most likely shape of the skipped reply. For this reply
     /// type, `deleteAllAndInsert` reports the skip as `.skippedStale`, and `fetch` must keep
     /// the flag on in that case instead of clearing it.
     ///

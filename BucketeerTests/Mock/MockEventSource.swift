@@ -1,10 +1,10 @@
 import Foundation
 @testable import Bucketeer
 
-/// Test double for `EventSource`, the port of the JS `FakeEventSource`. It records what the
-/// connection did to it, and the `simulate*` / `emit` drivers play the server's side.
+/// Test double for `EventSource`. It records what the connection did to it, and the
+/// `simulate*` / `emit` drivers play the server's side.
 ///
-/// Like the JS fake, the drivers fire even after `close()`, so a test can check that
+/// The drivers fire even after `close()`, so a test can check that
 /// `StreamConnection` ignores callbacks from a replaced event source.
 final class MockEventSource: EventSource {
     var onOpen: (() -> Void)?
@@ -46,7 +46,7 @@ final class MockEventSource: EventSource {
         onMessage?(SSEEvent(name: SSEParser.DEFAULT_EVENT_NAME, data: data))
     }
 
-    /// Calls the listeners registered for `type`, the same as JS `emit`.
+    /// Calls the listeners registered for `type`.
     func emit(_ type: String, _ data: String) {
         listeners[type]?.forEach { $0(SSEEvent(name: type, data: data)) }
     }

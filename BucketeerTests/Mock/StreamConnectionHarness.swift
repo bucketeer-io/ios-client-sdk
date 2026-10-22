@@ -2,8 +2,8 @@ import Foundation
 @testable import Bucketeer
 
 /// Shared setup for the `StreamConnection` tests: a fake clock, every `MockEventSource` the
-/// connection creates (like JS `FakeEventSource.instances`), and recorders for everything the
-/// connection reports. Jitter is pinned to 0, so retry delays are exactly 1s, 2s, 4s, ... 30s.
+/// connection creates, and recorders for everything the connection reports. Jitter is pinned to
+/// 0, so retry delays are exactly 1s, 2s, 4s, ... 30s.
 final class StreamConnectionHarness {
     struct TestError: Error {}
 
