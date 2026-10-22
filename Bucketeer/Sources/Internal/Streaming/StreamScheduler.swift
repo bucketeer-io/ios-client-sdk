@@ -1,7 +1,6 @@
 import Foundation
 
-/// "Now" and "run this later" for the stream's timers, so tests can control time
-/// (the iOS replacement for JS `setTimeout` / `Date.now`, and for `vi.useFakeTimers` in tests).
+/// "Now" and "run this later" for the stream's timers, so tests can control time.
 ///
 /// Not thread-safe: use it from the queue it runs work on, the serial SDK queue in production.
 protocol StreamScheduler: AnyObject {

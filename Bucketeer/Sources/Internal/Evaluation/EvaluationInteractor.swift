@@ -121,7 +121,7 @@ final class EvaluationInteractorImpl: EvaluationInteractor {
                     return
                 }
 
-                // Ordering carries two invariants (ported from the JS SDK's fetch()):
+                // Ordering carries two invariants:
                 // - Write BEFORE clear: the response to a `userAttributesUpdated: true`
                 //   request carries the re-evaluation that flag asked for, so a write that
                 //   did not land must skip the clear entirely - the flag survives and the

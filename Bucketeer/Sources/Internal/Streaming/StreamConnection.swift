@@ -14,12 +14,11 @@ struct StreamConnectionCallbacks {
 }
 
 /// Keeps exactly one healthy SSE connection open, reconnecting with backoff when it breaks.
-/// Port of the JS `StreamConnection.ts`.
 ///
 /// Not thread-safe: call it, and deliver its event sources' callbacks, on the serial SDK queue
 /// (the scheduler's queue). It never dispatches on its own, so its callbacks run on the
 /// caller's queue. Holds its closures strongly: callers pass `[weak self]` closures.
-/// Create a new one each time a stream opens, as JS `StreamingTask` does (in each `openStream()`).
+/// Create a new one each time a stream opens (`StreamingTask` does, in each `openStream()`).
 /// Don't `start()` a stopped one again: its unhealthy window and backoff carry over.
 final class StreamConnection {
     private let makeEventSource: () -> EventSource
@@ -170,7 +169,7 @@ final class StreamConnection {
     }
 
     /// Retries with backoff, bounded by the unhealthy window, whether or not the stream ever
-    /// opened. After giving up, nothing is scheduled and `isActive` stays true, as in JS.
+    /// opened. After giving up, nothing is scheduled and `isActive` stays true.
     private func scheduleReconnect() {
         closeEventSource()
         guard isActive else { return }

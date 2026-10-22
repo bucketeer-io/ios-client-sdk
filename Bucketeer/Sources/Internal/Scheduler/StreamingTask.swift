@@ -1,14 +1,14 @@
 import Foundation
 
 /// Keeps evaluations up to date over the SSE stream, falling back to polling while the stream
-/// is down and trying the stream again after 5 minutes. Port of the JS `StreamingTask.ts`.
+/// is down and trying the stream again after 5 minutes.
 /// `TaskScheduler` uses it in place of `EvaluationForegroundTask` when streaming is enabled.
 ///
-/// Differences from JS:
+/// Lifecycle:
 /// - The stream opens only after `enable()` (called after the initial fetch), the same switch
 ///   `EvaluationForegroundTask` uses. A stream failing fast during init would otherwise start a
 ///   fallback fetch next to the init fetch.
-/// - `TaskScheduler` reuses this object across background/foreground (JS builds a new one), so:
+/// - `TaskScheduler` reuses this object across background/foreground, so:
 ///   `start()` while running does nothing, `terminalFailure` survives `stop()`/`start()`, and
 ///   every `openStream()` builds a new `StreamConnection`.
 ///
@@ -34,7 +34,7 @@ final class StreamingTask: ScheduledTask {
     /// actually carried these attributes can clear the flag they belong to.
     private var lastRequestAttributesState: UserAttributesState?
     /// Set on a terminal failure (bad API key, streaming unsupported). Never reset: only destroy +
-    /// initialize brings streaming back, as in JS.
+    /// initialize brings streaming back.
     private var terminalFailure = false
     /// The merged reconnect waiting to run, see `onUserAttributesUpdated()`.
     private var pendingReconnect: DispatchWorkItem?

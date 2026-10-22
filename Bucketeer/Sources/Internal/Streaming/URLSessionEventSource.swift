@@ -1,6 +1,6 @@
 import Foundation
 
-/// One SSE connection attempt over a dedicated `URLSession`. Port of the JS `FetchEventSource`.
+/// One SSE connection attempt over a dedicated `URLSession`.
 ///
 /// Not thread-safe: call it on the serial SDK queue, the same queue passed to `init`. URLSession
 /// delivers its delegate callbacks on that queue, so `readyState` and the parser need no lock.
@@ -50,8 +50,8 @@ final class URLSessionEventSource: NSObject, EventSource, URLSessionDataDelegate
     }
 
     /// A copy of `request` with the stream timeout and the SSE default headers. Headers the caller
-    /// already set win, as in JS. The method is left as is: a `URLRequest` starts as GET, so "not
-    /// set" can't be told apart from GET, and the caller sets POST.
+    /// already set win. The method is left as is: a `URLRequest` starts as GET, so "not set"
+    /// can't be told apart from GET, and the caller sets POST.
     static func prepareRequest(_ request: URLRequest) -> URLRequest {
         var prepared = request
         prepared.timeoutInterval = Constant.Streaming.REQUEST_TIMEOUT_SECONDS
@@ -130,8 +130,7 @@ final class URLSessionEventSource: NSObject, EventSource, URLSessionDataDelegate
         // Covers the cancelled completion after close() and after a non-2xx `.cancel`.
         guard readyState != .closed else { return }
         readyState = .closed
-        // A normal end of stream (no error) also reports nil: the caller treats it as a retry,
-        // as in JS.
+        // A normal end of stream (no error) also reports nil: the caller treats it as a retry.
         onError?(nil)
     }
 
