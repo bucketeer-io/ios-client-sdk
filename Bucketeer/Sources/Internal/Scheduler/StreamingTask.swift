@@ -98,10 +98,11 @@ final class StreamingTask: ScheduledTask {
         }
     }
 
-    /// Called by `TaskScheduler` when the user attributes change. A burst of calls (several
-    /// attributes set at login) becomes one `reconnect()`, 200ms after the last call. JS keeps
-    /// this merge in its TaskScheduler with a plain setTimeout; here it uses the task's own
-    /// scheduler, the only timer tests can control, so the task owns it.
+    /// Called by `TaskScheduler` when the user attributes change. Each reconnect closes the
+    /// stream and opens a new one, which downloads all evaluations again. So a burst of calls
+    /// (several attributes set at login) becomes one `reconnect()`, sent
+    /// `RECONNECT_DEBOUNCE_MILLIS` after the last call. The wait runs on the task's own
+    /// scheduler, so tests can control it.
     func onUserAttributesUpdated() {
         queue.async { [weak self] in
             // Same check as reconnect(), so no timer is armed for a reconnect that would do nothing.
