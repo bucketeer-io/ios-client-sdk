@@ -94,7 +94,8 @@ final class EvaluationStorageTests: XCTestCase {
             evaluationMemCacheDao: EvaluationMemCacheDao(),
             evaluationUserDefaultsDao: mockUserDefsDao
         )
-        try storage.deleteAllAndInsert(evaluationId:"evaluationId_1", evaluations: [.mock1, .mock2], evaluatedAt: "1024")
+        let result = try storage.deleteAllAndInsert(evaluationId:"evaluationId_1", evaluations: [.mock1, .mock2], evaluatedAt: "1024")
+        XCTAssertEqual(result, .landed(shouldNotify: true), "a non-stale write must land")
         let expected = try storage.get()
         XCTAssertEqual(expected, [.mock1, .mock2])
         XCTAssertEqual(storage.evaluatedAt, "1024", "should save last evaluatedAt")
@@ -197,7 +198,7 @@ final class EvaluationStorageTests: XCTestCase {
             ],
             evaluatedAt: "1024"
         )
-        XCTAssertTrue(result, "update action should success")
+        XCTAssertEqual(result, .landed(shouldNotify: true), "update action should success")
         XCTAssertEqual(storage.evaluatedAt, "1024", "evaluatedAt should be 1024")
         XCTAssertEqual(
             Set(try storage.get()),
@@ -235,7 +236,7 @@ final class EvaluationStorageTests: XCTestCase {
             archivedFeatureIds: [Evaluation.mock1.featureId],
             evaluatedAt: "1024"
         )
-        XCTAssertTrue(result, "update action should success")
+        XCTAssertEqual(result, .landed(shouldNotify: true), "update action should success")
         XCTAssertEqual(storage.evaluatedAt, "1024", "should save last evaluatedAt")
         XCTAssertEqual(storage.currentEvaluationsId, "evaluationIdForTest")
         XCTAssertTrue(storage.userAttributesState.isUpdated)
