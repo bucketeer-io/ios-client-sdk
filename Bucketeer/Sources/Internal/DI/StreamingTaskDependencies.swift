@@ -41,7 +41,11 @@ final class StreamingTaskDependenciesImpl: StreamingTaskDependencies {
     /// Created enabled: the stream only opens after the initial fetch, so the fallback never
     /// waits for `TaskScheduler.enableEvaluationTask()`.
     func makeFallbackTask() -> StreamingFallbackTask {
-        return EvaluationForegroundTask(component: component, queue: queue, enabled: true)
+        let task = EvaluationForegroundTask(component: component, queue: queue)
+        // Must enable here: the task starts disabled, and enableEvaluationTask() only reaches
+        // the tasks in foregroundSchedulers, not this one. Without it, every poll is skipped.
+        task.enable()
+        return task
     }
 
     func makeBackoff() -> StreamBackoff {

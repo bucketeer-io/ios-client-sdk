@@ -180,22 +180,8 @@ final class EvaluationForegroundTaskTests: XCTestCase {
         wait(for: [firstTick], timeout: 3)
     }
 
-    // iOS only: the streaming fallback starts after the initial fetch, so it is created
-    // already enabled instead of waiting for TaskScheduler.enableEvaluationTask().
-    func testCreatedEnabledFetchesWithoutEnable() {
-        let firstTick = expectation(description: "fetch on the first tick")
-        let recorder = FetchTimeRecorder(expectations: [firstTick])
-        let task = makeTask(pollingInterval: 1000, recorder: recorder, enabled: true)
-        defer { task.stop() }
-
-        task.start()
-
-        wait(for: [firstTick], timeout: 3)
-    }
-
     private func makeTask(pollingInterval: Int64,
-                          recorder: FetchTimeRecorder,
-                          enabled: Bool = false) -> EvaluationForegroundTask {
+                          recorder: FetchTimeRecorder) -> EvaluationForegroundTask {
         let evaluationInteractor = MockEvaluationInteractor(
             fetchHandler: { _, _, completion in
                 recorder.record()
@@ -215,8 +201,7 @@ final class EvaluationForegroundTaskTests: XCTestCase {
         )
         return EvaluationForegroundTask(
             component: component,
-            queue: DispatchQueue(label: "io.bucketeer.test.EvaluationForegroundTask"),
-            enabled: enabled
+            queue: DispatchQueue(label: "io.bucketeer.test.EvaluationForegroundTask")
         )
     }
 }

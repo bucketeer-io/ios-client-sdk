@@ -23,13 +23,11 @@ final class EvaluationForegroundTask: ScheduledTask {
     init(component: Component,
          queue: DispatchQueue,
          retryPollingInterval: Int64 = Constant.RETRY_POLLING_INTERVAL,
-         maxRetryCount: Int = Constant.MAX_RETRY_COUNT,
-         enabled: Bool = false) {
+         maxRetryCount: Int = Constant.MAX_RETRY_COUNT) {
         self.component = component
         self.queue = queue
         self.retryPollingInterval = retryPollingInterval
         self.maxRetryCount = maxRetryCount
-        self._isTaskEnabled = enabled
     }
 
     /// Enables the task so the next poller tick will execute a fetch.
