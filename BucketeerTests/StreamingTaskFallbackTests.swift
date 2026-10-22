@@ -188,7 +188,7 @@ final class StreamingTaskFallbackTests: XCTestCase {
         XCTAssertEqual(h.sources.count, 1)
     }
 
-    // iOS only: BKTClient.destroy() calls stop() through TaskScheduler.invalidate() and then drops
+    // BKTClient.destroy() calls stop() through TaskScheduler.invalidate() and then drops
     // the scheduler, so the task can be released before stop()'s queued cleanup runs. The
     // cleanup must still close the stream: URLSession keeps its delegate (the event source)
     // alive until it is invalidated, so an unclosed stream would stay open after destroy.

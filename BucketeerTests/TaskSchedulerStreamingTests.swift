@@ -57,7 +57,7 @@ final class TaskSchedulerStreamingTests: XCTestCase {
 
     // MARK: - enableEvaluationTask()
 
-    // iOS only: the stream waits for the initial fetch, through the same switch polling uses.
+    // The stream waits for the initial fetch, through the same switch polling uses.
     func testEnableEvaluationTaskEnablesStreamingTask() {
         let scheduler = makeScheduler(enableStreaming: true)
         drain()
@@ -113,7 +113,7 @@ final class TaskSchedulerStreamingTests: XCTestCase {
         XCTAssertEqual(sources.count, 1)
     }
 
-    // iOS only: the app can update attributes while the initial fetch is still running. The
+    // The app can update attributes while the initial fetch is still running. The
     // stream enable() opens already carries them, so no reconnect may follow when the initial
     // fetch ends within the 200ms.
     func testUserAttributesUpdateBeforeEnableDoesNotReconnectAfterTheOpen() {
@@ -143,7 +143,7 @@ final class TaskSchedulerStreamingTests: XCTestCase {
         XCTAssertEqual(sources.count, 1)
     }
 
-    // MARK: - App lifecycle (iOS only)
+    // MARK: - App lifecycle
 
     // The reuse trap, through the real notifications: the same StreamingTask comes back on
     // foreground, and it must open a new stream instead of reusing the closed one. The

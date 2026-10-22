@@ -226,8 +226,8 @@ final class StreamConnectionTimingTests: XCTestCase {
         XCTAssertEqual(h.sources.count, 3)
         XCTAssertFalse(try XCTUnwrap(h.latest).closed)
 
-        // iOS addition: without a drop, a window that was never cleared can't show. At t=360 a
-        // single drop must reconnect, not give up for "360s unhealthy since t=0".
+        // Without a drop, a window that was never cleared can't show. At t=360 a single drop
+        // must reconnect, not give up for "360s unhealthy since t=0".
         try XCTUnwrap(h.latest).simulateError()
         h.advance(1_000)
         XCTAssertEqual(h.errors, [])
@@ -276,7 +276,7 @@ final class StreamConnectionTimingTests: XCTestCase {
         XCTAssertEqual(h.sources.count, 3, "still 2s: a 5s connection is not stable")
     }
 
-    /// iOS only. In the test above the next open replaces the reset timer before it is due, so
+    /// In the test above the next open replaces the reset timer before it is due, so
     /// it can't show whether a drop cancels it. Here the connection drops at t=59 and the retry
     /// fails before opening: the dead connection's timer must not reset the backoff at t=60.
     func testDropJustBefore60SecondsDoesNotResetBackoffLater() throws {

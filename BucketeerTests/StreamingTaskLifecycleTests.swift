@@ -57,7 +57,7 @@ final class StreamingTaskLifecycleTests: XCTestCase {
         XCTAssertEqual(h.clearCalls, [])
     }
 
-    // iOS only: updateUserAttributes() runs on the app's thread, while the request is built on
+    // updateUserAttributes() runs on the app's thread, while the request is built on
     // the SDK queue. The attributes state must be captured before the user is read. Then a
     // change in between can only make the captured state older than the attributes sent, which
     // leaves the flag set (safe). The other order could clear the flag for attributes the

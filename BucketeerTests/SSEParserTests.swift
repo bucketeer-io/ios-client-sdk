@@ -119,7 +119,7 @@ final class SSEParserTests: XCTestCase {
         ])
     }
 
-    /// iOS-specific: an empty chunk arriving between a trailing "\r" and the following "\n"
+    /// An empty chunk arriving between a trailing "\r" and the following "\n"
     /// must not produce two line breaks. The pending-CR flag must survive an empty append.
     func testEmptyChunkBetweenSplitCRLFDoesNotDuplicateLineBreak() {
         let events = parse(["data: a\r", "", "\ndata: b\r\n\r\n"])
@@ -171,7 +171,7 @@ final class SSEParserTests: XCTestCase {
         XCTAssertEqual(events, [SSEEvent(name: "message", data: value)])
     }
 
-    // MARK: - Bytes and encoding (iOS-specific: Data buffering, not String buffering)
+    // MARK: - Bytes and encoding (Data buffering, not String buffering)
 
     func testMultiByteUTF8CharactersSplitAcrossOneByteChunks() {
         // "日本€" straddles multiple UTF-8 byte sequences (3+3+3 bytes). Feeding this one

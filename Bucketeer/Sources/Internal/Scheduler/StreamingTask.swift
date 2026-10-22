@@ -82,7 +82,7 @@ final class StreamingTask: ScheduledTask {
         }
     }
 
-    /// Reconnects now so the stream sends the new user attributes. Called after the 200ms merge in
+    /// Reconnects now so the stream sends the new user attributes. Called after the merge in
     /// `onUserAttributesUpdated()`.
     func reconnect() {
         queue.async { [weak self] in
@@ -99,9 +99,9 @@ final class StreamingTask: ScheduledTask {
     }
 
     /// Called by `TaskScheduler` when the user attributes change. Each reconnect closes the
-    /// stream and opens a new one, which downloads all evaluations again. So a burst of calls
-    /// (several attributes set at login) becomes one `reconnect()`, sent
-    /// `RECONNECT_DEBOUNCE_MILLIS` after the last call. The wait runs on the task's own
+    /// stream and opens a new one, and the server re-evaluates every flag that has targeting
+    /// rules. So a burst of calls (several attributes set at login) becomes one `reconnect()`,
+    /// sent `RECONNECT_DEBOUNCE_MILLIS` after the last call. The wait runs on the task's own
     /// scheduler, so tests can control it.
     func onUserAttributesUpdated() {
         queue.async { [weak self] in
@@ -156,7 +156,7 @@ final class StreamingTask: ScheduledTask {
                 }
                 return try self.buildRequest()
             },
-            // Backend event names: `put` is the full snapshot sent after connecting, `patch` a
+            // Backend event names: `put` is the evaluations sent after connecting, `patch` a
             // change, `error` a server error reported right before it closes the stream.
             events: [
                 "put": { [weak self] data in self?.handleData(data) },

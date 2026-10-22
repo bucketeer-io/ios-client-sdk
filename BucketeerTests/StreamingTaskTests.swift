@@ -183,7 +183,7 @@ final class StreamingTaskTests: XCTestCase {
         XCTAssertEqual(h.applied.count, 1)
     }
 
-    // On iOS, stop() closes the connection on the queue, after which the connection drops every
+    // stop() closes the connection on the queue, after which the connection drops every
     // callback on its own. So the case that matters is data already waiting in the queue when
     // stop() is called: it runs before stop()'s queue block, against the still-open connection.
     // The task must drop it, because stop() marks the task stopped right away.

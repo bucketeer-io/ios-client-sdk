@@ -128,10 +128,10 @@ final class EvaluationInteractorStaleFetchTests: XCTestCase {
     /// Issue: a full-snapshot reply (`forceUpdate: true`, written by `deleteAllAndInsert`)
     /// that the staleness guard skips must not clear the flag.
     ///
-    /// A request with the flag on is expected to get a full snapshot back, so this is the
-    /// most likely shape of the skipped reply. For this reply
-    /// type, `deleteAllAndInsert` reports the skip as `.skippedStale`, and `fetch` must keep
-    /// the flag on in that case instead of clearing it.
+    /// The server sends a full snapshot when the SDK has no cached data, the cache is over 30
+    /// days old, or no flag needs re-evaluating. For this reply type, `deleteAllAndInsert`
+    /// reports the skip as `.skippedStale`, and `fetch` must keep the flag on in that case
+    /// instead of clearing it.
     ///
     /// Setup: storage holds data stamped "1690798100". The app changes attributes (flag
     /// on), then polls. The reply is stamped "1690798021", which is older.

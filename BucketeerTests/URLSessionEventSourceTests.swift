@@ -4,7 +4,7 @@ import XCTest
 /// `URLSessionEventSource` against a scripted server (`MockURLProtocol`).
 ///
 /// Parsing cases ("event: patch", multi-line data, CRLF framing and splits, blank-line splits, a
-/// stream ending mid multi-byte character) are covered by `SSEParserTests`, not here.
+/// multi-byte character split across chunks) are covered by `SSEParserTests`, not here.
 final class URLSessionEventSourceTests: XCTestCase {
     private var harnesses: [URLSessionEventSourceHarness] = []
 
@@ -200,7 +200,7 @@ final class URLSessionEventSourceTests: XCTestCase {
         XCTAssertEqual(MockURLProtocol.lastRequest?.value(forHTTPHeaderField: "Accept"), "text/event-stream")
     }
 
-    /// iOS only. URLSession's default 60s idle timeout would fire before the 70s watchdog.
+    /// URLSession's default 60s idle timeout would fire before the 70s watchdog.
     func testPrepareRequestSetsTheStreamTimeout() {
         let request = URLSessionEventSourceHarness.request()
         XCTAssertEqual(request.timeoutInterval, 60)
@@ -208,8 +208,7 @@ final class URLSessionEventSourceTests: XCTestCase {
         XCTAssertEqual(URLSessionEventSource.prepareRequest(request).timeoutInterval, 90)
     }
 
-    /// iOS only. All connection state lives on the serial SDK queue, so every callback must
-    /// arrive there.
+    /// All connection state lives on the serial SDK queue, so every callback must arrive there.
     func testCallbacksRunOnTheEventSourceQueue() {
         let h = run([.response(status: 200), .data("event: put\ndata: {}\n\ndata: {}\n\n"), .finish], listeners: ["put"])
 
@@ -217,7 +216,7 @@ final class URLSessionEventSourceTests: XCTestCase {
         XCTAssertEqual(h.read { $0.offQueueCallbacks }, 0)
     }
 
-    /// iOS only. A `URLSession` holds its delegate until it is invalidated, so without
+    /// A `URLSession` holds its delegate until it is invalidated, so without
     /// `invalidateAndCancel()` in `close()` the event source would never be freed.
     func testEventSourceIsReleasedAfterClose() {
         let h = makeHarness([.response(status: 200)])
@@ -239,7 +238,7 @@ final class URLSessionEventSourceTests: XCTestCase {
         wait(for: [released], timeout: 2)
     }
 
-    /// iOS only.
+    /// The session configuration: a 90s request timeout, no cache, and no waiting for a network.
     func testDefaultConfiguration() {
         let configuration = URLSessionEventSource.makeConfiguration()
 
