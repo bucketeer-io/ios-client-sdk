@@ -183,7 +183,7 @@ final class StreamingTaskLifecycleTests: XCTestCase {
 
     // MARK: - iOS lifecycle: the same task across foreground/background
 
-    // TaskScheduler calls start() in its init and again on every didActivate notification.
+    // TaskScheduler calls start() in its init and again on every willEnterForeground notification.
     func testStartTwiceOpensOneStream() {
         h.startEnabled()
         h.start()
