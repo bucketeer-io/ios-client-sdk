@@ -40,6 +40,9 @@ xcconfig=$(cat << EOF
 SLASH = /
 API_ENDPOINT = https:\$(SLASH)/${API_ENDPOINT}
 API_KEY = ${API_KEY}
+// SSE streaming. NO matches the SDK default (enableStreaming).
+// Set to YES to try real-time flag updates in the Example app.
+ENABLE_STREAMING = NO
 EOF
 )
 
