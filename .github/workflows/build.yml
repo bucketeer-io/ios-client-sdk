@@ -10,7 +10,8 @@ on:
       - main
 
 env:
-  XCODE_VERSION: '16.2'
+  XCODE_VERSION: '16.4'
+  SIMULATOR_OS: '18.5'
 
 jobs:
   generate-xcode-project:
@@ -18,7 +19,7 @@ jobs:
 
   build:
     needs: generate-xcode-project
-    runs-on: macos-14-xlarge
+    runs-on: macos-15-xlarge
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
 
@@ -38,7 +39,7 @@ jobs:
 
   build-example:
     needs: generate-xcode-project
-    runs-on: macos-14-xlarge
+    runs-on: macos-15-xlarge
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
 
@@ -64,7 +65,7 @@ jobs:
 
   unit-test:
     needs: generate-xcode-project
-    runs-on: macos-14-xlarge
+    runs-on: macos-15-xlarge
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
 

@@ -16,9 +16,14 @@ EXAMPLE_OPTIONS=\
 	-scheme Example
 
 DESTINATION_IPHONE=-destination "name=$(DEVICE)"
-# Destination for iOS Simulator - using platform and name without specific OS version
-# This will match any available iPhone 16 simulator regardless of OS version
+# CI sets SIMULATOR_OS. macos-15 runners no longer ship the iOS 18.2 runtime
+# that Xcode 16.2 used, and iOS 18.4 simulator networking is broken.
+SIMULATOR_OS ?=
+ifeq ($(SIMULATOR_OS),)
 DESTINATION=-destination 'platform=iOS Simulator,name=iPhone 16'
+else
+DESTINATION=-destination 'platform=iOS Simulator,name=iPhone 16,OS=$(SIMULATOR_OS)'
+endif
 
 CLEAN=rm -rf build
 SHOW_BUILD_SETTINGS=$(XCODEBUILD) $(BUILD_SETTINGS) $(OPTIONS) $(DESTINATION) \
