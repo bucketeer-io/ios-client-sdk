@@ -18,30 +18,30 @@ class ApiClientLatencyTests: XCTestCase {
 
     // MARK: - timer-level invariants
 
-    /// Two consecutive `Date()` reads, separated by trivial work, must give
-    /// a strictly positive `timeIntervalSince`. With `Date.now()` (Node) or
-    /// `System.currentTimeMillis()` (Android) this assertion would fail
-    /// most of the time on modern hardware; with `Date()` it must always
-    /// pass because the underlying clock is sub-microsecond.
+    /// Two consecutive `Date()` reads, separated by trivial work, must not
+    /// behave like `Date.now()` (Node) or `System.currentTimeMillis()`
+    /// (Android), which stay at 0 for most samples. The iOS 18.5 simulator
+    /// can return the same timestamp for one pair; a millisecond clock
+    /// returns 0 for most of them.
     func testTimeIntervalSinceIsStrictlyPositiveForFastWork() {
-        var failingIndex: Int?
-        var failingValue: TimeInterval = 0
-        for i in 0..<1_000 {
+        let samples = 1_000
+        var zeroCount = 0
+        for _ in 0..<samples {
             let start = Date()
             // mimic the kind of trivial work the SDK does between the two
             // `Date()` reads (object alloc, a few arithmetic ops). This
             // takes nanoseconds at most.
             _ = (0..<10).reduce(0, +)
             let elapsed = Date().timeIntervalSince(start)
-            if elapsed <= 0 {
-                failingIndex = i
-                failingValue = elapsed
-                break
+            XCTAssertGreaterThanOrEqual(elapsed, 0)
+            if elapsed == 0 {
+                zeroCount += 1
             }
         }
-        XCTAssertNil(
-            failingIndex,
-            "Date.timeIntervalSince must be > 0 for any real work; got \(failingValue) at iteration \(failingIndex ?? -1)"
+        XCTAssertLessThan(
+            zeroCount,
+            samples / 2,
+            "Date.timeIntervalSince was 0 for \(zeroCount)/\(samples) samples; that is millisecond rounding"
         )
     }
 
